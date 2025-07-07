@@ -1,0 +1,49 @@
+{
+  "name": "portfolio",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "postinstall": "chmod +x node_modules/.bin/vite",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@gsap/react": "^2.1.2",
+    "@heroicons/react": "^2.2.0",
+    "@tailwindcss/vite": "^4.0.3",
+    "@vercel/analytics": "^1.5.0",
+    "framer-motion": "^12.4.7",
+    "gsap": "^3.12.7",
+    "lenis": "^1.1.20",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-archer": "^4.4.0",
+    "react-confetti": "^6.2.3",
+    "react-dom": "^18.3.1",
+    "react-helmet": "^6.1.0",
+    "react-icons": "^5.5.0",
+    "react-intersection-observer": "^9.15.1",
+    "react-slick": "^0.30.3",
+    "react-spinners": "^0.15.0",
+    "react-use": "^17.6.0",
+    "slick-carousel": "^1.8.1",
+    "swiper": "^11.2.10",
+    "tailwind-scrollbar": "^4.0.0",
+    "tailwindcss": "^4.0.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.17.0",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
+    "globals": "^15.14.0",
+    "vite": "^6.1.1"
+  }
+}

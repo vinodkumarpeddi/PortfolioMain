@@ -1,0 +1,51 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradientV" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF512F; stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FDCB82; stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#DD2476; stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="radialV" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" style="stop-color:#00C6FF; stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0072FF; stop-opacity:1" />
+    </radialGradient>
+    <filter id="glowEffect" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="16" result="blur"/>
+      <feBlend in="SourceGraphic" in2="blur" mode="screen"/>
+    </filter>
+    <filter id="brightGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="20" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 20 -10" result="glow"/>
+      <feBlend in="SourceGraphic" in2="glow" mode="screen"/>
+    </filter>
+    <!-- Animation for glowing effect -->
+    <animate id="pulse" attributeName="r" values="22;25;22" dur="2s" keyTimes="0;0.5;1" repeatCount="indefinite"/>
+    <animate id="sparklePulse" attributeName="r" values="7;10;7" dur="1.5s" keyTimes="0;0.5;1" repeatCount="indefinite"/>
+  </defs>
+
+  <!-- Left Curve with Gradient and Intense Glow -->
+  <path d="M40 50 C50 120, 110 130, 120 50" stroke="url(#gradientV)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" filter="url(#brightGlow)">
+    <animate attributeName="stroke-width" values="18;22;18" dur="2s" keyTimes="0;0.5;1" repeatCount="indefinite"/>
+  </path>
+
+  <!-- Right Curve with Radial Gradient and Intense Glow -->
+  <path d="M40 50 C50 170, 110 180, 120 50" stroke="url(#radialV)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" filter="url(#brightGlow)">
+    <animate attributeName="stroke-width" values="18;22;18" dur="2s" keyTimes="0;0.5;1" repeatCount="indefinite"/>
+  </path>
+
+  <!-- Inner Glow Circle with Pulse Animation -->
+  <circle cx="100" cy="150" r="22" fill="url(#radialV)" filter="url(#brightGlow)">
+    <animate attributeName="r" values="22;25;22" dur="2s" keyTimes="0;0.5;1" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Sparkles with Enhanced Glow and Animation -->
+  <circle cx="70" cy="40" r="7" fill="white" opacity="0.9" filter="url(#brightGlow)">
+    <animate attributeName="r" values="7;10;7" dur="1.5s" keyTimes="0;0.5;1" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="120" cy="40" r="7" fill="white" opacity="0.9" filter="url(#brightGlow)">
+    <animate attributeName="r" values="7;10;7" dur="1.5s" keyTimes="0;0.5;1" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="95" cy="120" r="5" fill="white" opacity="0.9" filter="url(#brightGlow)">
+    <animate attributeName="r" values="5;8;5" dur="1.5s" keyTimes="0;0.5;1" repeatCount="indefinite"/>
+  </circle>
+</svg>

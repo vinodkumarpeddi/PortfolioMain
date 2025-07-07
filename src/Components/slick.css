@@ -1,0 +1,19 @@
+/* Custom Dot Style */
+.slick-dots {
+    bottom: 0px; /* Adjust the vertical positioning of the dots */
+  }
+  
+  .slick-dots .custom-dot {
+    width: 10px; /* Normal dot size */
+    height: 10px;
+    margin: 0 5px;
+    background-color: #ccc; /* Inactive dot color */
+    border-radius: 50%;
+    transition: width 0.3s ease, background-color 0.3s ease;
+  }
+  
+  .slick-dots .slick-active .custom-dot {
+    width: 20px; /* Larger width for active dot */
+    background-color: #007bff; /* Active dot color */
+  }
+  
