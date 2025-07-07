@@ -13,7 +13,6 @@ import { useGSAP } from '@gsap/react';
 import CertificatesPage from './Components/Certs';
 import EducationTimeline from './Components/EducationTimeline';
 import SplashScreen from './Components/splash'; // Ensure correct file name
-import { Analytics } from "@vercel/analytics/next"
 
 
 gsap.registerPlugin(ScrollTrigger); // ✅ Only register ScrollTrigger
