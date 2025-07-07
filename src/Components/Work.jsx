@@ -24,6 +24,8 @@ const Work = () => {
       projectLink: "https://power-x-fitness.vercel.app/login",
     },
     {
+
+      
       imgSrc: "project-2.jpg",
       title: "Resume Builder",
       tags: ["React.js", "Node.js", "MongoDB", "Express.js"],
