@@ -5,7 +5,7 @@ import ProjectCard from "./ProjectCard";
 const Work = () => {
   const works = [
    {
-  imgSrc: "coming-soon.jpg",
+  imgSrc: "p5.png",
   title: "Exam Seating Management",
   tags: ["MERN Stack", "Automation", "Admin Dashboard", "Development"],
   projectLink: "https://exam-seating-management.vercel.app/",
