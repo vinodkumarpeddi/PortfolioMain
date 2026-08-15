@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useRef, type MutableRefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, Lightformer, Sparkles } from "@react-three/drei";
+import { Environment, Lightformer, Sparkles, Trail } from "@react-three/drei";
 import * as THREE from "three";
 import type { HeroState } from "./HeroObject";
 
@@ -226,18 +226,25 @@ type V3 = [number, number, number];
 type Pose = {
   hipsY: number; lean: number; spin: number; rise: number;
   hips: V3; torso: V3; head: V3; lArm: V3; rArm: V3; lFore: V3; rFore: V3; lLeg: V3; rLeg: V3; lShin: number; rShin: number;
+  hatTilt: number; hatMode: 0 | 1 | 2; // 0 on the head · 1 in the right hand · 2 in the air
+};
+const TAU = Math.PI * 2;
+const spinTo = (a: number, b: number, m: number) => {
+  const d = ((((b - a) % TAU) + TAU * 1.5) % TAU) - Math.PI;
+  return a + d * m;
 };
 const l3 = (a: V3, b: V3, m: number): V3 => [a[0] + (b[0] - a[0]) * m, a[1] + (b[1] - a[1]) * m, a[2] + (b[2] - a[2]) * m];
 const l1 = (a: number, b: number, m: number) => a + (b - a) * m;
 function mixPose(a: Pose, b: Pose, m: number): Pose {
   return {
-    hipsY: l1(a.hipsY, b.hipsY, m), lean: l1(a.lean, b.lean, m), spin: l1(a.spin, b.spin, m), rise: l1(a.rise, b.rise, m),
+    hipsY: l1(a.hipsY, b.hipsY, m), lean: spinTo(a.lean, b.lean, m), spin: spinTo(a.spin, b.spin, m), rise: l1(a.rise, b.rise, m),
+    hatTilt: l1(a.hatTilt, b.hatTilt, m), hatMode: m < 0.5 ? a.hatMode : b.hatMode,
     hips: l3(a.hips, b.hips, m), torso: l3(a.torso, b.torso, m), head: l3(a.head, b.head, m),
     lArm: l3(a.lArm, b.lArm, m), rArm: l3(a.rArm, b.rArm, m), lFore: l3(a.lFore, b.lFore, m), rFore: l3(a.rFore, b.rFore, m),
     lLeg: l3(a.lLeg, b.lLeg, m), rLeg: l3(a.rLeg, b.rLeg, m), lShin: l1(a.lShin, b.lShin, m), rShin: l1(a.rShin, b.rShin, m),
   };
 }
-const REST: Pose = { hipsY: 0.9, lean: 0, spin: 0, rise: 0, hips: [0, 0, 0], torso: [0, 0, 0], head: [0, 0, 0], lArm: [0, 0, -0.12], rArm: [0, 0, 0.12], lFore: [0, 0, 0], rFore: [0, 0, 0], lLeg: [0, 0, 0.04], rLeg: [0, 0, -0.04], lShin: 0, rShin: 0 };
+const REST: Pose = { hipsY: 0.9, lean: 0, spin: 0, rise: 0, hatTilt: 0, hatMode: 0, hips: [0, 0, 0], torso: [0, 0, 0], head: [0, 0, 0], lArm: [0, 0, -0.12], rArm: [0, 0, 0.12], lFore: [0, 0, 0], rFore: [0, 0, 0], lLeg: [0, 0, 0.04], rLeg: [0, 0, -0.04], lShin: 0, rShin: 0 };
 const sm = (x: number) => THREE.MathUtils.smoothstep(x, 0, 1);
 // b: beats elapsed · inBar: 0..8 within the current bar
 function billieJean(b: number, inBar: number): Pose {
@@ -401,6 +408,99 @@ function spinKick(inBar: number): Pose {
     lLeg: [0, 0, 0.05], rLeg: [-kick * 1.75 - point * 0.35, 0, -0.05], lShin: 0.05, rShin: point * 0.9,
   };
 }
+function hatShow(b: number, inBar: number): Pose {
+  // 0–2 brim down, head bowed (the opening) · 2–3 hat to hand, arm sweeps out · 3–5.4 toss, spin and catch · 5.4–8 tilt and point
+  const sB = Math.sin(b * Math.PI);
+  const bow = 1 - sm((inBar - 1.6) / 0.6);
+  const toHand = sm((inBar - 2) / 0.4) * (1 - sm((inBar - 5.4) / 0.3));
+  const sweep = sm((inBar - 2.3) / 0.7) * (1 - sm((inBar - 3) / 0.4));
+  const up = sm((inBar - 3) / 0.4) * (1 - sm((inBar - 5.2) / 0.5));
+  const point = sm((inBar - 5.8) / 0.6);
+  const hatMode: 0 | 1 | 2 = inBar >= 3.1 && inBar < 5.4 ? 2 : inBar >= 2.2 && inBar < 3.1 ? 1 : 0;
+  return {
+    ...REST, hatTilt: bow + point * 0.35, hatMode,
+    hipsY: 0.88 - bow * 0.03, hips: [bow * 0.1, point * 0.25, sB * 0.05 * (1 - bow)], torso: [bow * 0.35 - up * 0.1, -point * 0.2, -point * 0.15],
+    head: [bow * 0.55 - up * 0.45 - point * 0.15, point * 0.35, 0],
+    lArm: [bow * 0.15, 0, -0.18 - up * 0.6 - point * 0.3], lFore: [-bow * 0.2, 0, -0.1],
+    rArm: [-toHand * 1.4 - up * 1.4 - point * 1.5, 0, 0.18 + sweep * 1.5 + up * 0.9 + point * 0.4],
+    rFore: [-toHand * 1.5 + up * 1.2 - point * 0.1, 0, sweep * 0.5 + up * 0.5],
+    lLeg: [0, 0, 0.06 + point * 0.25], rLeg: [-point * 0.3, 0, -0.06], lShin: 0.05, rShin: point * 0.9,
+  };
+}
+function naatu(b: number): Pose {
+  // the hook step: elbows hooked at the chest, hopping, legs flicking out to the side on every beat
+  const hb = b * 2, hs = Math.sin(hb * Math.PI), hop = Math.abs(hs);
+  const even = Math.floor(b) % 2 === 0;
+  const u = b - Math.floor(b);
+  const flick = Math.sin(u * Math.PI);
+  const lOut = even ? flick : 0, rOut = even ? 0 : flick;
+  return {
+    ...REST, hipsY: 0.8 + hop * 0.12, hips: [0.15, (even ? 1 : -1) * flick * 0.15, (rOut - lOut) * 0.12], torso: [0.25, (even ? -1 : 1) * flick * 0.2, (lOut - rOut) * 0.12],
+    head: [-0.1, (even ? 1 : -1) * flick * 0.3, hs * 0.08],
+    lArm: [-0.55, 0, -0.85 + hop * 0.15], lFore: [-2.0 - hop * 0.2, 0, -0.5], rArm: [-0.55, 0, 0.85 - hop * 0.15], rFore: [-2.0 - hop * 0.2, 0, 0.5],
+    lLeg: [-0.2 + lOut * 0.2, 0, 0.1 + lOut * 1.0], rLeg: [-0.2 + rOut * 0.2, 0, -0.1 - rOut * 1.0],
+    lShin: 0.6 * (1 - lOut) + rOut * 0.4, rShin: 0.6 * (1 - rOut) + lOut * 0.4,
+  };
+}
+function bhangra(b: number): Pose {
+  // shoulders bouncing, one arm up one arm bent, hopping with a raised knee, swapping every beat
+  const hb = b * 2, hop = Math.abs(Math.sin(hb * Math.PI));
+  const even = Math.floor(b) % 2 === 0, k = sm((b - Math.floor(b)) / 0.25);
+  const sw = even ? 1 - k : k; // 1 = left arm up / right knee up
+  return {
+    ...REST, hipsY: 0.85 + hop * 0.14, hips: [0, (sw - 0.5) * 0.4, 0], torso: [-0.1, -(sw - 0.5) * 0.5, (sw - 0.5) * 0.25 + Math.sin(hb * Math.PI * 2) * 0.06],
+    head: [-0.15, (sw - 0.5) * 0.5, -(sw - 0.5) * 0.3],
+    lArm: [0, 0, l1(-0.4, -2.9, sw)], lFore: [0, 0, l1(-1.5, -0.2, sw)], rArm: [0, 0, l1(2.9, 0.4, sw)], rFore: [0, 0, l1(0.2, 1.5, sw)],
+    lLeg: [-l1(1.2, 0, sw), 0, 0.15], rLeg: [-l1(0, 1.2, sw), 0, -0.15], lShin: l1(1.5, 0.15, sw), rShin: l1(0.15, 1.5, sw),
+  };
+}
+function gangnam(b: number, inBar: number): Pose {
+  // horse ride: wrists crossed low, knees bouncing, feet stepping side to side; lasso overhead in the second half
+  const hb = b * 2, hop = Math.abs(Math.sin(hb * Math.PI));
+  const sB = Math.sin(b * Math.PI);
+  const lasso = sm((inBar - 4) / 0.5);
+  const la = b * Math.PI * 2;
+  return {
+    ...REST, hipsY: 0.78 + hop * 0.08, hips: [0.1, 0, sB * 0.08], torso: [0.15, sB * 0.15, 0], head: [-0.05, -sB * 0.2, 0],
+    lArm: [-0.9, 0, -0.25 + hop * 0.1], lFore: [-1.4, 0, 0.6],
+    rArm: lasso ? [-2.6 + Math.sin(la) * 0.3, 0, 0.5 + Math.cos(la) * 0.4] : [-0.9, 0, 0.25 - hop * 0.1], rFore: lasso ? [-0.6, 0, 0.6] : [-1.4, 0, -0.6],
+    lLeg: [-0.5, 0, 0.35 + Math.max(0, sB) * 0.3], rLeg: [-0.5, 0, -0.35 - Math.max(0, -sB) * 0.3], lShin: 1.0, rShin: 1.0,
+  };
+}
+function classical(b: number): Pose {
+  // aramandi: knees bent outward, feet stamping in double time; hands change mudra on the beat, head slides
+  const hb = b * 2, stamp = Math.abs(Math.sin(hb * Math.PI));
+  const even = Math.floor(b) % 2 === 0, k = sm((b - Math.floor(b)) / 0.3);
+  const sw = even ? 1 - k : k;
+  return {
+    ...REST, hipsY: 0.72 + stamp * 0.02, hips: [0, 0, 0], torso: [-0.05, 0, (sw - 0.5) * 0.15], head: [0, 0, Math.sin(b * Math.PI) * 0.35],
+    lArm: [0, 0, l1(-1.55, -2.5, sw)], lFore: [l1(0, -1.4, sw), 0, l1(0, -0.6, sw)], rArm: [0, 0, l1(2.5, 1.55, sw)], rFore: [l1(-1.4, 0, sw), 0, l1(0.6, 0, sw)],
+    lLeg: [-0.4, 0, 0.6], rLeg: [-0.4 - (even ? stamp : 0) * 0.3, 0, -0.6], lShin: 1.15 + (even ? 0 : stamp * 0.3), rShin: 1.15,
+  };
+}
+function salsa(b: number): Pose {
+  // quick step forward and back with rolling hips and flowing arms
+  const a = b * Math.PI, sB = Math.sin(a), q = Math.sin(a * 2);
+  return {
+    ...REST, hipsY: 0.87, hips: [0, sB * 0.25, q * 0.18], torso: [0.05, -sB * 0.35, -q * 0.15], head: [0, sB * 0.3, q * 0.08],
+    lArm: [-0.4 - sB * 0.6, 0, -0.5 - Math.max(0, q) * 0.5], lFore: [-1.2 + sB * 0.4, 0, -0.4], rArm: [-0.4 + sB * 0.6, 0, 0.5 + Math.max(0, -q) * 0.5], rFore: [-1.2 - sB * 0.4, 0, 0.4],
+    lLeg: [sB * 0.55, 0, 0.1], rLeg: [-sB * 0.55, 0, -0.1], lShin: Math.max(0, -sB) * 0.7, rShin: Math.max(0, sB) * 0.7,
+  };
+}
+function backflip(inBar: number): Pose {
+  // 0–2 build · 2–3 crouch · 3–4.6 flip · 4.6–8 land, arms out and hold
+  const crouch = sm((inBar - 2) / 0.8) * (1 - sm((inBar - 3) / 0.25));
+  const air = inBar >= 3 && inBar < 4.6 ? Math.sin(((inBar - 3) / 1.6) * Math.PI) : 0;
+  const fl = THREE.MathUtils.clamp((inBar - 3) / 1.6, 0, 1);
+  const flip = -(1 - Math.pow(1 - fl, 2)) * TAU * (fl > 0 ? 1 : 0);
+  const land = sm((inBar - 4.6) / 0.6);
+  const tuck = air;
+  return {
+    ...REST, rise: air * 1.5, lean: flip, hipsY: 0.9 - crouch * 0.35 - tuck * 0.15, hips: [crouch * 0.3, 0, 0], torso: [crouch * 0.4 + tuck * 0.5 - land * 0.05, 0, 0], head: [-crouch * 0.2 - tuck * 0.3, 0, 0],
+    lArm: [-crouch * 0.6 - tuck * 1.6, 0, -0.2 - land * 1.4], rArm: [-crouch * 0.6 - tuck * 1.6, 0, 0.2 + land * 1.4], lFore: [-crouch * 0.6, 0, -0.1], rFore: [-crouch * 0.6, 0, 0.1],
+    lLeg: [-crouch * 1.0 - tuck * 1.6, 0, 0.1 + land * 0.15], rLeg: [-crouch * 1.0 - tuck * 1.6, 0, -0.1 - land * 0.15], lShin: crouch * 1.6 + tuck * 2.0 + land * 0.15, rShin: crouch * 1.6 + tuck * 2.0 + land * 0.15,
+  };
+}
 function hipRoll(b: number): Pose {
   const a = b * Math.PI;
   return {
@@ -409,23 +509,32 @@ function hipRoll(b: number): Pose {
     lLeg: [-0.2, 0, 0.3], rLeg: [-0.2, 0, -0.3], lShin: 0.5, rShin: 0.5,
   };
 }
-type Move = { pose: (b: number, inBar: number) => Pose; from: number; to: number; stepped?: boolean; sparks?: boolean; side?: [number, number] };
+type Move = { pose: (b: number, inBar: number) => Pose; from: number; to: number; stepped?: boolean; sparks?: boolean; side?: [number, number]; hat?: boolean; snap?: boolean };
 const MOVES: Move[] = [
   { pose: (b, i) => billieJean(b, i), from: -1.6, to: 1.6 },
   { pose: (b) => moonwalk(b), from: 1.6, to: 0, stepped: true },
   { pose: (b) => moonwalk(b), from: 0, to: -1.6, stepped: true },
   { pose: (_b, i) => theLean(i), from: -1.6, to: -1.6 },
   { pose: (_b, i) => spinToes(i), from: -1.6, to: -1.6, sparks: true },
+  { pose: (b, i) => hatShow(b, i), from: -1.6, to: -1.6, hat: true },
   { pose: (b) => sideGlide(b), from: -1.6, to: -1.6, side: [0, 1.4] },
-  { pose: (b) => robot(b), from: -1.6, to: -1.6, side: [1.4, 1.4] },
+  { pose: (b) => robot(b), from: -1.6, to: -1.6, side: [1.4, 1.4], snap: true },
   { pose: (b, i) => heelToe(b, i), from: -1.6, to: -1.6, side: [1.4, 0] },
   { pose: (b) => thriller(b), from: -1.6, to: -1.6 },
   { pose: (b, i) => kickPose(b, i), from: -1.6, to: -1.6 },
   { pose: (_b, i) => spinKick(i), from: -1.6, to: -1.6, sparks: true },
+  { pose: (b, i) => hatShow(b, i), from: -1.6, to: -1.6, hat: true },
   { pose: (b, i) => shimmy(b, i), from: -1.6, to: -0.8 },
   { pose: (b) => hipRoll(b), from: -0.8, to: -0.8 },
   { pose: (b, i) => spinGlide(b, i), from: -0.8, to: -1.6, stepped: true, sparks: true },
   { pose: (_b, i) => kneeDrop(i), from: -1.6, to: -1.6, sparks: true },
+  { pose: (b) => naatu(b), from: -1.6, to: 0.4 },
+  { pose: (b) => naatu(b), from: 0.4, to: -1.6 },
+  { pose: (b) => bhangra(b), from: -1.6, to: -1.6, side: [0, 1.0] },
+  { pose: (b, i) => gangnam(b, i), from: -1.6, to: -1.6, side: [1.0, -1.0] },
+  { pose: (b) => classical(b), from: -1.6, to: -1.6, side: [-1.0, 0] },
+  { pose: (b) => salsa(b), from: -1.6, to: -0.6 },
+  { pose: (_b, i) => backflip(i), from: -0.6, to: -1.6, sparks: true },
 ];
 const moveAt = (i: number) => MOVES[((i % MOVES.length) + MOVES.length) % MOVES.length];
 function movePose(move: number, b: number, inBar: number): Pose {
@@ -440,24 +549,80 @@ function glide(move: number, inBar: number): [number, number] {
   return [m.from + (m.to - m.from) * e, side];
 }
 /* Outfits: swapped every bar with a flash. */
-type Outfit = { jacket: string; jacketMetal: number; jacketRough: number; pants: string; shirt: string; tie: string | null; hat: string | null; band: string };
+type Outfit = { jacket: string; jacketMetal: number; jacketRough: number; pants: string; shirt: string; tie: string | null; hat: string; band: string; accent: string; sequin?: boolean };
 const OUTFITS: Outfit[] = [
-  { jacket: "#111116", jacketMetal: 0.5, jacketRough: 0.35, pants: "#111116", shirt: "#fbf7ef", tie: "#8a0f1e", hat: "#0a0a0c", band: "#f3b453" },
-  { jacket: "#f4f1ea", jacketMetal: 0.2, jacketRough: 0.5, pants: "#f4f1ea", shirt: "#4f8ff7", tie: "#f4f1ea", hat: "#f4f1ea", band: "#111116" },
-  { jacket: "#b3111c", jacketMetal: 0.35, jacketRough: 0.4, pants: "#b3111c", shirt: "#111116", tie: null, hat: null, band: "#111116" },
-  { jacket: "#0a0a0c", jacketMetal: 0.95, jacketRough: 0.18, pants: "#0a0a0c", shirt: "#0a0a0c", tie: null, hat: null, band: "#111116" },
-  { jacket: "#c9a227", jacketMetal: 0.85, jacketRough: 0.28, pants: "#111116", shirt: "#fbf7ef", tie: "#111116", hat: "#0a0a0c", band: "#c9a227" },
-  { jacket: "#1e40af", jacketMetal: 0.4, jacketRough: 0.4, pants: "#111116", shirt: "#fbf7ef", tie: "#1e40af", hat: "#f4f1ea", band: "#1e40af" },
-  { jacket: "#e6e6ec", jacketMetal: 0.95, jacketRough: 0.2, pants: "#111116", shirt: "#111116", tie: null, hat: "#0a0a0c", band: "#e6e6ec" },
-  { jacket: "#0f766e", jacketMetal: 0.5, jacketRough: 0.35, pants: "#0a0a0c", shirt: "#fbf7ef", tie: "#f3b453", hat: "#0f766e", band: "#f3b453" },
+  // black tux, red tie, black fedora with a gold band
+  { jacket: "#111116", jacketMetal: 0.5, jacketRough: 0.35, pants: "#111116", shirt: "#fbf7ef", tie: "#8a0f1e", hat: "#0a0a0c", band: "#f3b453", accent: "#f3b453" },
+  // white suit, blue shirt, white fedora
+  { jacket: "#f4f1ea", jacketMetal: 0.2, jacketRough: 0.5, pants: "#f4f1ea", shirt: "#4f8ff7", tie: "#f4f1ea", hat: "#f4f1ea", band: "#111116", accent: "#111116" },
+  // red leather with silver zips, black fedora
+  { jacket: "#b3111c", jacketMetal: 0.35, jacketRough: 0.4, pants: "#111116", shirt: "#111116", tie: null, hat: "#0a0a0c", band: "#b3111c", accent: "#d9d9e0" },
+  // black sequin, silver band
+  { jacket: "#0a0a0c", jacketMetal: 0.95, jacketRough: 0.18, pants: "#0a0a0c", shirt: "#0a0a0c", tie: null, hat: "#0a0a0c", band: "#e6e6ec", accent: "#e6e6ec", sequin: true },
+  // gold military jacket, black trousers
+  { jacket: "#c9a227", jacketMetal: 0.85, jacketRough: 0.28, pants: "#111116", shirt: "#fbf7ef", tie: "#111116", hat: "#0a0a0c", band: "#c9a227", accent: "#111116" },
+  // royal blue, white fedora
+  { jacket: "#1e40af", jacketMetal: 0.4, jacketRough: 0.4, pants: "#111116", shirt: "#fbf7ef", tie: "#1e40af", hat: "#f4f1ea", band: "#1e40af", accent: "#f3b453" },
+  // silver sequin, black fedora
+  { jacket: "#e6e6ec", jacketMetal: 0.95, jacketRough: 0.2, pants: "#111116", shirt: "#111116", tie: null, hat: "#0a0a0c", band: "#e6e6ec", accent: "#f3b453", sequin: true },
+  // teal, amber tie
+  { jacket: "#0f766e", jacketMetal: 0.5, jacketRough: 0.35, pants: "#0a0a0c", shirt: "#fbf7ef", tie: "#f3b453", hat: "#0f766e", band: "#f3b453", accent: "#f3b453" },
 ];
 const mkMat = (color: string, metalness: number, roughness: number) => new THREE.MeshStandardMaterial({ color, metalness, roughness, emissive: new THREE.Color("#000000"), emissiveIntensity: 0 });
 // one dancer per page: shared wardrobe materials, retuned every frame
 const wardrobe = {
   jacket: mkMat("#111116", 0.5, 0.35), pants: mkMat("#111116", 0.5, 0.35), shirt: mkMat("#fbf7ef", 0.1, 0.6),
-  tie: mkMat("#8a0f1e", 0.2, 0.5), hat: mkMat("#0a0a0c", 0.3, 0.5), band: mkMat("#f3b453", 0.3, 0.4),
+  tie: mkMat("#8a0f1e", 0.2, 0.5), hat: mkMat("#0a0a0c", 0.3, 0.5), band: mkMat("#f3b453", 0.3, 0.4), accent: mkMat("#f3b453", 0.8, 0.3),
   tmp: new THREE.Color(),
 };
+/* Confetti burst: one shared pool, re-armed on costume changes and big landings. */
+const BURST_N = 160;
+class Burst {
+  pos = new Float32Array(BURST_N * 3);
+  vel = new Float32Array(BURST_N * 3);
+  age = 99;
+  geo = new THREE.BufferGeometry();
+  mat = new THREE.PointsMaterial({ color: "#ffd9a0", size: 0.09, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true });
+  constructor() {
+    this.geo.setAttribute("position", new THREE.BufferAttribute(this.pos, 3));
+  }
+  fire(x: number, y: number, z: number, power: number, up: number) {
+    for (let i = 0; i < BURST_N; i++) {
+      const a = Math.random() * TAU, r = Math.random();
+      this.pos[i * 3] = x; this.pos[i * 3 + 1] = y; this.pos[i * 3 + 2] = z;
+      this.vel[i * 3] = Math.cos(a) * r * power;
+      this.vel[i * 3 + 1] = (0.6 + Math.random() * 1.6) * up;
+      this.vel[i * 3 + 2] = Math.sin(a) * r * power;
+    }
+    this.age = 0;
+    this.geo.attributes.position.needsUpdate = true;
+  }
+  step(dt: number) {
+    if (this.age > 2.2) { this.mat.opacity = 0; return; }
+    this.age += dt;
+    for (let i = 0; i < BURST_N; i++) {
+      this.vel[i * 3 + 1] -= 3.2 * dt;
+      this.pos[i * 3] += this.vel[i * 3] * dt;
+      this.pos[i * 3 + 1] += this.vel[i * 3 + 1] * dt;
+      this.pos[i * 3 + 2] += this.vel[i * 3 + 2] * dt;
+      if (this.pos[i * 3 + 1] < 0.02) { this.pos[i * 3 + 1] = 0.02; this.vel[i * 3 + 1] *= -0.3; }
+    }
+    this.geo.attributes.position.needsUpdate = true;
+    this.mat.opacity = Math.max(0, 1 - this.age / 2.2);
+    this.mat.size = 0.05 + (1 - Math.min(1, this.age / 2.2)) * 0.07;
+  }
+}
+const bursts = [new Burst(), new Burst()];
+/* Stage beams: cones aimed at the dancer, swaying. */
+const beamGeo = new THREE.ConeGeometry(0.85, 9, 24, 1, true).translate(0, -4.5, 0);
+const beamDown = new THREE.Vector3(0, -1, 0);
+const beamTmp = new THREE.Vector3();
+const beamQ = new THREE.Quaternion();
+const BEAMS = [
+  { pos: [-4.5, 8, 2] as V3, color: "#f3b453", phase: 0 },
+  { pos: [4.8, 8.5, 1] as V3, color: "#fff1d6", phase: 2.1 },
+  { pos: [0.5, 9, -4.5] as V3, color: "#ffb86b", phase: 4.2 },
+];
 const setE = (g: THREE.Group | null, e: V3) => { if (g) g.rotation.set(e[0], e[1], e[2]); };
 function Part({ size, pos, color = SUIT, glow = 0, emissive = GLOW, rough = 0.35, metal = 0.5, mat }: { size: V3; pos: V3; color?: string; glow?: number; emissive?: string; rough?: number; metal?: number; mat?: THREE.Material }) {
   return (
@@ -506,10 +671,16 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
   const airborne = useRef(false);
   const sparks = useRef<THREE.Group>(null);
   const hat = useRef<THREE.Group>(null);
+  const handHat = useRef<THREE.Group>(null);
+  const flyHat = useRef<THREE.Group>(null);
   const tie = useRef<THREE.Mesh>(null);
+  const beams = useRef<THREE.Group>(null);
   const outfitAt = useRef(-10);
   const lastOutfit = useRef(-1);
   const bornRef = useRef<number | null>(null);
+  const smooth = useRef<Pose>({ ...REST });
+  const trailGrp = useRef<THREE.Group>(null);
+  const flyState = useRef({ x: 0, y: 0, z: 0, rot: 0 });
 
   useFrame((state, dt) => {
     const t = state.clock.elapsedTime;
@@ -523,7 +694,12 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
     const inBar = b - bar * 8;
     const cur = movePose(bar, b, inBar);
     const m = inBar > 7.4 ? sm((inBar - 7.4) / 0.6) : 0;
-    const P = m > 0 ? mixPose(cur, movePose(bar + 1, b, 0), m) : cur;
+    const target = m > 0 ? mixPose(cur, movePose(bar + 1, b, 0), m) : cur;
+    // grace: every joint eases toward its target; the robot keeps its snap
+    const rate = moveAt(bar).snap ? 40 : 13;
+    const P = mixPose(smooth.current, target, 1 - Math.exp(-dt * rate));
+    P.hatMode = target.hatMode;
+    smooth.current = P;
     const sB = Math.sin(b * Math.PI);
     const bounce = Math.abs(sB);
 
@@ -549,7 +725,11 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
       onStomp(x, z, 0.3);
     }
     if (bar !== lastBar.current) {
-      if (lastBar.current >= 0 && sc > 0.5) { onStomp(x, z, 1.2); stompAt.current = t; }
+      if (lastBar.current >= 0 && sc > 0.5) {
+        onStomp(x, z, 1.2);
+        stompAt.current = t;
+        bursts[0].fire(x, d.foot + 2.4, z, 1.6, 1.0);
+      }
       lastBar.current = bar;
     }
     // jump landings hit harder than stomps
@@ -557,9 +737,15 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
     else if (airborne.current && P.rise < 0.06) {
       airborne.current = false;
       stompAt.current = t;
-      if (sc > 0.5) onStomp(x, z, 1.8);
+      if (sc > 0.5) {
+        onStomp(x, z, 1.8);
+        bursts[1].fire(x, d.foot + 0.1, z, 3.2, 2.2);
+        s.energy = 1;
+      }
     }
+    for (const bu of bursts) bu.step(dt);
     if (sparks.current) sparks.current.visible = !!moveAt(bar).sparks || P.spin > 0.2;
+    if (trailGrp.current) trailGrp.current.visible = sc > 0.95;
 
     // wardrobe: a new outfit every bar, colours morph in with a flash
     const o = OUTFITS[bar % OUTFITS.length];
@@ -571,20 +757,53 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
     w.pants.color.lerp(w.tmp.set(o.pants), kf);
     w.shirt.color.lerp(w.tmp.set(o.shirt), kf);
     if (o.tie) w.tie.color.lerp(w.tmp.set(o.tie), kf);
-    if (o.hat) w.hat.color.lerp(w.tmp.set(o.hat), kf);
+    w.hat.color.lerp(w.tmp.set(o.hat), kf);
     w.band.color.lerp(w.tmp.set(o.band), kf);
+    w.accent.color.lerp(w.tmp.set(o.accent), kf);
     if (bar !== lastOutfit.current) { lastOutfit.current = bar; outfitAt.current = t; }
     const flash = Math.max(0, 1 - (t - outfitAt.current) / 0.45);
     w.jacket.emissive.copy(w.jacket.color);
     w.jacket.emissiveIntensity = flash * 1.2;
     w.pants.emissive.copy(w.pants.color);
     w.pants.emissiveIntensity = flash * 0.8;
-    if (hat.current) {
-      hat.current.visible = !!o.hat;
-      const hs = o.hat ? 1 - flash * 0.4 : 1;
-      hat.current.scale.setScalar(hs);
-    }
+    // sequin outfits shimmer
+    if (o.sequin) { w.jacket.emissive.copy(w.jacket.color).lerp(w.tmp.set("#ffffff"), 0.5); w.jacket.emissiveIntensity = Math.max(w.jacket.emissiveIntensity, 0.15 + Math.abs(Math.sin(t * 9)) * 0.2); }
     if (tie.current) tie.current.visible = !!o.tie;
+    // the hat: on the head, in the glove, or in the air
+    if (hat.current) {
+      hat.current.visible = P.hatMode === 0;
+      hat.current.rotation.x = 0.16 + P.hatTilt * 0.85;
+      hat.current.position.z = P.hatTilt * 0.08;
+      hat.current.scale.setScalar(1 - flash * 0.35);
+    }
+    if (handHat.current) handHat.current.visible = P.hatMode === 1;
+    if (flyHat.current) {
+      const fh = flyHat.current;
+      const fs = flyState.current;
+      if (P.hatMode === 2) {
+        const mv = moveAt(bar);
+        const u = mv.hat ? THREE.MathUtils.clamp((inBar - 3.1) / 2.3, 0, 1) : 0;
+        fs.rot += dt * 9;
+        fh.visible = true;
+        fh.position.set(0, 1.9 + Math.sin(u * Math.PI) * 2.6, 0.15);
+        fh.rotation.set(u * TAU * 3, fs.rot, 0.2);
+      } else {
+        fh.visible = false;
+      }
+    }
+    // beams: sweep and settle on the dancer during freezes and spins
+    if (beams.current) {
+      const hold = P.spin > 0.2 || moveAt(bar).sparks || moveAt(bar).hat ? 1 : 0;
+      beams.current.children.forEach((c, i) => {
+        const bm = BEAMS[i];
+        const sway = 1 - hold * 0.85;
+        beamTmp.set(x + Math.sin(t * 0.7 + bm.phase) * 3.2 * sway - bm.pos[0], d.foot + 1 - bm.pos[1], z + Math.cos(t * 0.55 + bm.phase) * 2.6 * sway - bm.pos[2]).normalize();
+        beamQ.setFromUnitVectors(beamDown, beamTmp);
+        c.quaternion.slerp(beamQ, 1 - Math.exp(-dt * 3));
+        const mat = (c as THREE.Mesh).material as THREE.MeshBasicMaterial;
+        mat.opacity = (0.035 + hold * 0.05 + flash * 0.05) * sc;
+      });
+    }
     const u = THREE.MathUtils.clamp((t - stompAt.current) / 0.35, 0, 1);
     const sq = Math.sin(u * Math.PI) * (1 - u) * 0.22;
 
@@ -593,7 +812,7 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
     g.scale.setScalar(Math.max(0.0001, sc * 0.9));
     g.visible = sc > 0.001;
     if (body.current) {
-      body.current.rotation.x = -P.lean;
+      body.current.rotation.x = P.lean;
       body.current.scale.set(1 + sq * 0.6, 1 - sq, 1 + sq * 0.6);
     }
     if (hips.current) { hips.current.position.y = P.hipsY; setE(hips.current, P.hips); }
@@ -614,6 +833,17 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
   });
 
   return (
+    <>
+      <group ref={beams}>
+        {BEAMS.map((bm) => (
+          <mesh key={bm.color + bm.phase} position={bm.pos} geometry={beamGeo}>
+            <meshBasicMaterial color={bm.color} transparent opacity={0.04} depthWrite={false} blending={THREE.AdditiveBlending} side={THREE.DoubleSide} />
+          </mesh>
+        ))}
+      </group>
+      {bursts.map((bu, i) => (
+        <points key={i} geometry={bu.geo} material={bu.mat} frustumCulled={false} />
+      ))}
     <group ref={root}>
       <pointLight ref={light} position={[0, 1.2, 0.8]} color={GLOW} intensity={3} distance={3.2} decay={2} />
       <pointLight ref={spot} position={[0, 2.6, 0.7]} color="#fff4e0" intensity={4} distance={3.4} decay={2} />
@@ -624,12 +854,24 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
       <group ref={sparks} visible={false}>
         <Sparkles count={36} scale={[1.7, 2.4, 1.7]} position={[0, 1.2, 0]} size={3.5} speed={1.4} opacity={0.9} color="#ffd9a0" />
       </group>
+      <group ref={flyHat} visible={false}>
+        <Part size={[0.62, 0.05, 0.64]} pos={[0, 0, 0.02]} mat={wardrobe.hat} />
+        <Part size={[0.36, 0.22, 0.36]} pos={[0, 0.13, 0]} mat={wardrobe.hat} />
+        <Part size={[0.38, 0.06, 0.38]} pos={[0, 0.06, 0]} mat={wardrobe.band} />
+      </group>
       <group ref={body}>
         <group ref={hips} position={[0, 0.9, 0]}>
           <Part size={[0.46, 0.22, 0.28]} pos={[0, 0.06, 0]} mat={wardrobe.pants} />
+          <Part size={[0.48, 0.05, 0.3]} pos={[0, 0.16, 0]} mat={wardrobe.accent} />
+          <Part size={[0.1, 0.08, 0.03]} pos={[0, 0.16, 0.16]} mat={wardrobe.accent} />
           <group ref={torso} position={[0, 0.17, 0]}>
             <Part size={[0.52, 0.62, 0.3]} pos={[0, 0.31, 0]} mat={wardrobe.jacket} />
             <Part size={[0.16, 0.5, 0.03]} pos={[0, 0.34, 0.155]} mat={wardrobe.shirt} />
+            <Part size={[0.18, 0.05, 0.34]} pos={[-0.22, 0.6, 0]} mat={wardrobe.accent} />
+            <Part size={[0.18, 0.05, 0.34]} pos={[0.22, 0.6, 0]} mat={wardrobe.accent} />
+            <Part size={[0.05, 0.05, 0.03]} pos={[0.13, 0.42, 0.16]} mat={wardrobe.accent} />
+            <Part size={[0.05, 0.05, 0.03]} pos={[0.13, 0.28, 0.16]} mat={wardrobe.accent} />
+            <Part size={[0.05, 0.05, 0.03]} pos={[0.13, 0.14, 0.16]} mat={wardrobe.accent} />
             <mesh ref={tie} position={[0, 0.34, 0.16]} castShadow>
               <boxGeometry args={[0.05, 0.36, 0.035]} />
               <primitive object={wardrobe.tie} attach="material" />
@@ -645,6 +887,7 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
               </group>
             </group>
             <group ref={lArm} position={[-0.33, 0.55, 0]}>
+              <Part size={[0.16, 0.07, 0.16]} pos={[0, -0.24, 0]} mat={wardrobe.accent} />
               <Limb len={0.42} w={0.14} mat={wardrobe.jacket}>
                 <group ref={lFore}>
                   <Limb len={0.38} w={0.12} tip="hand" mat={wardrobe.jacket} />
@@ -655,6 +898,19 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
               <Limb len={0.42} w={0.14} mat={wardrobe.jacket}>
                 <group ref={rFore}>
                   <Limb len={0.38} w={0.12} tip="glove" mat={wardrobe.jacket} />
+                  <group ref={handHat} visible={false} position={[0.02, -0.5, 0.05]} rotation={[0.3, 0, -1.2]}>
+                    <Part size={[0.62, 0.05, 0.64]} pos={[0, 0, 0.02]} mat={wardrobe.hat} />
+                    <Part size={[0.36, 0.22, 0.36]} pos={[0, 0.13, 0]} mat={wardrobe.hat} />
+                    <Part size={[0.38, 0.06, 0.38]} pos={[0, 0.06, 0]} mat={wardrobe.band} />
+                  </group>
+                  <group ref={trailGrp} visible={false}>
+                  <Trail width={0.5} length={5} decay={2.5} color="#ffe2b0" attenuation={(w) => w * w}>
+                    <mesh position={[0, -0.42, 0]}>
+                      <boxGeometry args={[0.02, 0.02, 0.02]} />
+                      <meshBasicMaterial color="#ffffff" transparent opacity={0} depthWrite={false} />
+                    </mesh>
+                  </Trail>
+                  </group>
                 </group>
               </Limb>
             </group>
@@ -676,6 +932,7 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
         </group>
       </group>
     </group>
+    </>
   );
 }
 function Rig({ children, stateRef }: { children: React.ReactNode; stateRef: MutableRefObject<HeroState> }) {
@@ -693,7 +950,9 @@ function Rig({ children, stateRef }: { children: React.ReactNode; stateRef: Muta
     group.current.scale.setScalar(THREE.MathUtils.damp(group.current.scale.x || 0.001, sc, 4, dt));
     group.current.position.x = (desktop ? viewport.width * 0.17 : 0.2) - dive * viewport.width * 0.1;
     group.current.position.z = dive * 5;
-    group.current.position.y = (desktop ? -1.7 + Math.sin(t * 0.5) * 0.06 : -viewport.height * 0.34) - dive * 1.2 - Math.max(0, s.spread - 0.6) * 4;
+    const punch = s.energy ?? 0;
+    s.energy = punch * Math.max(0, 1 - dt * 5);
+    group.current.position.y = (desktop ? -1.7 + Math.sin(t * 0.5) * 0.06 : -viewport.height * 0.34) - dive * 1.2 - Math.max(0, s.spread - 0.6) * 4 - punch * 0.12;
   });
   return <group ref={group}>{children}</group>;
 }
