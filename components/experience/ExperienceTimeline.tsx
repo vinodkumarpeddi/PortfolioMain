@@ -116,11 +116,14 @@ export function ExperienceTimeline() {
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <div className="relative">
-                      <div className="label flex flex-wrap items-center gap-2 text-fg-3">
-                        <span className={cn("rounded-full border px-2.5 py-1", m.kind === "work" ? "border-accent/40 text-accent" : "border-line-2 text-fg-2")}>{kindLabel[m.kind]}</span>
-                        <span className="rounded-full border border-line-1 px-2.5 py-1 text-fg-2">{m.period}</span>
+                      <div className="overflow-hidden rounded-2xl border border-line-1">
+                        <CoverFor id={m.id} />
+                      </div>
+                      <div className="mt-5 flex flex-wrap items-center gap-2">
+                        <span className={cn("label rounded-full border px-2.5 py-1", m.kind === "work" ? "border-accent/40 text-accent" : "border-line-2 text-fg-2")}>{kindLabel[m.kind]}</span>
+                        <span className="label rounded-full border border-line-1 px-2.5 py-1 text-fg-2">{m.period}</span>
                         {!m.end && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-success/40 px-2.5 py-1 text-success">
+                          <span className="label inline-flex items-center gap-1.5 rounded-full border border-success/40 px-2.5 py-1 text-success">
                             <span className="relative flex h-1.5 w-1.5">
                               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-70 motion-reduce:animate-none" />
                               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
@@ -128,40 +131,31 @@ export function ExperienceTimeline() {
                             Now
                           </span>
                         )}
+                        {m.highlights && m.highlights.map((h, k) => (
+                          <motion.span key={h} initial={false} animate={{ opacity: active === i ? 1 : 0.5, y: active === i ? 0 : 4 }} transition={{ duration: 0.5, delay: active === i ? 0.08 + k * 0.06 : 0, ease: ease.outExpo }} className="rounded-full border border-accent/30 bg-accent-soft px-2.5 py-1 text-[12px] text-fg-1">
+                            {h}
+                          </motion.span>
+                        ))}
                       </div>
-                      <h3 className="text-h2 mt-5 break-words text-fg-1">{m.org}</h3>
-                      {m.highlights && (
-                        <ul className="mt-4 flex flex-wrap gap-2" aria-label="Highlights">
-                          {m.highlights.map((h, k) => (
-                            <motion.li key={h} initial={false} animate={{ opacity: active === i ? 1 : 0.5, y: active === i ? 0 : 4 }} transition={{ duration: 0.5, delay: active === i ? 0.08 + k * 0.06 : 0, ease: ease.outExpo }} className="rounded-full border border-accent/30 bg-accent-soft px-3 py-1.5 text-[12.5px] text-fg-1">
-                              {h}
-                            </motion.li>
+                      <div className="mt-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+                        <h3 className="text-h2 break-words text-fg-1">{m.org}</h3>
+                        <p className="text-[15px] text-fg-2">
+                          {m.role}
+                          {m.location && <span className="text-fg-3"> · {m.location}</span>}
+                        </p>
+                      </div>
+                      <p className="mt-3 max-w-[64ch] text-[15px] leading-relaxed text-fg-2">{m.summary}</p>
+                      {m.points.length > 0 && (
+                        <ul className="mt-4 grid gap-x-8 gap-y-2 text-sm text-fg-2 sm:grid-cols-2">
+                          {m.points.slice(0, 4).map((p) => (
+                            <li key={p} className="flex gap-3">
+                              <span className="mt-[9px] h-px w-3 shrink-0 bg-accent/70" aria-hidden />
+                              <span>{p}</span>
+                            </li>
                           ))}
                         </ul>
                       )}
-                      <p className="mt-2 text-lead text-fg-2">
-                        {m.role}
-                        {m.location && <span className="block text-[15px] text-fg-3">{m.location}</span>}
-                      </p>
-                      <div className="mt-6 grid gap-6 sm:grid-cols-[1fr_11rem]">
-                        <div>
-                          <p className="max-w-[56ch] text-[15px] leading-relaxed text-fg-2">{m.summary}</p>
-                          {m.points.length > 0 && (
-                            <ul className="mt-5 space-y-2 text-sm text-fg-2">
-                              {m.points.slice(0, 4).map((p) => (
-                                <li key={p} className="flex gap-3">
-                                  <span className="mt-[9px] h-px w-3 shrink-0 bg-accent/70" aria-hidden />
-                                  <span>{p}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                        <div className="hidden sm:block">
-                          <CoverFor id={m.id} />
-                        </div>
-                      </div>
-                      <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-line-1 pt-5">
+                      <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-line-1 pt-4">
                         {m.technologies.length > 0 && (
                           <ul className="flex flex-wrap gap-1.5" aria-label="Technologies">
                             {m.technologies.slice(0, 8).map((t) => (
