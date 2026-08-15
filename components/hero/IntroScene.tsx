@@ -139,7 +139,7 @@ export function IntroScene() {
 
         {/* 3D OBJECT (hero state) */}
         <div ref={coreWrapRef} className="core-wrap absolute inset-y-0 right-0 z-0 w-full lg:w-[64vw] motion-reduce:hidden">
-          <HeroCanvas stateRef={heroState} className="absolute inset-0 opacity-80 lg:opacity-100" />
+          <HeroCanvas stateRef={heroState} scene="laptop" className="absolute inset-0 opacity-90 lg:opacity-100" />
         </div>
 
         {/* HERO LAYER */}

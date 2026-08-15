@@ -4,7 +4,9 @@ import { Suspense, useEffect, useMemo, useRef, type MutableRefObject } from "rea
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
-export type HeroState = { spread: number; opacity: number };
+export type HeroState = { spread: number; opacity: number; energy?: number };
+export type HeroVariant = "hero" | "ambient" | "orbit" | "backdrop";
+export type OrbitConfig = { count: number; activeRef: MutableRefObject<number> };
 
 function makeRng(seed: number) {
   let state = seed;
@@ -138,6 +140,70 @@ function AutoSize() {
   return null;
 }
 
+/** Milestone markers on a tilted orbit ring; the active one rotates to the front and pulses. */
+function OrbitMarkers({ orbit, stateRef }: { orbit: OrbitConfig; stateRef: MutableRefObject<HeroState> }) {
+  const ring = useRef<THREE.Group>(null);
+  const pulses = useRef<THREE.Mesh[]>([]);
+  const cores = useRef<THREE.Mesh[]>([]);
+  const R = 2.55;
+  const step = (Math.PI * 2) / orbit.count;
+  const ringGeo = useMemo(() => new THREE.TorusGeometry(R, 0.006, 8, 220), []);
+  useFrame((state, dt) => {
+    const active = orbit.activeRef.current;
+    if (ring.current) {
+      // marker i sits at angle i*step around Y; rotate the ring so the active one faces +Z (camera)
+      const target = -active * step + Math.PI / 2;
+      let cur = ring.current.rotation.y;
+      // shortest path
+      let d = target - cur;
+      d = Math.atan2(Math.sin(d), Math.cos(d));
+      cur = THREE.MathUtils.damp(cur, cur + d, 4, dt);
+      ring.current.rotation.y = cur;
+    }
+    const t = state.clock.elapsedTime;
+    for (let i = 0; i < orbit.count; i++) {
+      const isActive = i === active;
+      const core = cores.current[i];
+      const pulse = pulses.current[i];
+      if (core) {
+        const target = isActive ? 0.075 : 0.04;
+        core.scale.setScalar(THREE.MathUtils.damp(core.scale.x || 0.001, target, 6, dt));
+        (core.material as THREE.MeshBasicMaterial).opacity = THREE.MathUtils.damp((core.material as THREE.MeshBasicMaterial).opacity, (isActive ? 1 : 0.55) * stateRef.current.opacity, 6, dt);
+      }
+      if (pulse) {
+        const ph = (t * 0.6 + i * 0.3) % 1;
+        pulse.scale.setScalar(isActive ? 0.08 + ph * 0.5 : 0.0001);
+        (pulse.material as THREE.MeshBasicMaterial).opacity = isActive ? (1 - ph) * 0.7 * stateRef.current.opacity : 0;
+      }
+    }
+  });
+  return (
+    <group rotation={[0.55, 0, 0.35]}>
+      <group ref={ring}>
+        <mesh geometry={ringGeo} rotation={[Math.PI / 2, 0, 0]}>
+          <meshBasicMaterial color="#f1efe9" transparent opacity={0.16} depthWrite={false} />
+        </mesh>
+        {Array.from({ length: orbit.count }).map((_, i) => {
+          const a = i * step;
+          const pos: [number, number, number] = [Math.cos(a) * R, 0, Math.sin(a) * R];
+          return (
+            <group key={i} position={pos}>
+              <mesh ref={(el) => { if (el) cores.current[i] = el; }}>
+                <sphereGeometry args={[1, 16, 16]} />
+                <meshBasicMaterial color="#ffd18a" transparent opacity={0.6} toneMapped={false} depthWrite={false} />
+              </mesh>
+              <mesh ref={(el) => { if (el) pulses.current[i] = el; }} rotation={[Math.PI / 2, 0, 0]}>
+                <ringGeometry args={[0.85, 1, 48]} />
+                <meshBasicMaterial color="#e9a23b" transparent opacity={0} side={THREE.DoubleSide} toneMapped={false} depthWrite={false} />
+              </mesh>
+            </group>
+          );
+        })}
+      </group>
+    </group>
+  );
+}
+
 function Spin({ children, speed }: { children: React.ReactNode; speed: number }) {
   const g = useRef<THREE.Group>(null);
   useFrame((_, dt) => {
@@ -146,18 +212,34 @@ function Spin({ children, speed }: { children: React.ReactNode; speed: number })
   return <group ref={g}>{children}</group>;
 }
 
-function Rig({ children, ambient }: { children: React.ReactNode; ambient: boolean }) {
+function Rig({ children, variant }: { children: React.ReactNode; variant: HeroVariant }) {
   const group = useRef<THREE.Group>(null);
   const { pointer, viewport, size } = useThree();
   useFrame((_, dt) => {
     if (!group.current) return;
     const desktop = size.width >= 900;
-    group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, pointer.x * 0.25, 4, dt);
-    group.current.rotation.x = THREE.MathUtils.damp(group.current.rotation.x, -pointer.y * 0.18, 4, dt);
-    const s = ambient ? Math.min(1.1, viewport.width / 7) : desktop ? Math.min(1.35, viewport.width / 6) : Math.min(0.9, viewport.width / 3.1);
+    const px = variant === "backdrop" ? 0.12 : 0.25;
+    group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, pointer.x * px, 4, dt);
+    group.current.rotation.x = THREE.MathUtils.damp(group.current.rotation.x, -pointer.y * px * 0.7, 4, dt);
+    let s = 1;
+    let x = 0;
+    let y = 0;
+    if (variant === "hero") {
+      s = desktop ? Math.min(1.35, viewport.width / 6) : Math.min(0.9, viewport.width / 3.1);
+      x = desktop ? 0.2 : 0.15;
+      y = desktop ? -0.1 : -viewport.height * 0.22;
+    } else if (variant === "ambient") {
+      s = Math.min(1.1, viewport.width / 7);
+      x = 0.2;
+    } else if (variant === "orbit") {
+      s = Math.min(1.05, viewport.width / 6.4, viewport.height / 6.4);
+    } else {
+      s = Math.min(1.5, viewport.width / 6.5, viewport.height / 5.2);
+      y = -viewport.height * 0.08;
+    }
     group.current.scale.setScalar(THREE.MathUtils.damp(group.current.scale.x, s, 4, dt));
-    group.current.position.x = ambient ? 0.2 : desktop ? 0.2 : 0.15;
-    group.current.position.y = ambient ? 0 : desktop ? -0.1 : -viewport.height * 0.22;
+    group.current.position.x = x;
+    group.current.position.y = y;
   });
   return <group ref={group}>{children}</group>;
 }
@@ -230,7 +312,7 @@ function Atmosphere({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
   const uniforms = useMemo(() => ({ uOpacity: { value: 1 } }), []);
   useFrame((_, dt) => {
     const u = mat.current?.uniforms as typeof uniforms | undefined;
-    if (u) u.uOpacity.value = THREE.MathUtils.damp(u.uOpacity.value, stateRef.current.opacity * (1 - stateRef.current.spread), 5, dt);
+    if (u) u.uOpacity.value = THREE.MathUtils.damp(u.uOpacity.value, stateRef.current.opacity * (1 - stateRef.current.spread) * (1 + (stateRef.current.energy ?? 0) * 0.8), 5, dt);
   });
   return (
     <mesh scale={1.06}>
@@ -314,13 +396,16 @@ function Arcs({ stateRef, count = 12 }: { stateRef: MutableRefObject<HeroState>;
   const beads = useRef<THREE.Mesh[]>([]);
   const tmp = useMemo(() => new THREE.Vector3(), []);
   const TRAIL = 4;
-  useFrame((state) => {
+  const clock = useRef(0);
+  useFrame((_, dt) => {
     const s = stateRef.current;
-    const t = state.clock.elapsedTime;
+    const energy = s.energy ?? 0;
+    clock.current += dt * (1 + energy * 2.2);
+    const t = clock.current;
     arcs.forEach((arc, i) => {
       const p = (t * arc.speed + arc.phase) % 1; // 0..1 lifecycle
       const vis = Math.sin(p * Math.PI); // fade in/out
-      arc.material.opacity = vis * 0.5 * s.opacity * (1 - s.spread);
+      arc.material.opacity = vis * (0.5 + energy * 0.4) * s.opacity * (1 - s.spread);
       for (let k = 0; k < TRAIL; k++) {
         const b = beads.current[i * TRAIL + k];
         if (!b) continue;
@@ -350,28 +435,30 @@ function Arcs({ stateRef, count = 12 }: { stateRef: MutableRefObject<HeroState>;
   );
 }
 
-function Scene({ stateRef, ambient }: { stateRef: MutableRefObject<HeroState>; ambient: boolean }) {
+function Scene({ stateRef, variant, orbit }: { stateRef: MutableRefObject<HeroState>; variant: HeroVariant; orbit?: OrbitConfig }) {
   const { size } = useThree();
+  const ambient = variant !== "hero";
   const geometry = useSculptureGeometry(size.width >= 900 ? COUNT_DESKTOP : COUNT_MOBILE);
   return (
     <>
       <AutoSize />
-      <Rig ambient={ambient}>
+      <Rig variant={variant}>
         <group rotation={[0.42, 0, -0.2]}>
-          <Spin speed={ambient ? 0.05 : 0.09}>
+          <Spin speed={variant === "hero" ? 0.09 : 0.05}>
             <ParticleSculpture stateRef={stateRef} ambient={ambient} geometry={geometry} halo />
             <ParticleSculpture stateRef={stateRef} ambient={ambient} geometry={geometry} />
             <Graticule stateRef={stateRef} />
-            <Arcs stateRef={stateRef} count={ambient ? 6 : 12} />
+            <Arcs stateRef={stateRef} count={variant === "hero" || variant === "backdrop" ? 12 : 6} />
           </Spin>
           <Atmosphere stateRef={stateRef} />
         </group>
+        {orbit && <OrbitMarkers orbit={orbit} stateRef={stateRef} />}
       </Rig>
     </>
   );
 }
 
-export default function HeroObject({ stateRef, active, ambient = false }: { stateRef: MutableRefObject<HeroState>; active: boolean; ambient?: boolean }) {
+export default function HeroObject({ stateRef, active, variant = "hero", orbit }: { stateRef: MutableRefObject<HeroState>; active: boolean; variant?: HeroVariant; orbit?: OrbitConfig }) {
   return (
     <Canvas
       dpr={[1, 1.5]}
@@ -386,7 +473,7 @@ export default function HeroObject({ stateRef, active, ambient = false }: { stat
       aria-hidden
     >
       <Suspense fallback={null}>
-        <Scene stateRef={stateRef} ambient={ambient} />
+        <Scene stateRef={stateRef} variant={variant} orbit={orbit} />
       </Suspense>
     </Canvas>
   );
