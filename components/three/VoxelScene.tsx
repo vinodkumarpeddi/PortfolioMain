@@ -317,15 +317,65 @@ function kickPose(b: number, inBar: number): Pose {
     lLeg: [0, 0, 0.05 + hat * 0.06], rLeg: [-kick * 1.7 - freeze * 0.35, 0, -0.05 - hat * 0.06], lShin: 0, rShin: freeze * 0.9,
   };
 }
-type Move = { pose: (b: number, inBar: number) => Pose; from: number; to: number; stepped?: boolean };
+const P0 = (o: Partial<Pose>): Pose => ({ ...REST, ...o });
+const ROBOT_KEYS: Pose[] = [
+  P0({ head: [0, 0.85, 0], torso: [0, 0.3, 0], lArm: [-1.5, 0, -0.4], lFore: [0, 0, -1.4], rArm: [0, 0, 0.3], rFore: [-1.6, 0, 0] }),
+  P0({ head: [0, -0.85, 0], torso: [0, -0.3, 0], lArm: [0, 0, -0.3], lFore: [-1.6, 0, 0], rArm: [-1.5, 0, 0.4], rFore: [0, 0, 1.4] }),
+  P0({ head: [0.4, 0, 0], hipsY: 0.8, lArm: [0, 0, -1.6], lFore: [-1.5, 0, 0], rArm: [0, 0, 1.6], rFore: [-1.5, 0, 0], lLeg: [-0.5, 0, 0.1], rLeg: [-0.5, 0, -0.1], lShin: 0.9, rShin: 0.9 }),
+  P0({ head: [-0.3, 0, 0.4], hips: [0, 0.5, 0], lArm: [-0.8, 0, -0.2], lFore: [-2.0, 0, 0], rArm: [-0.8, 0, 0.2], rFore: [-2.0, 0, 0] }),
+];
+function robot(b: number): Pose {
+  // pops: snap between key poses every half beat
+  const step = Math.floor(b * 2);
+  const k = sm((b * 2 - step) / 0.14);
+  const prev = ROBOT_KEYS[((step - 1) % 4 + 4) % 4];
+  const cur = ROBOT_KEYS[step % 4];
+  return mixPose(prev, cur, k);
+}
+function shimmy(b: number, inBar: number): Pose {
+  const fast = Math.sin(b * Math.PI * 4);
+  const sB = Math.sin(b * Math.PI);
+  const hat = sm((inBar - 6) / 0.5);
+  return {
+    ...REST, hipsY: 0.87 + Math.abs(fast) * 0.03, hips: [0, sB * 0.15, -fast * 0.05], torso: [0.08, fast * 0.38, 0], head: [0.05, -fast * 0.25, fast * 0.08],
+    lArm: [-0.4 + fast * 0.25, 0, -0.55], lFore: [-1.5, 0, -0.5],
+    rArm: hat ? l3([0.4 - fast * 0.25, 0, 0.55], [-1.3, 0, 0.9], hat) : [0.4 - fast * 0.25, 0, 0.55],
+    rFore: hat ? l3([-1.5, 0, 0.5], [-1.7, 0, 0.9], hat) : [-1.5, 0, 0.5],
+    lLeg: [-0.15, 0, 0.12], rLeg: [-0.15, 0, -0.12], lShin: 0.35 + Math.abs(fast) * 0.15, rShin: 0.35 + Math.abs(fast) * 0.15,
+  };
+}
+function spinGlide(b: number, inBar: number): Pose {
+  const base = moonwalk(b * 0.5);
+  return { ...base, spin: Math.PI * 2 * sm(inBar / 8), torso: [0.15, 0, 0], head: [-0.05, 0, 0] };
+}
+function kneeDrop(inBar: number): Pose {
+  // 0–1 drop · 1–4 hold on knees · 4–5 rise · 5–6 crouch · 6–7 split jump · 7–8 land
+  const down = sm(inBar / 0.6) * (1 - sm((inBar - 4) / 0.8));
+  const crouch = sm((inBar - 5) / 0.8) * (1 - sm((inBar - 6) / 0.35));
+  const air = inBar >= 6 && inBar < 7.2 ? Math.sin(((inBar - 6) / 1.2) * Math.PI) : 0;
+  const split = air;
+  return {
+    ...REST, rise: air * 1.3, hipsY: 0.9 - down * 0.42 - crouch * 0.3, hips: [down * 0.15 + crouch * 0.3, 0, 0], torso: [-down * 0.25 + crouch * 0.4 - air * 0.15, 0, 0],
+    head: [-down * 0.5 - air * 0.3 + crouch * 0.2, 0, 0],
+    lArm: [-down * 0.5 - crouch * 0.6, 0, -0.2 - down * 1.5 - air * 2.4], rArm: [-down * 0.5 - crouch * 0.6, 0, 0.2 + down * 1.5 + air * 2.4],
+    lFore: [-crouch * 0.8, 0, -air * 0.3], rFore: [-crouch * 0.8, 0, air * 0.3],
+    lLeg: [-crouch * 0.9, 0, 0.05 + split * 1.1], rLeg: [-crouch * 0.9, 0, -0.05 - split * 1.1],
+    lShin: down * 1.55 + crouch * 1.5, rShin: down * 1.55 + crouch * 1.5,
+  };
+}
+type Move = { pose: (b: number, inBar: number) => Pose; from: number; to: number; stepped?: boolean; sparks?: boolean };
 const MOVES: Move[] = [
   { pose: (b, i) => billieJean(b, i), from: -1.2, to: 0.9 },
   { pose: (b) => moonwalk(b), from: 0.9, to: -0.15, stepped: true },
   { pose: (b) => moonwalk(b), from: -0.15, to: -1.2, stepped: true },
   { pose: (_b, i) => theLean(i), from: -1.2, to: -1.2 },
-  { pose: (_b, i) => spinToes(i), from: -1.2, to: -1.2 },
+  { pose: (_b, i) => spinToes(i), from: -1.2, to: -1.2, sparks: true },
+  { pose: (b) => robot(b), from: -1.2, to: -1.2 },
   { pose: (b) => thriller(b), from: -1.2, to: -1.2 },
   { pose: (b, i) => kickPose(b, i), from: -1.2, to: -1.2 },
+  { pose: (b, i) => shimmy(b, i), from: -1.2, to: -0.6 },
+  { pose: (b, i) => spinGlide(b, i), from: -0.6, to: -1.2, stepped: true, sparks: true },
+  { pose: (_b, i) => kneeDrop(i), from: -1.2, to: -1.2, sparks: true },
 ];
 const moveAt = (i: number) => MOVES[((i % MOVES.length) + MOVES.length) % MOVES.length];
 function movePose(move: number, b: number, inBar: number): Pose {
@@ -383,6 +433,8 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
   const lastStep = useRef(-1);
   const lastBar = useRef(-1);
   const stompAt = useRef(-10);
+  const airborne = useRef(false);
+  const sparks = useRef<THREE.Group>(null);
   const bornRef = useRef<number | null>(null);
 
   useFrame((state) => {
@@ -391,12 +443,12 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
     const age = t - bornRef.current;
     const g = root.current;
     if (!g) return;
-    const bpm = 58;
+    const bpm = 62;
     const b = t * (bpm / 60);
     const bar = Math.floor(b / 8);
     const inBar = b - bar * 8;
     const cur = movePose(bar, b, inBar);
-    const m = inBar > 7.2 ? sm((inBar - 7.2) / 0.8) : 0;
+    const m = inBar > 7.4 ? sm((inBar - 7.4) / 0.6) : 0;
     const P = m > 0 ? mixPose(cur, movePose(bar + 1, b, 0), m) : cur;
     const sB = Math.sin(b * Math.PI);
     const bounce = Math.abs(sB);
@@ -426,6 +478,14 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
       if (lastBar.current >= 0 && sc > 0.5) { onStomp(x, z, 1.2); stompAt.current = t; }
       lastBar.current = bar;
     }
+    // jump landings hit harder than stomps
+    if (P.rise > 0.3) airborne.current = true;
+    else if (airborne.current && P.rise < 0.06) {
+      airborne.current = false;
+      stompAt.current = t;
+      if (sc > 0.5) onStomp(x, z, 1.8);
+    }
+    if (sparks.current) sparks.current.visible = !!moveAt(bar).sparks || P.spin > 0.2;
     const u = THREE.MathUtils.clamp((t - stompAt.current) / 0.35, 0, 1);
     const sq = Math.sin(u * Math.PI) * (1 - u) * 0.22;
 
@@ -462,6 +522,9 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
         <ringGeometry args={[0.55, 0.72, 48]} />
         <meshBasicMaterial color={GLOW} transparent opacity={0.4} depthWrite={false} />
       </mesh>
+      <group ref={sparks} visible={false}>
+        <Sparkles count={36} scale={[1.7, 2.4, 1.7]} position={[0, 1.2, 0]} size={3.5} speed={1.4} opacity={0.9} color="#ffd9a0" />
+      </group>
       <group ref={body}>
         <group ref={hips} position={[0, 0.9, 0]}>
           <Part size={[0.46, 0.22, 0.28]} pos={[0, 0.06, 0]} />
