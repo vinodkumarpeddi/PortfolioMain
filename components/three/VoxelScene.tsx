@@ -1211,7 +1211,7 @@ export default function VoxelScene({ stateRef, active }: { stateRef: MutableRefO
       dpr={[1, 1.5]}
       shadows
       camera={{ position: [0, 5.5, 12], fov: 30, near: 0.1, far: 80 }}
-      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+      gl={{ antialias: typeof window !== "undefined" && window.devicePixelRatio < 2, alpha: true, powerPreference: "high-performance" }}
       frameloop={active ? "always" : "never"}
       onCreated={({ gl, camera }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
