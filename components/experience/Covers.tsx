@@ -4,10 +4,10 @@ import { cn } from "@/lib/utils";
 
 function Frame({ children, className, caption }: { children: React.ReactNode; className?: string; caption: string }) {
   return (
-    <div className={cn("relative h-full min-h-[13rem] overflow-hidden rounded-2xl border border-line-1 bg-[#0a0a0d] p-4", className)} aria-hidden>
+    <div className={cn("relative flex h-full min-h-[13rem] flex-col overflow-hidden rounded-2xl border border-line-1 bg-[#0a0a0d] p-4", className)} aria-hidden>
       <div className="grid-bg absolute inset-0 opacity-50 [mask-image:radial-gradient(70%_70%_at_50%_30%,black,transparent)]" />
-      <div className="relative">{children}</div>
-      <p className="label absolute bottom-3 left-4 text-[9.5px] text-fg-3">{caption}</p>
+      <div className="relative flex-1">{children}</div>
+      <p className="label relative mt-4 text-[9.5px] text-fg-3">{caption}</p>
     </div>
   );
 }
@@ -39,8 +39,8 @@ export function UptimeCover() {
           </div>
         </div>
       ))}
-      <div className="mt-4 flex items-center gap-2 rounded-lg border border-line-1 bg-bg-2/60 px-3 py-2 font-mono text-[10px] text-fg-2">
-        <span className="h-1.5 w-1.5 rounded-full bg-warning" /> incident acknowledged → on-call paged → resolved
+      <div className="mt-4 flex items-start gap-2 rounded-lg border border-line-1 bg-bg-2/60 px-3 py-2 font-mono text-[10px] leading-relaxed text-fg-2">
+        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-warning" /> <span>incident acknowledged → on-call paged → resolved</span>
       </div>
     </Frame>
   );

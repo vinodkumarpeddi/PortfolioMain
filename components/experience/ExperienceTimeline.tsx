@@ -181,7 +181,7 @@ function Slide({ m, i, active, onFocus }: { m: Milestone; i: number; active: boo
                 )}
               </div>
             </div>
-            <h3 className="text-h2 mt-6 text-fg-1 xl:text-h1">{m.org}</h3>
+            <h3 className="text-h2 mt-6 break-words text-fg-1">{m.org}</h3>
             <p className="mt-3 text-lead text-fg-2">
               {m.role}
               {m.location && <span className="block text-[15px] text-fg-3">{m.location}</span>}
