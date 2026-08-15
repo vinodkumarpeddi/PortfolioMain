@@ -130,7 +130,7 @@ export function IntroScene() {
     <section id="intro" ref={sectionRef} data-section="intro" className="relative" aria-labelledby="hero-title">
       <div
         ref={pinRef}
-        className="relative h-[100svh] min-h-[640px] overflow-hidden motion-reduce:h-auto motion-reduce:min-h-0 motion-reduce:overflow-visible"
+        className="relative h-[100svh] min-h-[640px] overflow-hidden pb-[env(safe-area-inset-bottom)] motion-reduce:h-auto motion-reduce:min-h-0 motion-reduce:overflow-visible"
       >
         <div
           data-grid

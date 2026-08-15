@@ -47,7 +47,7 @@ export function Nav() {
         Skip to content
       </a>
 
-      <header className="pointer-events-none fixed inset-x-0 top-0 z-[80]">
+      <header className="pointer-events-none fixed inset-x-0 top-0 z-[80] pt-[env(safe-area-inset-top)]">
         <div
           className={cn(
             "mx-auto flex items-center justify-between transition-[max-width,padding,margin,background-color,border-color,backdrop-filter,transform] duration-[var(--duration-slow)] ease-[var(--ease-standard)]",
@@ -163,7 +163,7 @@ export function Nav() {
             role="dialog"
             aria-modal="true"
             aria-label="Menu"
-            className="fixed inset-0 z-[70] flex flex-col overflow-y-auto bg-bg-0/95 px-[var(--spacing-gutter)] pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-28 backdrop-blur-2xl lg:hidden"
+            className="fixed inset-0 z-[70] flex flex-col overflow-y-auto bg-bg-0/95 px-[var(--spacing-gutter)] pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[calc(7rem+env(safe-area-inset-top))] backdrop-blur-2xl lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.25 } }}
