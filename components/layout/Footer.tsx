@@ -11,7 +11,7 @@ const icons: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> 
 export function Footer() {
   const year = new Date().getFullYear();
   return (
-    <footer className="gutter relative border-t border-line-1 bg-bg-0 py-8 pb-[max(2rem,env(safe-area-inset-bottom))] text-fg-2 sm:py-10">
+    <footer className="gutter relative border-t border-line-1 bg-bg-0 py-8 pb-[max(6rem,calc(env(safe-area-inset-bottom)+5rem))] lg:pb-8 text-fg-2 sm:py-10">
       <div className="mx-auto flex max-w-[100rem] flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-8">
         <div>
           <p className="text-[15px] font-semibold text-fg-1">{profile.name}</p>

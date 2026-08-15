@@ -39,7 +39,7 @@ export function ProductVisual({ project, className, variant = "pan" }: { project
             className="no-scrollbar relative overflow-x-auto overscroll-x-contain overflow-y-hidden rounded-[22px] sm:overflow-visible"
             style={{ WebkitOverflowScrolling: "touch" }}
           >
-            <div className="w-[170%] sm:w-full">{frame}</div>
+            <div className="w-[250%] sm:w-full">{frame}</div>
           </div>
           <div className="relative mt-3 flex items-center justify-between gap-3 sm:hidden">
             <span className="label text-fg-3" aria-hidden>

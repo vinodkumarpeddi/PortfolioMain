@@ -71,7 +71,7 @@ export function IntroScene() {
           scrollTrigger: {
             trigger: pin,
             start: "top top",
-            end: desktop ? "+=470%" : "+=400%",
+            end: desktop ? "+=470%" : "+=210%",
             pin: true,
             scrub: 0.7,
             anticipatePin: 1,
