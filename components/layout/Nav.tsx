@@ -9,7 +9,7 @@ import { navigation, profile, sections } from "@/data/profile";
 import { useScrollState } from "@/components/providers/ScrollState";
 import { cn } from "@/lib/utils";
 import { ease, spring } from "@/lib/motion";
-import { ArrowUpRight } from "@/components/ui/Icons";
+import { ArrowRight, ArrowUpRight } from "@/components/ui/Icons";
 import { Magnetic } from "@/components/ui/Magnetic";
 
 export function Nav() {
@@ -58,24 +58,22 @@ export function Nav() {
         >
           <Link
             href="/"
-            className="pointer-events-auto flex items-center gap-3 text-fg-1"
+            className="pointer-events-auto flex min-w-0 items-center gap-3 text-fg-1"
             aria-label={`${profile.name} — home`}
           >
             <span className="relative grid h-7 w-7 place-items-center">
               <span className="absolute inset-0 rounded-full border border-line-2" />
               <span className="h-1.5 w-1.5 rounded-full bg-accent" />
             </span>
-            <span className="flex flex-col leading-none">
-              <span className="whitespace-nowrap text-[13px] font-semibold tracking-[-0.01em]">
+            <span className="flex min-w-0 flex-col leading-none">
+              <span className="truncate text-[13px] font-semibold tracking-[-0.01em]">
                 {profile.name}
               </span>
-              <span
-                className={cn(
-                  "label mt-1 text-fg-3 transition-opacity",
-                  scrolled && "hidden",
-                )}
-              >
+              <span className={cn("label mt-1 text-fg-3 transition-opacity", scrolled && "hidden")}>
                 Software Engineer
+              </span>
+              <span key={current.id} className={cn("label mt-1 truncate text-fg-3", scrolled ? "hidden max-lg:block" : "hidden")}>
+                <span className="text-accent">{current.index}</span> · {current.label}
               </span>
             </span>
           </Link>
@@ -134,17 +132,9 @@ export function Nav() {
             </Magnetic>
           </nav>
 
-          <span
-            className={cn("label pointer-events-none mr-2 hidden items-center gap-1.5 text-fg-3 transition-opacity duration-300 max-lg:flex", scrolled && !open ? "opacity-100" : "opacity-0")}
-            aria-hidden
-          >
-            <span key={current.id} className="inline-block [animation:fade-in_400ms_var(--ease-out-expo)]">
-              <span className="text-accent">{current.index}</span> · {current.label}
-            </span>
-          </span>
           <button
             type="button"
-            className="pointer-events-auto relative grid h-10 w-10 place-items-center rounded-full border border-line-1 bg-bg-2/60 backdrop-blur lg:hidden"
+            className="pointer-events-auto relative grid h-11 w-11 shrink-0 place-items-center rounded-full border border-line-1 bg-bg-2/60 backdrop-blur transition-transform active:scale-95 lg:hidden"
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             aria-controls="mobile-menu"
@@ -173,7 +163,7 @@ export function Nav() {
             role="dialog"
             aria-modal="true"
             aria-label="Menu"
-            className="fixed inset-0 z-[70] flex flex-col bg-bg-0/95 px-[var(--spacing-gutter)] pb-10 pt-28 backdrop-blur-2xl lg:hidden"
+            className="fixed inset-0 z-[70] flex flex-col overflow-y-auto bg-bg-0/95 px-[var(--spacing-gutter)] pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-28 backdrop-blur-2xl lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.25 } }}
@@ -199,17 +189,20 @@ export function Nav() {
                     },
                   }}
                   exit={{ opacity: 0, y: 8, transition: { duration: 0.15 } }}
-                  className="flex items-baseline gap-4 border-b border-line-1 py-4"
+                  className="flex items-center gap-4 border-b border-line-1 py-4 transition-[background-color,transform] active:scale-[0.99] active:bg-fg-1/[0.04]"
                 >
                   <span className="label w-6 text-accent">{item.index}</span>
-                  <span
-                    className={cn(
-                      "text-h2",
-                      active === item.id ? "text-fg-1" : "text-fg-2",
-                    )}
-                  >
+                  <span className={cn("text-h2 flex-1", active === item.id ? "text-fg-1" : "text-fg-2")}>
                     {item.label}
                   </span>
+                  {active === item.id ? (
+                    <span className="relative flex h-2 w-2" aria-hidden>
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60 motion-reduce:animate-none" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+                    </span>
+                  ) : (
+                    <ArrowRight className="text-fg-3" />
+                  )}
                 </motion.a>
               ))}
             </nav>
@@ -218,17 +211,14 @@ export function Nav() {
               animate={{ opacity: 1, transition: { delay: 0.4 } }}
               className="flex flex-col gap-5"
             >
-              <ul
-                className="label flex flex-wrap gap-x-5 gap-y-2 text-fg-3"
-                aria-label="Elsewhere"
-              >
+              <ul className="label flex flex-wrap gap-2 text-fg-2" aria-label="Elsewhere">
                 {profile.socials.map((s) => (
                   <li key={s.label}>
                     <a
                       href={s.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 py-1 transition-colors hover:text-fg-1"
+                      className="inline-flex h-11 items-center gap-1.5 rounded-full border border-line-1 px-4 transition-[color,border-color,transform] active:scale-95 hover:border-line-2 hover:text-fg-1"
                     >
                       {s.label} <ArrowUpRight />
                     </a>
@@ -238,7 +228,7 @@ export function Nav() {
               <div className="flex items-center justify-between gap-4">
                 <a
                   href={`mailto:${profile.email}`}
-                  className="break-all text-sm text-fg-2"
+                  className="min-w-0 break-all text-sm text-fg-2"
                 >
                   {profile.email}
                 </a>
@@ -246,7 +236,7 @@ export function Nav() {
                   href={profile.resumeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-10 items-center gap-1.5 rounded-full bg-fg-1 px-4 text-sm font-medium text-accent-ink"
+                  className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-fg-1 px-5 text-sm font-medium text-accent-ink transition-transform active:scale-95"
                 >
                   Resume <ArrowUpRight />
                 </a>

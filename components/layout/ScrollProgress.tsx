@@ -11,7 +11,12 @@ export function ScrollProgress() {
   const home = usePathname() === "/";
 
   return (
-    <div aria-hidden className="pointer-events-none fixed bottom-6 right-5 top-24 z-[60] hidden flex-col items-center gap-3 lg:flex">
+    <>
+      {/* phones: a hairline progress bar under the pill */}
+      <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 z-[85] h-[2px] bg-transparent lg:hidden">
+        <motion.div className="h-full origin-left bg-accent/80" style={{ scaleX: scaleY }} />
+      </div>
+      <div aria-hidden className="pointer-events-none fixed bottom-6 right-5 top-24 z-[60] hidden flex-col items-center gap-3 lg:flex">
       <div className="relative w-px flex-1 overflow-hidden bg-line-1">
         <motion.div className="absolute inset-x-0 top-0 h-full origin-top bg-fg-1/60" style={{ scaleY }} />
       </div>
@@ -20,6 +25,7 @@ export function ScrollProgress() {
           {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
         </span>
       )}
-    </div>
+      </div>
+    </>
   );
 }

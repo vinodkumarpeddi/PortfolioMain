@@ -9,7 +9,7 @@ import { ease } from "@/lib/motion";
  * Phone-only: tap a product screen to open it full-screen at a readable size and pan across it.
  * The frame keeps its 1200×750 design; the sheet scrolls horizontally.
  */
-export function ScreenLightbox({ title, children }: { title: string; children: React.ReactNode }) {
+export function ScreenLightbox({ title, trigger = "floating", children }: { title: string; trigger?: "floating" | "inline"; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -32,7 +32,11 @@ export function ScreenLightbox({ title, children }: { title: string; children: R
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="label absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/55 px-3 py-2 text-[10px] text-white backdrop-blur-md lg:hidden"
+        className={
+          trigger === "inline"
+            ? "label inline-flex h-11 items-center gap-2 rounded-full border border-line-2 px-4 text-[11px] text-fg-1 transition-transform active:scale-95 lg:hidden"
+            : "label absolute bottom-3 right-3 z-10 inline-flex h-11 items-center gap-2 rounded-full border border-white/25 bg-black/60 px-4 text-[11px] text-white backdrop-blur-md transition-transform active:scale-95 lg:hidden"
+        }
         aria-label={`Open ${title} full screen`}
       >
         <span aria-hidden>⤢</span> Expand
@@ -51,9 +55,14 @@ export function ScreenLightbox({ title, children }: { title: string; children: R
                 aria-modal="true"
                 aria-label={`${title} — full screen`}
               >
-                <div className="flex items-center justify-between px-4 pb-2 pt-[max(1rem,env(safe-area-inset-top))]">
-                  <p className="label text-fg-2">{title} · swipe to pan</p>
-                  <button type="button" onClick={() => setOpen(false)} className="label rounded-full border border-line-2 px-3 py-2 text-fg-1" aria-label="Close">
+                <div className="flex items-center justify-between gap-3 px-4 pb-2 pt-[max(1rem,env(safe-area-inset-top))]">
+                  <p className="label min-w-0 truncate text-fg-2">{title} · swipe to pan</p>
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    className="label inline-flex h-11 shrink-0 items-center rounded-full border border-line-2 px-4 text-fg-1 transition-transform active:scale-95"
+                    aria-label="Close"
+                  >
                     Close
                   </button>
                 </div>

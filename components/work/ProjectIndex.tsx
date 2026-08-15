@@ -3,14 +3,19 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { indexProjects } from "@/data/projects";
-import { ArrowUpRight, GitHub } from "@/components/ui/Icons";
+import { ArrowDown, ArrowUpRight, GitHub } from "@/components/ui/Icons";
 import { Reveal } from "@/components/ui/Reveal";
+import { useIsFinePointer } from "@/lib/hooks/use-media-query";
 import { ease } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-/** Trace-viewer style list: hovering a row dims its siblings and expands its summary. */
+/**
+ * Trace-viewer style list. Pointer: hovering a row dims its siblings and expands its
+ * summary, clicking opens the source. Touch: the first tap expands, the link inside opens it.
+ */
 export function ProjectIndex() {
   const [active, setActive] = useState<number | null>(null);
+  const finePointer = useIsFinePointer();
 
   return (
     <div className="gutter mx-auto max-w-[100rem] py-[calc(var(--spacing-section)*0.6)]">
@@ -20,11 +25,13 @@ export function ProjectIndex() {
           <h3 className="text-h2 mt-3 text-fg-1">Smaller, sharper problems.</h3>
         </div>
         <p className="max-w-[44ch] text-sm leading-relaxed text-fg-2">
-          Focused services and products, each documented and runnable. Hover a row for what it does; open for the source.
+          Focused services and products, each documented and runnable.{" "}
+          <span className="hidden lg:inline">Hover a row for what it does; open for the source.</span>
+          <span className="lg:hidden">Tap a row for what it does, then open the source.</span>
         </p>
       </Reveal>
 
-      <ul className="mt-10 border-t border-line-1" onMouseLeave={() => setActive(null)}>
+      <ul className="mt-10 border-t border-line-1" onMouseLeave={() => finePointer && setActive(null)}>
         {indexProjects.map((p, i) => {
           const dim = active !== null && active !== i;
           const open = active === i;
@@ -35,20 +42,29 @@ export function ProjectIndex() {
                 target="_blank"
                 rel="noopener noreferrer"
                 data-cursor="GitHub ↗"
-                onMouseEnter={() => setActive(i)}
-                onFocus={() => setActive(i)}
-                onBlur={() => setActive(null)}
+                aria-expanded={finePointer ? undefined : open}
+                onMouseEnter={() => finePointer && setActive(i)}
+                onFocus={() => finePointer && setActive(i)}
+                onBlur={() => finePointer && setActive(null)}
+                onClick={(e) => {
+                  if (finePointer) return;
+                  e.preventDefault();
+                  setActive(open ? null : i);
+                }}
                 className={cn(
-                  "group grid grid-cols-12 items-baseline gap-x-4 py-5 transition-opacity duration-[var(--duration-base)] sm:py-6",
-                  dim && "opacity-40",
+                  "group grid grid-cols-12 items-baseline gap-x-4 py-5 transition-[opacity,background-color,transform] duration-[var(--duration-base)] max-lg:active:scale-[0.995] max-lg:active:bg-fg-1/[0.03] sm:py-6",
+                  dim && "lg:opacity-40",
                 )}
               >
                 <span className="label col-span-2 text-fg-3 sm:col-span-1">{String(i + 1).padStart(2, "0")}</span>
-                <span className="col-span-10 flex flex-col gap-1 sm:col-span-5">
+                <span className="col-span-9 flex flex-col gap-1 sm:col-span-5">
                   <span className="text-h3 text-fg-1">{p.title}</span>
                   <span className="label text-fg-3">{p.kind}</span>
                 </span>
-                <span className="label col-span-9 col-start-3 mt-3 flex flex-wrap gap-x-3 gap-y-1 text-fg-3 sm:col-span-5 sm:col-start-7 sm:mt-0">
+                <span className="col-span-1 flex justify-end self-center sm:hidden" aria-hidden>
+                  <ArrowDown className={cn("text-fg-3 transition-transform duration-[var(--duration-base)]", open && "-rotate-180 text-accent")} />
+                </span>
+                <span className="label col-span-10 col-start-3 mt-3 flex flex-wrap gap-x-3 gap-y-1 text-fg-3 sm:col-span-5 sm:col-start-7 sm:mt-0">
                   {p.technologies.map((t) => (
                     <span key={t}>{t}</span>
                   ))}
@@ -79,6 +95,39 @@ export function ProjectIndex() {
                   )}
                 </AnimatePresence>
               </a>
+              <AnimatePresence initial={false}>
+                {open && !finePointer && (
+                  <motion.div
+                    key="actions"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.35, ease: ease.outExpo }}
+                    className="overflow-hidden"
+                  >
+                    <div className="flex flex-wrap gap-2 pb-5 pl-[16.6667%]">
+                      <a
+                        href={p.github}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="label inline-flex h-11 items-center gap-1.5 rounded-full border border-line-2 px-4 text-fg-1 transition-transform active:scale-95"
+                      >
+                        <GitHub /> Source
+                      </a>
+                      {p.live && (
+                        <a
+                          href={p.live}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="label inline-flex h-11 items-center gap-1.5 rounded-full bg-fg-1 px-4 text-accent-ink transition-transform active:scale-95"
+                        >
+                          Live <ArrowUpRight />
+                        </a>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </li>
           );
         })}

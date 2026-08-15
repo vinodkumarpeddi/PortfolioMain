@@ -65,7 +65,7 @@ export function ArchitectureScene({ project }: { project: Project }) {
   return (
     <article ref={ref} className="relative" aria-labelledby={`p-${project.slug}`}>
       <div className="pin relative flex flex-col lg:min-h-[100svh]">
-        <div className="gutter mx-auto grid w-full max-w-[100rem] flex-1 grid-cols-12 gap-x-6 gap-y-8 py-20 lg:items-center lg:py-28">
+        <div className="gutter mx-auto grid w-full max-w-[100rem] flex-1 grid-cols-12 gap-x-6 gap-y-8 py-14 sm:py-20 lg:items-center lg:py-28">
           {/* A — header + title + intro */}
           <div className="col-span-12 lg:col-span-5 lg:col-start-1 lg:row-start-1 lg:self-end xl:col-span-4">
             <ProjectHeader project={project} />

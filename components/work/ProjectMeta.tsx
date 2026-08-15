@@ -50,7 +50,7 @@ export function ProjectLinks({ project, className, primary = "case" }: { project
 
 export function FactList({ facts, className }: { facts: Project["facts"]; className?: string }) {
   return (
-    <dl className={cn("grid gap-4 sm:grid-cols-3", className)}>
+    <dl className={cn("grid gap-x-4 gap-y-3 sm:gap-4 sm:grid-cols-3", className)}>
       {facts.map((f) => (
         <div key={f.label} className="border-t border-line-1 pt-3">
           <dt className="label text-fg-3">{f.label}</dt>

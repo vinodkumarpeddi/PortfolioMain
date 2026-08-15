@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { gsap, useGSAP, MOTION_OK, DESKTOP } from "@/lib/gsap";
 import type { Project } from "@/data/types";
 import { ProductVisual } from "@/components/visuals/ProductVisual";
@@ -63,7 +63,7 @@ export function HorizontalScene({ project }: { project: Project }) {
   return (
     <article ref={ref} className="relative overflow-hidden" aria-labelledby={`p-${project.slug}`}>
       <div className="lg:h-[100svh]">
-        <div ref={trackRef} className="flex flex-col gap-10 py-24 lg:h-full lg:w-max lg:flex-row lg:items-center lg:gap-0 lg:py-0">
+        <div ref={trackRef} className="flex flex-col gap-12 py-16 lg:h-full lg:w-max lg:flex-row lg:items-center lg:gap-0 lg:py-0 sm:py-24">
           {/* panel 1 — title */}
           <Panel className="lg:pl-[var(--spacing-gutter)]">
             <div className="h-reveal">
@@ -83,32 +83,11 @@ export function HorizontalScene({ project }: { project: Project }) {
 
           {/* panel 2 — roles */}
           <Panel wide>
-            <p className="h-reveal label text-fg-3">Roles and what they can touch</p>
-            <div className="mt-6 grid gap-4 sm:grid-cols-3">
-              {roles.map((r, i) => (
-                <div key={r.role} className="h-reveal rounded-2xl border border-line-1 bg-bg-2/60 p-5">
-                  <div className="label flex items-center justify-between text-fg-3">
-                    <span className="text-accent">0{i + 1}</span>
-                    <span>{r.scope}</span>
-                  </div>
-                  <p className="mt-3 text-h3 text-fg-1">{r.role}</p>
-                  <ul className="mt-4 space-y-1.5 text-sm text-fg-2">
-                    {r.can.map((c) => (
-                      <li key={c} className="flex gap-2">
-                        <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-success" aria-hidden />
-                        {c}
-                      </li>
-                    ))}
-                    {r.cannot.map((c) => (
-                      <li key={c} className="flex gap-2 text-fg-3">
-                        <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-error/70" aria-hidden />
-                        {c}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+            <div className="h-reveal flex items-baseline justify-between gap-4">
+              <p className="label text-fg-3">Roles and what they can touch</p>
+              <p className="label text-fg-3 sm:hidden" aria-hidden>Swipe →</p>
             </div>
+            <RoleRow />
           </Panel>
 
           {/* panel 3 — request path */}
@@ -137,6 +116,85 @@ export function HorizontalScene({ project }: { project: Project }) {
         </div>
       </div>
     </article>
+  );
+}
+
+/** The three roles: a snap-scrolling row with dots on phones, a grid from sm up. */
+function RoleRow() {
+  const scroller = useRef<HTMLDivElement>(null);
+  const [current, setCurrent] = useState(0);
+
+  const onScroll = useCallback(() => {
+    const el = scroller.current;
+    if (!el) return;
+    const cards = Array.from(el.children) as HTMLElement[];
+    let best = 0;
+    let bestDelta = Infinity;
+    cards.forEach((c, i) => {
+      const delta = Math.abs(c.offsetLeft - el.scrollLeft);
+      if (delta < bestDelta) {
+        bestDelta = delta;
+        best = i;
+      }
+    });
+    setCurrent(best);
+  }, []);
+
+  const goTo = (i: number) => {
+    const el = scroller.current;
+    const card = el?.children[i] as HTMLElement | undefined;
+    if (el && card) el.scrollTo({ left: card.offsetLeft, behavior: "smooth" });
+  };
+
+  return (
+    <>
+      <div
+        ref={scroller}
+        onScroll={onScroll}
+        className="no-scrollbar mt-6 -mx-[var(--spacing-gutter)] flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto px-[var(--spacing-gutter)] pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0"
+      >
+        {roles.map((r, i) => (
+          <div
+            key={r.role}
+            className="h-reveal w-[80vw] max-w-[22rem] shrink-0 snap-start rounded-2xl border border-line-1 bg-bg-2/60 p-5 sm:w-auto sm:max-w-none"
+          >
+            <div className="label flex items-center justify-between text-fg-3">
+              <span className="text-accent">0{i + 1}</span>
+              <span>{r.scope}</span>
+            </div>
+            <p className="mt-3 text-h3 text-fg-1">{r.role}</p>
+            <ul className="mt-4 space-y-1.5 text-sm text-fg-2">
+              {r.can.map((c) => (
+                <li key={c} className="flex gap-2">
+                  <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-success" aria-hidden />
+                  {c}
+                </li>
+              ))}
+              {r.cannot.map((c) => (
+                <li key={c} className="flex gap-2 text-fg-3">
+                  <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-error/70" aria-hidden />
+                  {c}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 flex gap-2 sm:hidden">
+        {roles.map((r, i) => (
+          <button
+            key={r.role}
+            type="button"
+            onClick={() => goTo(i)}
+            aria-label={`Show ${r.role}`}
+            aria-current={current === i}
+            className="grid h-6 w-6 place-items-center"
+          >
+            <span className={cn("h-1.5 rounded-full transition-[width,background-color] duration-[var(--duration-base)]", current === i ? "w-5 bg-accent" : "w-1.5 bg-fg-3/40")} />
+          </button>
+        ))}
+      </div>
+    </>
   );
 }
 
