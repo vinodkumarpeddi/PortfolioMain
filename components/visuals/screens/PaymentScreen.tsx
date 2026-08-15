@@ -1,125 +1,105 @@
-import { AppShell, themes, AreaChart, Kpi, NavItem, Pill, Row } from "./ui";
+import { AppShell, Avatar, Donut, Kpi, LineChart, NavItem, Pill, Row, Tabs, themes } from "./ui";
 
-const txns = [
-  { id: "pay_9f3a1c", amount: "₹500.00", method: "UPI", customer: "demo_1", status: "processed" },
-  { id: "pay_71bd0e", amount: "₹1,250.00", method: "Card ··4242", customer: "demo_2", status: "processed" },
-  { id: "pay_c02e88", amount: "₹500.00", method: "UPI", customer: "demo_3", status: "pending" },
-  { id: "pay_4a17f9", amount: "₹2,000.00", method: "Card ··1881", customer: "demo_4", status: "refunded" },
-  { id: "pay_e5d3b2", amount: "₹750.00", method: "UPI", customer: "demo_5", status: "processed" },
-  { id: "pay_0b7c31", amount: "₹500.00", method: "Card ··0005", customer: "demo_6", status: "failed" },
+const payments = [
+  { id: "pay_3Nq8kL2eZ", customer: "Aarav Mehta", email: "aarav@northwind.in", amount: "₹4,999.00", method: "UPI · aarav@okaxis", status: "succeeded", when: "2 min ago" },
+  { id: "pay_3Nq8hV9pQ", customer: "Priya Nair", email: "priya.n@lumen.co", amount: "₹12,500.00", method: "Visa ··4242", status: "succeeded", when: "9 min ago" },
+  { id: "pay_3Nq8fA1tW", customer: "Rohan Iyer", email: "rohan@quill.app", amount: "₹1,299.00", method: "UPI · rohan@ybl", status: "processing", when: "14 min ago" },
+  { id: "pay_3Nq8dR7cM", customer: "Sneha Kulkarni", email: "sneha@ferrous.io", amount: "₹8,000.00", method: "Mastercard ··1881", status: "refunded", when: "31 min ago" },
+  { id: "pay_3Nq8bZ4nK", customer: "Karan Bose", email: "karan@aster.dev", amount: "₹599.00", method: "UPI · karan@paytm", status: "failed", when: "42 min ago" },
+  { id: "pay_3Nq89X0sD", customer: "Meera Pillai", email: "meera@holo.studio", amount: "₹22,000.00", method: "Visa ··0005", status: "succeeded", when: "1 hr ago" },
 ] as const;
-const tone = { processed: "success", pending: "warning", refunded: "neutral", failed: "error" } as const;
+const tone = { succeeded: "success", processing: "warning", refunded: "neutral", failed: "error" } as const;
 
 export function PaymentScreen() {
   return (
     <AppShell
       theme={themes.stripe}
       title="Orchestrator"
-      accentTitle="live"
-      url="dashboard.localhost:3000 · merchant"
+      accentTitle="Test mode"
+      url="dashboard.orchestrator.dev/payments"
       sidebar={
         <>
-          <NavItem active>Overview</NavItem>
-          <NavItem>Payments</NavItem>
+          <NavItem>Home</NavItem>
+          <NavItem active>Payments</NavItem>
+          <NavItem>Customers</NavItem>
           <NavItem>Refunds</NavItem>
           <NavItem>Webhooks</NavItem>
-          <NavItem>API keys</NavItem>
-          <NavItem>Checkout</NavItem>
+          <NavItem>Developers</NavItem>
+          <NavItem>Settings</NavItem>
         </>
       }
       header={
         <>
           <div className="flex items-center gap-3">
-            <span className="text-[14px] font-medium">Merchant dashboard</span>
-            <Pill tone="accent">test mode</Pill>
+            <span className="text-[15px] font-semibold tracking-tight">Payments</span>
+            <Tabs items={["Overview", "All payments", "Disputes", "Payouts"]} active={0} />
           </div>
           <div className="flex items-center gap-3">
-            <span className="rounded-lg border border-line-1 px-3 py-1.5 font-mono text-[11px] text-fg-2">key_test_abc123</span>
-            <span className="h-7 w-7 rounded-full bg-gradient-to-br from-accent to-[#22d3ee]" />
-          </div>
-        </>
-      }
-      aside={
-        <>
-          <p className="label text-[9.5px] text-fg-3">Webhook deliveries</p>
-          <ul className="mt-3 space-y-2">
-            {[
-              { ev: "payment.processed", code: "200", ok: true, attempt: "1/5" },
-              { ev: "payment.processed", code: "503", ok: false, attempt: "2/5 · retry 4s" },
-              { ev: "refund.created", code: "200", ok: true, attempt: "1/5" },
-              { ev: "payment.failed", code: "200", ok: true, attempt: "3/5" },
-            ].map((w, i) => (
-              <li key={i} className="vis-fade rounded-xl border border-line-1 bg-bg-2 p-3" style={{ animationDelay: `${500 + i * 120}ms` }}>
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[11px] text-fg-1">{w.ev}</span>
-                  <span className={w.ok ? "font-mono text-[11px] text-success" : "font-mono text-[11px] text-error"}>{w.code}</span>
-                </div>
-                <p className="label mt-1.5 text-[9.5px] text-fg-3">attempt {w.attempt}</p>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-5 rounded-xl border border-line-1 bg-bg-2 p-3">
-            <div className="flex items-center justify-between">
-              <span className="label text-[9.5px] text-fg-3">Queue</span>
-              <span className="label text-[9.5px] text-success">healthy</span>
-            </div>
-            <p className="mt-2 font-mono text-[11px] text-fg-2">redis · bullmq · 3 workers</p>
-            <div className="mt-2 flex gap-1">
-              {[1, 1, 1, 0.5, 0.2].map((o, i) => (
-                <span key={i} className="h-1.5 flex-1 rounded-full bg-accent" style={{ opacity: o }} />
-              ))}
-            </div>
+            <span className="rounded-lg border border-line-1 bg-bg-2 px-3 py-1.5 text-[12px] text-fg-2">Last 7 days ▾</span>
+            <span className="rounded-lg bg-accent px-3 py-1.5 text-[12px] font-semibold text-accent-ink">+ Create payment</span>
+            <Avatar name="Vinod Kumar" size={28} />
           </div>
         </>
       }
     >
       <div className="grid grid-cols-4 gap-4">
-        <Kpi label="Volume · 24h" value="₹48,250" delta="+12.4% vs yesterday" tone="success" delay={200} spark={[20, 35, 30, 48, 44, 60, 58, 72, 80, 88]} />
-        <Kpi label="Success rate" value="98.2%" delta="idempotent retries" delay={280} spark={[90, 92, 91, 95, 94, 96, 97, 96, 98, 98]} />
-        <Kpi label="Pending" value="3" delta="in queue" tone="warning" delay={360} />
-        <Kpi label="Refunds" value="₹2,000" delta="ledger reconciled" delay={440} />
+        <Kpi label="Gross volume" value="₹4,82,510" delta="+18.2% vs last week" tone="success" delay={200} spark={[24, 30, 28, 44, 42, 58, 60, 74, 72, 88]} />
+        <Kpi label="Successful payments" value="1,284" delta="98.4% success rate" tone="success" delay={280} spark={[60, 62, 61, 66, 70, 72, 75, 78, 80, 84]} />
+        <Kpi label="Refunds" value="₹31,000" delta="12 refunds · ledger reconciled" delay={360} />
+        <Kpi label="Webhook deliveries" value="99.1%" delta="4 retried · 0 dead" tone="success" delay={440} spark={[90, 94, 92, 97, 96, 98, 99, 99, 99, 99]} />
       </div>
-      <div className="mt-4 grid grid-cols-[1.6fr_1fr] gap-4">
-        <div className="rounded-2xl border border-line-1 bg-bg-2 p-4">
+
+      <div className="mt-4 grid grid-cols-[1.7fr_1fr] gap-4">
+        <div className="rounded-2xl border border-line-1 bg-bg-2 p-4 [box-shadow:0_1px_2px_rgba(0,0,0,0.04)]">
           <div className="flex items-center justify-between">
-            <span className="text-[13px] font-medium">Settled volume</span>
-            <span className="label text-[9.5px] text-fg-3">last 14 days</span>
-          </div>
-          <AreaChart values={[22, 30, 26, 38, 42, 40, 55, 50, 62, 58, 70, 66, 82, 90]} height={130} className="mt-3" />
-        </div>
-        <div className="rounded-2xl border border-line-1 bg-bg-2 p-4">
-          <span className="text-[13px] font-medium">Hosted checkout</span>
-          <div className="mt-3 rounded-xl border border-line-1 bg-[var(--s-panel)] p-3">
-            <p className="text-[18px] font-semibold">₹500.00</p>
-            <p className="label mt-0.5 text-[9.5px] text-fg-3">order · demo_1</p>
-            <div className="mt-3 grid grid-cols-2 gap-1 rounded-lg bg-fg-1/[0.05] p-1">
-              <span className="label rounded-md bg-fg-1 py-1 text-center text-[9.5px] text-accent-ink">UPI</span>
-              <span className="label py-1 text-center text-[9.5px] text-fg-3">Card</span>
+            <div>
+              <p className="text-[13px] font-semibold">Gross volume</p>
+              <p className="text-[11px] text-fg-3">₹4,82,510 · vs ₹4,08,220 previous period</p>
             </div>
-            <div className="mt-2 rounded-lg bg-accent py-1.5 text-center text-[11px] font-semibold text-accent-ink">Pay ₹500.00</div>
+            <div className="flex items-center gap-4 font-mono text-[10px] text-fg-3">
+              <span className="flex items-center gap-1.5"><span className="h-1.5 w-4 rounded-full bg-accent" /> this week</span>
+              <span className="flex items-center gap-1.5"><span className="h-1.5 w-4 rounded-full bg-fg-3/50" /> previous</span>
+            </div>
+          </div>
+          <LineChart className="mt-3" height={150} series={[{ values: [22, 30, 26, 38, 42, 40, 55, 50, 62, 58, 70, 66, 82, 90], color: "var(--color-accent)", area: true }, { values: [20, 24, 28, 30, 34, 36, 40, 44, 46, 50, 52, 55, 58, 60], color: "#94a3b8", dashed: true }]} />
+          <div className="mt-2 flex justify-between font-mono text-[10px] text-fg-3"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+        </div>
+        <div className="rounded-2xl border border-line-1 bg-bg-2 p-4 [box-shadow:0_1px_2px_rgba(0,0,0,0.04)]">
+          <p className="text-[13px] font-semibold">Payment methods</p>
+          <div className="mt-3 flex items-center gap-5">
+            <Donut size={124} thickness={16} segments={[{ value: 58, color: "var(--color-accent)" }, { value: 31, color: "#22c55e" }, { value: 11, color: "#94a3b8" }]} label="1,284" sub="payments" />
+            <ul className="space-y-2 text-[12px]">
+              <li className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-accent" /> UPI <span className="ml-auto pl-4 font-mono text-fg-3">58%</span></li>
+              <li className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#22c55e]" /> Cards <span className="ml-auto pl-4 font-mono text-fg-3">31%</span></li>
+              <li className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#94a3b8]" /> Net banking <span className="ml-auto pl-4 font-mono text-fg-3">11%</span></li>
+            </ul>
+          </div>
+          <div className="mt-4 rounded-xl border border-line-1 bg-bg-1 p-3">
+            <p className="label text-[9.5px] text-fg-3">Queue · redis / bullmq</p>
+            <div className="mt-2 flex items-center justify-between font-mono text-[11px]"><span className="text-fg-2">waiting 3 · active 2</span><span className="text-success">3 workers</span></div>
           </div>
         </div>
       </div>
-      <div className="mt-4 rounded-2xl border border-line-1 bg-bg-2 px-4 pb-1 pt-4">
+
+      <div className="mt-4 rounded-2xl border border-line-1 bg-bg-2 px-4 pb-1 pt-4 [box-shadow:0_1px_2px_rgba(0,0,0,0.04)]">
         <div className="flex items-center justify-between">
-          <span className="text-[13px] font-medium">Recent payments</span>
-          <span className="label text-[9.5px] text-fg-3">orders · payments · refunds</span>
+          <p className="text-[13px] font-semibold">Recent payments</p>
+          <div className="flex gap-2 text-[11px]">
+            <span className="rounded-md border border-line-1 px-2 py-1 text-fg-2">Filter</span>
+            <span className="rounded-md border border-line-1 px-2 py-1 text-fg-2">Export</span>
+          </div>
         </div>
         <div className="mt-2">
-          {txns.map((t, i) => (
-            <Row key={t.id} className="grid-cols-[1.4fr_1fr_1.2fr_1fr_auto]" delay={500 + i * 90}>
-              <span className="font-mono text-fg-2">{t.id}</span>
-              <span className="tabular-nums text-fg-1">{t.amount}</span>
-              <span className="text-fg-3">{t.method}</span>
-              <span className="font-mono text-fg-3">{t.customer}</span>
-              {t.status === "pending" ? (
-                <span className="relative inline-flex justify-end">
-                  <Pill tone="warning" className="[animation:vis-status-a_5s_infinite]">pending</Pill>
-                  <Pill tone="success" className="absolute right-0 top-0 [animation:vis-status-b_5s_infinite]">processed</Pill>
-                </span>
-              ) : (
-                <span className="inline-flex justify-end"><Pill tone={tone[t.status]}>{t.status}</Pill></span>
-              )}
+          {payments.map((p, i) => (
+            <Row key={p.id} className="grid-cols-[1.6fr_1.1fr_1.5fr_auto_0.9fr]" delay={500 + i * 80}>
+              <span className="flex items-center gap-2.5">
+                <Avatar name={p.customer} size={26} />
+                <span className="flex flex-col leading-tight"><span className="text-fg-1">{p.customer}</span><span className="text-[10.5px] text-fg-3">{p.email}</span></span>
+              </span>
+              <span className="font-medium tabular-nums text-fg-1">{p.amount}</span>
+              <span className="text-fg-2">{p.method}</span>
+              <Pill tone={tone[p.status]}>{p.status}</Pill>
+              <span className="text-right text-fg-3">{p.when}</span>
             </Row>
           ))}
         </div>
