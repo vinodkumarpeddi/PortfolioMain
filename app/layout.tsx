@@ -5,6 +5,7 @@ import { profile } from "@/data/profile";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { ScrollStateProvider } from "@/components/providers/ScrollState";
 import { HashScroll } from "@/components/providers/HashScroll";
+import { Preloader } from "@/components/layout/Preloader";
 import { Cursor } from "@/components/ui/Cursor";
 import { Grain } from "@/components/ui/Grain";
 import { Nav } from "@/components/layout/Nav";
@@ -73,6 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SmoothScroll>
           <ScrollStateProvider>
             <HashScroll />
+            <Preloader />
             <Nav />
             <ScrollProgress />
             {children}

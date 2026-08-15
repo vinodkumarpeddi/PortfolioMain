@@ -160,7 +160,7 @@ export function IntroScene() {
                 <span className="hidden md:inline">{profile.location}</span>
               </div>
 
-              <h1 id="hero-title" className="text-display mt-7 uppercase text-fg-1 lg:mt-9">
+              <h1 id="hero-title" className="sheen text-display mt-7 uppercase text-fg-1 lg:mt-9">
                 <span className="block">
                   <SplitReveal immediate by="lines" delay={0.1}>
                     <KineticText text="Systems" />

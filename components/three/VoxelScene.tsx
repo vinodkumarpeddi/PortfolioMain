@@ -54,7 +54,7 @@ function noise2(x: number, y: number) {
 
 const dummy = new THREE.Object3D();
 const color = new THREE.Color();
-const dark = new THREE.Color("#121216");
+const dark = new THREE.Color("#15151a");
 const amber = new THREE.Color("#e9a23b");
 const warm = new THREE.Color("#ffd18a");
 
@@ -140,9 +140,9 @@ function City({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
       m.setMatrixAt(k, dummy.matrix);
 
       // colour: mostly dark; peaks, pulses, streams and flashes light up
-      const heat = THREE.MathUtils.clamp((h - 1.5) / 2.2, 0, 1) * 0.55 + pulse * 0.6 + lift * 0.9 + stream * 1.1 + flash * 1.2;
-      color.copy(dark).lerp(amber, THREE.MathUtils.clamp(heat, 0, 1));
-      if (heat > 1) color.lerp(warm, THREE.MathUtils.clamp((heat - 1) * 0.8, 0, 1));
+      const heat = THREE.MathUtils.clamp((h - 0.6) / 2.4, 0, 1) + pulse * 0.5 + lift * 0.8 + stream * 0.9 + flash * 1.1;
+      color.copy(dark).lerp(amber, THREE.MathUtils.clamp(heat, 0, 1) * 0.85);
+      if (heat > 0.9) color.lerp(warm, THREE.MathUtils.clamp((heat - 0.9) * 1.6, 0, 1));
       m.setColorAt(k, color);
     }
     m.instanceMatrix.needsUpdate = true;
@@ -153,7 +153,7 @@ function City({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
     <group ref={groupRef}>
       <instancedMesh ref={mesh} args={[undefined, undefined, COUNT]} frustumCulled={false} castShadow receiveShadow>
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="#ffffff" roughness={0.4} metalness={0.5} />
+        <meshStandardMaterial color="#ffffff" roughness={0.35} metalness={0.55} />
       </instancedMesh>
       <mesh position={[0, -0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[N * (CELL + GAP) + 1.5, N * (CELL + GAP) + 1.5]} />
@@ -172,10 +172,10 @@ function Rig({ children, stateRef }: { children: React.ReactNode; stateRef: Muta
     const desktop = size.width >= 900;
     const t = state.clock.elapsedTime;
     group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, -0.72 + Math.sin(t * 0.08) * 0.12 + pointer.x * 0.08, 3, dt);
-    const sc = desktop ? Math.min(0.78, viewport.width / 19) : Math.min(0.62, viewport.width / 7.5);
+    const sc = desktop ? Math.min(1, viewport.width / 12) : Math.min(0.75, viewport.width / 6);
     group.current.scale.setScalar(THREE.MathUtils.damp(group.current.scale.x || 0.001, sc, 4, dt));
-    group.current.position.x = desktop ? viewport.width * 0.22 : 0.3;
-    group.current.position.y = (desktop ? -1.5 + Math.sin(t * 0.5) * 0.06 : -viewport.height * 0.34) - s.spread * 1.5;
+    group.current.position.x = desktop ? viewport.width * 0.17 : 0.2;
+    group.current.position.y = (desktop ? -1.7 + Math.sin(t * 0.5) * 0.06 : -viewport.height * 0.34) - s.spread * 1.5;
   });
   return <group ref={group}>{children}</group>;
 }
