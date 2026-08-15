@@ -102,10 +102,11 @@ export function CaseStudy({ project }: { project: Project }) {
 
       {/* body */}
       <div className="gutter mx-auto mt-24 grid max-w-[100rem] grid-cols-12 gap-x-6">
-        <aside className="col-span-12 lg:col-span-3">
+        <aside className="hidden lg:col-span-3 lg:block">
           <CaseStudyToc items={toc} />
         </aside>
         <div className="col-span-12 lg:col-span-8 lg:col-start-5">
+          <CaseStudyToc items={toc} variant="rail" />
           <Section id="overview" index="01" title="Overview">
             <Prose paragraphs={cs.overview} />
           </Section>

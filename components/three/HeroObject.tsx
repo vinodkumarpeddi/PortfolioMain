@@ -192,6 +192,7 @@ function OrbitMarkers({ orbit, stateRef }: { orbit: OrbitConfig; stateRef: Mutab
             <group key={i} position={pos}>
               <mesh
                 ref={(el) => { if (el) cores.current[i] = el; }}
+                scale={0.04}
                 onClick={(e) => { e.stopPropagation(); orbit.onSelect?.(i); }}
                 onPointerOver={(e) => { e.stopPropagation(); setHover(i); document.body.style.cursor = "pointer"; }}
                 onPointerOut={() => { setHover(null); document.body.style.cursor = ""; }}
@@ -211,7 +212,7 @@ function OrbitMarkers({ orbit, stateRef }: { orbit: OrbitConfig; stateRef: Mutab
                   </div>
                 </Html>
               )}
-              <mesh ref={(el) => { if (el) pulses.current[i] = el; }} rotation={[Math.PI / 2, 0, 0]}>
+              <mesh ref={(el) => { if (el) pulses.current[i] = el; }} rotation={[Math.PI / 2, 0, 0]} scale={0.0001}>
                 <ringGeometry args={[0.85, 1, 48]} />
                 <meshBasicMaterial color="#e9a23b" transparent opacity={0} side={THREE.DoubleSide} toneMapped={false} depthWrite={false} />
               </mesh>

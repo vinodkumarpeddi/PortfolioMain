@@ -134,6 +134,14 @@ export function Nav() {
             </Magnetic>
           </nav>
 
+          <span
+            className={cn("label pointer-events-none mr-2 hidden items-center gap-1.5 text-fg-3 transition-opacity duration-300 max-lg:flex", scrolled && !open ? "opacity-100" : "opacity-0")}
+            aria-hidden
+          >
+            <span key={current.id} className="inline-block [animation:fade-in_400ms_var(--ease-out-expo)]">
+              <span className="text-accent">{current.index}</span> · {current.label}
+            </span>
+          </span>
           <button
             type="button"
             className="pointer-events-auto relative grid h-10 w-10 place-items-center rounded-full border border-line-1 bg-bg-2/60 backdrop-blur lg:hidden"

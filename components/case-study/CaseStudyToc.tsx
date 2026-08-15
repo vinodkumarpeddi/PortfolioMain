@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
-export function CaseStudyToc({ items }: { items: { id: string; label: string; index: string }[] }) {
+export function CaseStudyToc({ items, variant = "list" }: { items: { id: string; label: string; index: string }[]; variant?: "list" | "rail" }) {
   const [active, setActive] = useState(items[0]?.id);
   useEffect(() => {
     const els = items.map((i) => document.getElementById(i.id)).filter(Boolean) as HTMLElement[];
@@ -18,8 +18,27 @@ export function CaseStudyToc({ items }: { items: { id: string; label: string; in
     return () => io.disconnect();
   }, [items]);
 
+  if (variant === "rail") {
+    return (
+      <nav className="sticky top-[4.25rem] z-30 -mx-[var(--spacing-gutter)] mb-6 lg:hidden" aria-label="On this page">
+        <ol className="no-scrollbar flex gap-2 overflow-x-auto bg-bg-0/85 px-[var(--spacing-gutter)] py-2 backdrop-blur-md">
+          {items.map((i) => {
+            const on = active === i.id;
+            return (
+              <li key={i.id} className="shrink-0">
+                <a href={`#${i.id}`} className={cn("label inline-flex h-9 items-center gap-2 rounded-full border px-3 transition-colors", on ? "border-accent/60 bg-accent-soft text-fg-1" : "border-line-1 text-fg-3")}>
+                  <span className="text-accent">{i.index}</span>
+                  {i.label}
+                </a>
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+    );
+  }
   return (
-    <nav className="lg:sticky lg:top-28" aria-label="On this page">
+    <nav className="hidden lg:sticky lg:top-28 lg:block" aria-label="On this page">
       <p className="label text-fg-3">Contents</p>
       <ol className="mt-4 space-y-1 border-l border-line-1">
         {items.map((i) => {
