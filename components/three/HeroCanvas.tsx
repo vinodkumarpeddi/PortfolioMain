@@ -7,7 +7,7 @@ import { usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 
 const HeroObject = dynamic(() => import("./HeroObject"), { ssr: false });
-const LaptopScene = dynamic(() => import("./LaptopScene"), { ssr: false });
+const GalleryScene = dynamic(() => import("./GalleryScene"), { ssr: false });
 
 function hasWebGL() {
   try {
@@ -19,7 +19,7 @@ function hasWebGL() {
 }
 
 /** Lazily mounts the WebGL scene, renders only while on screen, fades in when ready. */
-export function HeroCanvas({ stateRef, className, ambient, variant, orbit, scene = "planet" }: { stateRef: MutableRefObject<HeroState>; className?: string; ambient?: boolean; variant?: HeroVariant; orbit?: OrbitConfig; scene?: "planet" | "laptop" }) {
+export function HeroCanvas({ stateRef, className, ambient, variant, orbit, scene = "planet" }: { stateRef: MutableRefObject<HeroState>; className?: string; ambient?: boolean; variant?: HeroVariant; orbit?: OrbitConfig; scene?: "planet" | "gallery" }) {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = usePrefersReducedMotion();
   const [ok, setOk] = useState(false);
@@ -50,7 +50,7 @@ export function HeroCanvas({ stateRef, className, ambient, variant, orbit, scene
 
   return (
     <div ref={ref} className={cn("transition-opacity duration-[1600ms] ease-[var(--ease-standard)]", ready ? "opacity-100" : "opacity-0", className)}>
-      {scene === "laptop" ? <LaptopScene stateRef={stateRef} active={visible} /> : <HeroObject stateRef={stateRef} active={visible} variant={variant ?? (ambient ? "ambient" : "hero")} orbit={orbit} />}
+      {scene === "gallery" ? <GalleryScene stateRef={stateRef} active={visible} /> : <HeroObject stateRef={stateRef} active={visible} variant={variant ?? (ambient ? "ambient" : "hero")} orbit={orbit} />}
     </div>
   );
 }
