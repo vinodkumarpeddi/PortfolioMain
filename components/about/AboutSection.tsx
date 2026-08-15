@@ -91,7 +91,8 @@ export function AboutSection() {
           </Tile>
 
           {/* stack marquee */}
-          <Tile label="Stack" span="sm:col-span-2 lg:col-span-2" className="!px-0">
+          <Tile span="sm:col-span-2 lg:col-span-2" className="!px-0">
+            <p className="label px-6 text-fg-3">Stack</p>
             <div className="mt-4 space-y-3 px-0">
               <Marquee className="px-6" items={stackA.map((s) => <span key={s} className="text-h3 whitespace-nowrap text-fg-1">{s}</span>)} />
               <Marquee className="px-6 [&_.marquee-track]:[animation-direction:reverse]" items={stackB.map((s) => <span key={s} className="text-h3 whitespace-nowrap text-fg-2">{s}</span>)} />
