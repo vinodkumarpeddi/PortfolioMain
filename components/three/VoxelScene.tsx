@@ -501,6 +501,69 @@ function backflip(inBar: number): Pose {
     lLeg: [-crouch * 1.0 - tuck * 1.6, 0, 0.1 + land * 0.15], rLeg: [-crouch * 1.0 - tuck * 1.6, 0, -0.1 - land * 0.15], lShin: crouch * 1.6 + tuck * 2.0 + land * 0.15, rShin: crouch * 1.6 + tuck * 2.0 + land * 0.15,
   };
 }
+function srivalli(b: number): Pose {
+  // the Pushpa hook: one foot drags forward along the ground while the shoulder shrugs and the glove swipes the chin, then flicks out
+  const c = b / 2, u = c - Math.floor(c);
+  const left = Math.floor(c) % 2 === 0;
+  const drag = sm(u / 0.7);
+  const swipe = Math.sin(THREE.MathUtils.clamp(u / 0.55, 0, 1) * Math.PI);
+  const flick = sm((u - 0.6) / 0.25) * (1 - sm((u - 0.9) / 0.1));
+  const shrug = Math.sin(u * Math.PI * 2) * 0.18;
+  const dragX = l1(0.35, -0.75, drag);
+  const sw = left ? 1 : -1;
+  return {
+    ...REST, hipsY: 0.86 - drag * 0.04, hips: [0.05, sw * 0.2 * drag, sw * shrug * 0.4], torso: [0.12, -sw * 0.25 * drag, -sw * shrug], head: [0.05 - swipe * 0.15, sw * 0.4 * drag, sw * shrug * 0.6],
+    lArm: left ? [-0.2, 0, -0.3 - flick * 0.4] : [-swipe * 1.4, 0, -0.5 - flick * 1.2], lFore: left ? [-0.5, 0, -0.1] : [-swipe * 1.6 - 0.2, 0, -0.5 * swipe],
+    rArm: left ? [-swipe * 1.4, 0, 0.5 + flick * 1.2] : [-0.2, 0, 0.3 + flick * 0.4], rFore: left ? [-swipe * 1.6 - 0.2, 0, 0.5 * swipe] : [-0.5, 0, 0.1],
+    lLeg: left ? [dragX, 0, 0.08] : [0.1, 0, 0.1], rLeg: left ? [0.1, 0, -0.1] : [dragX, 0, -0.08],
+    lShin: left ? 0.15 * (1 - drag) : 0.35, rShin: left ? 0.35 : 0.15 * (1 - drag),
+  };
+}
+function buttaBomma(b: number): Pose {
+  // standing on one leg, the other crossed in front on its toe, knee twisting in and out; arms wide, wrists flicking
+  const twist = Math.sin(b * Math.PI * 2) * 0.75;
+  const bounce = Math.abs(Math.sin(b * Math.PI * 2)) * 0.03;
+  const left = Math.floor(b / 4) % 2 === 0;
+  const flick = Math.sin(b * Math.PI * 2 + 1) * 0.35;
+  const stand: V3 = [-0.12, 0, 0.05], cross: V3 = [-0.55, twist, 0.55];
+  return {
+    ...REST, hipsY: 0.82 + bounce, hips: [0.05, -twist * 0.12, 0], torso: [0.05, twist * 0.2, 0], head: [0, twist * 0.25, twist * 0.1],
+    lArm: [0, 0, -1.55], lFore: [0, 0, -0.2 + flick], rArm: [0, 0, 1.55], rFore: [0, 0, 0.2 - flick],
+    lLeg: left ? stand : [cross[0], cross[1], -cross[2]], rLeg: left ? [cross[0], cross[1], -cross[2]] : [stand[0], 0, -stand[2]],
+    lShin: left ? 0.35 : 0.9, rShin: left ? 0.9 : 0.35,
+  };
+}
+function ramuloo(b: number): Pose {
+  // the Ramuloo Ramulaa hook: hopping kicks forward-diagonal while both arms pull down from overhead
+  const hb = b * 2, hop = Math.abs(Math.sin(hb * Math.PI));
+  const u = b - Math.floor(b), left = Math.floor(b) % 2 === 0;
+  const kick = Math.sin(u * Math.PI);
+  const pull = sm(u / 0.5) * (1 - sm((u - 0.7) / 0.3));
+  return {
+    ...REST, hipsY: 0.85 + hop * 0.1, hips: [0.1, (left ? -1 : 1) * kick * 0.25, 0], torso: [0.15 + pull * 0.15, (left ? 1 : -1) * kick * 0.2, 0], head: [-0.15 + pull * 0.2, 0, 0],
+    lArm: [-l1(2.7, 0.9, pull), 0, -0.4 - pull * 0.5], lFore: [-l1(0.2, 1.4, pull), 0, -0.2], rArm: [-l1(2.7, 0.9, pull), 0, 0.4 + pull * 0.5], rFore: [-l1(0.2, 1.4, pull), 0, 0.2],
+    lLeg: left ? [-kick * 1.2, 0, 0.1 + kick * 0.5] : [-0.15, 0, 0.1], rLeg: left ? [-0.15, 0, -0.1] : [-kick * 1.2, 0, -0.1 - kick * 0.5],
+    lShin: left ? kick * 0.4 : 0.5, rShin: left ? 0.5 : kick * 0.4,
+  };
+}
+function seetiMaar(b: number): Pose {
+  // fast shoulder shimmy with alternating heel taps, arms pumping low
+  const q = Math.sin(b * Math.PI * 4), hb = b * 2, tap = Math.sin(hb * Math.PI);
+  return {
+    ...REST, hipsY: 0.86 + Math.abs(tap) * 0.03, hips: [0.05, -q * 0.12, tap * 0.06], torso: [0.1, q * 0.4, -tap * 0.06], head: [0, -q * 0.3, tap * 0.1],
+    lArm: [-0.5 + q * 0.4, 0, -0.5], lFore: [-1.6, 0, -0.4], rArm: [-0.5 - q * 0.4, 0, 0.5], rFore: [-1.6, 0, 0.4],
+    lLeg: [-Math.max(0, tap) * 0.6, 0, 0.12], rLeg: [-Math.max(0, -tap) * 0.6, 0, -0.12], lShin: Math.max(0, tap) * 0.3 + 0.2, rShin: Math.max(0, -tap) * 0.3 + 0.2,
+  };
+}
+function mindBlock(b: number): Pose {
+  // salute with the glove, chest out, side steps with a hip pop
+  const sB = Math.sin(b * Math.PI), pop = Math.max(0, Math.sin(b * Math.PI * 2)) * 0.15;
+  return {
+    ...REST, hipsY: 0.88, hips: [-pop, sB * 0.15, sB * 0.1], torso: [-0.15, -sB * 0.15, -sB * 0.1], head: [-0.1, sB * 0.3, 0],
+    lArm: [0.3, 0, -0.35], lFore: [-0.2, 0, -0.1], rArm: [-2.6, 0, 1.0], rFore: [-0.2, 0, 1.6],
+    lLeg: [0, 0, 0.1 + Math.max(0, sB) * 0.4], rLeg: [0, 0, -0.1 - Math.max(0, -sB) * 0.4], lShin: Math.max(0, sB) * 0.4, rShin: Math.max(0, -sB) * 0.4,
+  };
+}
 function hipRoll(b: number): Pose {
   const a = b * Math.PI;
   return {
@@ -514,6 +577,10 @@ const MOVES: Move[] = [
   // the show opens with the Naatu Naatu hook step
   { pose: (b) => naatu(b), from: -1.6, to: 0.4 },
   { pose: (b) => naatu(b), from: 0.4, to: -1.6 },
+  { pose: (b) => srivalli(b), from: -1.6, to: 0.6 },
+  { pose: (b) => buttaBomma(b), from: 0.6, to: 0.6 },
+  { pose: (b) => ramuloo(b), from: 0.6, to: -1.6, side: [0, 1.0] },
+  { pose: (b) => seetiMaar(b), from: -1.6, to: -1.6, side: [1.0, 0] },
   { pose: (b, i) => billieJean(b, i), from: -1.6, to: 1.6 },
   { pose: (b) => moonwalk(b), from: 1.6, to: 0, stepped: true },
   { pose: (b) => moonwalk(b), from: 0, to: -1.6, stepped: true },
@@ -534,7 +601,8 @@ const MOVES: Move[] = [
   { pose: (b) => bhangra(b), from: -1.6, to: -1.6, side: [0, 1.0] },
   { pose: (b, i) => gangnam(b, i), from: -1.6, to: -1.6, side: [1.0, -1.0] },
   { pose: (b) => classical(b), from: -1.6, to: -1.6, side: [-1.0, 0] },
-  { pose: (b) => salsa(b), from: -1.6, to: -0.6 },
+  { pose: (b) => mindBlock(b), from: -1.6, to: -1.6, side: [0, -0.8] },
+  { pose: (b) => salsa(b), from: -1.6, to: -0.6, side: [-0.8, 0] },
   { pose: (_b, i) => backflip(i), from: -0.6, to: -1.6, sparks: true },
 ];
 const moveAt = (i: number) => MOVES[((i % MOVES.length) + MOVES.length) % MOVES.length];
@@ -941,21 +1009,33 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
 function Rig({ children, stateRef }: { children: React.ReactNode; stateRef: MutableRefObject<HeroState> }) {
   const group = useRef<THREE.Group>(null);
   const { pointer, viewport, size } = useThree();
+  // phones: tilting the device sways the city
+  const tilt = useRef({ x: 0, y: 0 });
+  useEffect(() => {
+    const onTilt = (e: DeviceOrientationEvent) => {
+      if (e.gamma == null || e.beta == null) return;
+      tilt.current.x = THREE.MathUtils.clamp(e.gamma / 30, -1, 1);
+      tilt.current.y = THREE.MathUtils.clamp((e.beta - 45) / 30, -1, 1);
+    };
+    window.addEventListener("deviceorientation", onTilt);
+    return () => window.removeEventListener("deviceorientation", onTilt);
+  }, []);
   useFrame((state, dt) => {
     if (!group.current) return;
     const s = stateRef.current;
     const desktop = size.width >= 900;
     const t = state.clock.elapsedTime;
     const dive = Math.min(1, s.spread * 1.6); // first part of the scroll dives into the streets
-    group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, -0.72 + Math.sin(t * 0.08) * 0.12 + pointer.x * 0.08 + dive * 0.5, 3, dt);
-    group.current.rotation.x = THREE.MathUtils.damp(group.current.rotation.x, dive * 0.25, 3, dt);
-    const sc = (desktop ? Math.min(1, viewport.width / 12) : Math.min(0.75, viewport.width / 6)) * (1 + dive * 0.9);
+    const px = desktop ? pointer.x : tilt.current.x;
+    group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, -0.72 + Math.sin(t * 0.08) * 0.12 + px * (desktop ? 0.08 : 0.22) + dive * 0.5, 3, dt);
+    group.current.rotation.x = THREE.MathUtils.damp(group.current.rotation.x, dive * 0.25 + (desktop ? 0 : tilt.current.y * 0.12), 3, dt);
+    const sc = (desktop ? Math.min(1, viewport.width / 12) : Math.min(0.8, viewport.width / 4.8)) * (1 + dive * 0.9);
     group.current.scale.setScalar(THREE.MathUtils.damp(group.current.scale.x || 0.001, sc, 4, dt));
     group.current.position.x = (desktop ? viewport.width * 0.17 : 0.2) - dive * viewport.width * 0.1;
     group.current.position.z = dive * 5;
     const punch = s.energy ?? 0;
     s.energy = punch * Math.max(0, 1 - dt * 5);
-    group.current.position.y = (desktop ? -1.7 + Math.sin(t * 0.5) * 0.06 : -viewport.height * 0.34) - dive * 1.2 - Math.max(0, s.spread - 0.6) * 4 - punch * 0.12;
+    group.current.position.y = (desktop ? -1.7 + Math.sin(t * 0.5) * 0.06 : -viewport.height * 0.47) - dive * 1.2 - Math.max(0, s.spread - 0.6) * 4 - punch * 0.12;
   });
   return <group ref={group}>{children}</group>;
 }
