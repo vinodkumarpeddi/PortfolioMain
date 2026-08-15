@@ -52,6 +52,17 @@ function noise2(x: number, y: number) {
   return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
 }
 
+/* dev-only: ?poseGrid=0:1,3:2.5,... freezes dancers at move:count so poses can be reviewed side by side */
+function poseGridSpec() {
+  if (typeof window === "undefined") return null;
+  const q = new URLSearchParams(window.location.search).get("poseGrid");
+  if (!q) return null;
+  return q.split(",").map((pair) => {
+    const [m, c] = pair.split(":");
+    return { move: Number(m), inBar: Number(c ?? 2) };
+  });
+}
+
 const dummy = new THREE.Object3D();
 const color = new THREE.Color();
 const dark = new THREE.Color("#15151a");
@@ -85,7 +96,7 @@ function City({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
   const flashesRef = useRef<Float32Array>(new Float32Array(COUNT));
   const nextFlash = useRef(0);
   const shocksRef = useRef<{ x: number; z: number; t: number; a: number }[]>([]);
-  const dancerRef = useRef({ x: 0, z: 0, foot: 1.2 });
+  const dancerRef = useRef({ x: 0, z: 0, foot: 1.2, flat: 0 });
 
   useFrame((state, dt) => {
     const m = mesh.current;
@@ -152,10 +163,14 @@ function City({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
         shock += Math.max(0, 1 - Math.abs(dd - rr) / 0.9) * Math.max(0, 1 - sh.t / 3.2) * sh.a;
       }
       // the city rises to carry the dancer: a lit stage follows their feet
-      const dd0 = Math.hypot(c.x - dancerRef.current.x, c.z - dancerRef.current.z);
-      const near = Math.max(0, 1 - dd0 / 1.5);
-      const stage = near * near * (3 - 2 * near) * 0.5;
-      const h = Math.max(0.05, (c.base + wave + dance + pulse * 0.6 + lift * lift * 1.6 + stream * 0.9 + shock * 1.4 + stage) * eb);
+      const dc = dancerRef.current;
+      const dd0 = Math.hypot(c.x - dc.x, c.z - dc.z);
+      const radius = 1.5 + dc.flat * 1.6;
+      const near = Math.max(0, 1 - dd0 / radius);
+      const stage = near * near * (3 - 2 * near) * (0.5 + dc.flat * 0.5);
+      // the streets level off into a stage floor for floor work
+      const flatK = dc.flat * near;
+      const h = Math.max(0.05, (c.base + wave + dance + pulse * 0.6 + lift * lift * 1.6 + stream * 0.9 + shock * 1.4 + stage) * eb * (1 - flatK) + flatK * 1.5 * eb);
       if (dd0 < 0.5 && h > footMax) footMax = h;
       const ex = spread * c.sx;
       const ez = spread * c.sz;
@@ -560,33 +575,106 @@ function mindBlock(b: number): Pose {
   const sB = Math.sin(b * Math.PI), pop = Math.max(0, Math.sin(b * Math.PI * 2)) * 0.15;
   return {
     ...REST, hipsY: 0.88, hips: [-pop, sB * 0.15, sB * 0.1], torso: [-0.15, -sB * 0.15, -sB * 0.1], head: [-0.1, sB * 0.3, 0],
-    lArm: [0.3, 0, -0.35], lFore: [-0.2, 0, -0.1], rArm: [-2.6, 0, 1.0], rFore: [-0.2, 0, 1.6],
+    lArm: [0.3, 0, -0.35], lFore: [-0.2, 0, -0.1], rArm: [-0.55, 0, 1.5], rFore: [-2.3, 0, 1.05],
     lLeg: [0, 0, 0.1 + Math.max(0, sB) * 0.4], rLeg: [0, 0, -0.1 - Math.max(0, -sB) * 0.4], lShin: Math.max(0, sB) * 0.4, rShin: Math.max(0, -sB) * 0.4,
   };
 }
+/* "My Love Is Gone" (Arya 2) floor transition. Reviewers name the move a reverse worm, whose documented
+   mechanics are a wave that travels section by section without skipping parts. He goes down flat, the wave
+   runs chest -> hips -> legs three times while the body stays long, then he pushes back up. Kept long
+   rather than folded: a folded silhouette reads as a ball from the hero camera, a long one reads as a worm. */
 function aryaFloor(_b: number, inBar: number): Pose {
-  // "My Love Is Gone" floor transition: arms cross overhead, a hard drop to a squat with palms on the floor,
-  // one leg slides out along the ground, then a snap back up into a chest pop — twice, mirrored, the second one faster
-  const phase = inBar < 4 ? inBar / 4 : (inBar - 4) / 3.2;
-  const left = inBar < 4;
-  const p = THREE.MathUtils.clamp(phase, 0, 1);
-  const cross = Math.sin(THREE.MathUtils.clamp(p / 0.25, 0, 1) * Math.PI);
-  const drop = sm((p - 0.2) / 0.12) * (1 - sm((p - 0.72) / 0.1));
-  const slide = sm((p - 0.36) / 0.14) * (1 - sm((p - 0.66) / 0.1));
-  const rise = sm((p - 0.72) / 0.1);
-  const pop = Math.sin(THREE.MathUtils.clamp((p - 0.8) / 0.2, 0, 1) * Math.PI);
-  const sw = left ? 1 : -1;
-  const outLeg: V3 = [-0.25 * (1 - slide), 0, sw * (0.15 + slide * 1.25)];
-  const outShin = 1.4 * (1 - slide) + 0.05;
-  const inLeg: V3 = [-1.15 * drop, 0, -sw * 0.15];
-  const inShin = 2.0 * drop;
+  const t8 = inBar;
+  // 0-1 reach up · 1-2 plunge flat · 2-6.4 three waves · 6.4-7.4 push up · 7.4-8 hold
+  const reach = Math.sin(THREE.MathUtils.clamp(t8 / 1, 0, 1) * Math.PI);
+  const down = sm((t8 - 0.85) / 0.5);
+  const up = sm((t8 - 6.4) / 0.55);
+  const prone = down * (1 - up);
+  const push = Math.sin(THREE.MathUtils.clamp((t8 - 6.4) / 1, 0, 1) * Math.PI);
+  const pop = Math.sin(THREE.MathUtils.clamp((t8 - 7) / 1, 0, 1) * Math.PI);
+  const w = THREE.MathUtils.clamp((t8 - 2) / 1.45, 0, 3) * Math.PI * 2;
+  const active = prone * (t8 > 1.9 && t8 < 6.5 ? 1 : 0);
+  const chest = Math.sin(w) * active;
+  const hipWave = Math.sin(w - 1.1) * active;
+  const legWave = Math.sin(w - 2.2) * active;
+  const lean = prone * 1.34 + chest * 0.12 - pop * 0.22;
+  const arm = -1.5 * prone - chest * 0.3 + -reach * 2.3 * (1 - prone);
+  const fore = prone * (-0.3 - Math.max(0, chest) * 0.9) + (1 - prone) * (-reach * 0.5);
   return {
-    ...REST, hipsY: 0.9 - drop * 0.55 + rise * 0.02, hips: [drop * 0.35, sw * slide * 0.3, 0], torso: [drop * 0.55 - pop * 0.25, sw * slide * 0.2, -sw * slide * 0.15],
-    head: [cross * 0.2 - drop * 0.3 - pop * 0.2, sw * slide * 0.3, 0],
-    lArm: [-cross * 2.4 - drop * 1.3, 0, -0.2 - cross * 0.6 - pop * 1.5 + slide * 0.5 * (sw > 0 ? 1 : 0)],
-    rArm: [-cross * 2.4 - drop * 1.3, 0, 0.2 + cross * 0.6 + pop * 1.5 - slide * 0.5 * (sw < 0 ? 1 : 0)],
-    lFore: [-cross * 0.6 - drop * 0.4, 0, cross * 1.4], rFore: [-cross * 0.6 - drop * 0.4, 0, -cross * 1.4],
-    lLeg: left ? outLeg : inLeg, rLeg: left ? inLeg : outLeg, lShin: left ? outShin : inShin, rShin: left ? inShin : outShin,
+    ...REST,
+    lean,
+    rise: push * 0.12,
+    hipsY: 0.9 - down * 0.04 + hipWave * 0.17 * prone + push * 0.04,
+    hips: [hipWave * 0.2 * prone, 0, 0],
+    torso: [chest * 0.26 * prone - pop * 0.3, 0, 0],
+    head: [reach * 0.18 - prone * 0.12 - chest * 0.3 - pop * 0.25, 0, 0],
+    lArm: [arm, 0, -0.22 - reach * 0.5 - pop * 1.5],
+    rArm: [arm, 0, 0.22 + reach * 0.5 + pop * 1.5],
+    lFore: [fore, 0, -0.12 - reach * 0.9],
+    rFore: [fore, 0, 0.12 + reach * 0.9],
+    lLeg: [prone * 0.1 - legWave * 0.22 - push * 0.9, 0, 0.06 + prone * 0.08],
+    rLeg: [prone * 0.1 - legWave * 0.22 - push * 0.9, 0, -0.06 - prone * 0.08],
+    lShin: prone * (0.12 + Math.max(0, legWave) * 0.8) + push * 1.5,
+    rShin: prone * (0.12 + Math.max(0, -legWave) * 0.8) + push * 1.5,
+  };
+}
+function jinthaak(b: number): Pose {
+  // Dasara "Jinthaak": deep wide crouch, feet stamping alternately, arms swinging low across the body,
+  // head snapping to the stamping side on every beat
+  const hb = b * 2, stamp = Math.sin(hb * Math.PI);
+  const left = Math.floor(b) % 2 === 0;
+  const sw = left ? 1 : -1;
+  const swing = Math.sin(b * Math.PI);
+  return {
+    ...REST, hipsY: 0.66 + Math.abs(stamp) * 0.05, hips: [0.2, sw * 0.22, sw * 0.12], torso: [0.3, -sw * 0.3, -sw * 0.14],
+    head: [0.1, sw * 0.5, sw * 0.1],
+    lArm: [-0.5 - swing * 0.5, 0, -0.9 + swing * 0.5], lFore: [-1.7, 0, -0.9 + swing * 0.4],
+    rArm: [-0.5 + swing * 0.5, 0, 0.9 + swing * 0.5], rFore: [-1.7, 0, 0.9 + swing * 0.4],
+    lLeg: [-Math.max(0, stamp) * 0.55, 0, 0.55], rLeg: [-Math.max(0, -stamp) * 0.55, 0, -0.55],
+    lShin: 1.15 + Math.max(0, stamp) * 0.5, rShin: 1.15 + Math.max(0, -stamp) * 0.5,
+  };
+}
+function kurchi(b: number): Pose {
+  // Guntur Kaaram "Kurchi Madathapetti": light two-step bounce, hands framing the face, shoulder drops
+  const hb = b * 2, bounce = Math.abs(Math.sin(hb * Math.PI));
+  const sB = Math.sin(b * Math.PI);
+  const half = Math.sin(b * Math.PI * 0.5);
+  return {
+    ...REST, hipsY: 0.88 + bounce * 0.07, hips: [0, half * 0.3, sB * 0.2], torso: [-0.05, -half * 0.25, -sB * 0.24],
+    head: [0.05, half * 0.35, sB * 0.16],
+    lArm: [-0.9 - Math.max(0, sB) * 0.4, 0, -1.05], lFore: [-1.85, 0, -0.55],
+    rArm: [-0.9 - Math.max(0, -sB) * 0.4, 0, 1.05], rFore: [-1.85, 0, 0.55],
+    lLeg: [sB * 0.3, 0, 0.12], rLeg: [-sB * 0.3, 0, -0.12], lShin: Math.max(0, sB) * 0.55, rShin: Math.max(0, -sB) * 0.55,
+  };
+}
+function megastar(b: number): Pose {
+  // the Chiranjeevi shake: hands low on the hips, very fast shoulder shimmy, heels flicking alternately
+  const fast = Math.sin(b * Math.PI * 6);
+  const hb = b * 2, flick = Math.sin(hb * Math.PI);
+  return {
+    ...REST, hipsY: 0.85, hips: [0.05, -fast * 0.08, flick * 0.08], torso: [0.05, fast * 0.42, 0], head: [0, -fast * 0.3, fast * 0.1],
+    lArm: [0, 0, -0.95], lFore: [-1.5, 0, -1.15], rArm: [0, 0, 0.95], rFore: [-1.5, 0, 1.15],
+    lLeg: [Math.max(0, flick) * 0.35, 0, 0.14], rLeg: [Math.max(0, -flick) * 0.35, 0, -0.14],
+    lShin: Math.max(0, flick) * 1.35, rShin: Math.max(0, -flick) * 1.35,
+  };
+}
+function grinder(_b: number, inBar: number): Pose {
+  // the floor helicopter (coffee grinder): down on one hand in a low crouch, one leg sweeping a full
+  // circle while the tucked leg hops over it — two sweeps per bar, then a push back up
+  const enter = sm(inBar / 0.8);
+  const exit = sm((inBar - 6.4) / 0.8);
+  const down = enter * (1 - exit);
+  const turns = THREE.MathUtils.clamp((inBar - 0.8) / 5.4, 0, 1);
+  const spin = turns * TAU * 2;
+  const sweep = Math.sin(inBar * Math.PI * 0.74);
+  const pop = Math.sin(THREE.MathUtils.clamp((inBar - 6.6) / 1.2, 0, 1) * Math.PI);
+  return {
+    ...REST, spin, hipsY: l1(0.9, 0.34, down), hips: [down * 0.95, 0, -down * 0.35], torso: [down * 0.3 - pop * 0.25, down * 0.5, down * 0.2],
+    head: [-down * 0.35 - pop * 0.2, down * 0.4, 0],
+    lArm: [-down * 1.35, 0, -0.2 - down * 0.35 - pop * 1.4], lFore: [-down * 0.15, 0, -0.1],
+    rArm: [-down * 0.5, 0, 0.2 + down * 1.5 + pop * 1.4], rFore: [-down * 1.5, 0, down * 0.6],
+    lLeg: [-down * 0.35, 0, 0.1 + down * (1.15 + sweep * 0.35)], rLeg: [-down * 1.25, 0, -0.1 - down * 0.25],
+    lShin: down * 0.15, rShin: down * (1.85 + Math.max(0, -sweep) * 0.3),
   };
 }
 function hipRoll(b: number): Pose {
@@ -597,16 +685,19 @@ function hipRoll(b: number): Pose {
     lLeg: [-0.2, 0, 0.3], rLeg: [-0.2, 0, -0.3], lShin: 0.5, rShin: 0.5,
   };
 }
-type Move = { pose: (b: number, inBar: number) => Pose; from: number; to: number; stepped?: boolean; sparks?: boolean; side?: [number, number]; hat?: boolean; snap?: boolean };
+type Move = { pose: (b: number, inBar: number) => Pose; from: number; to: number; stepped?: boolean; sparks?: boolean; side?: [number, number]; hat?: boolean; snap?: boolean; face?: number; floor?: boolean };
 const MOVES: Move[] = [
   // the show opens with the Arya 2 floor transition, then the Naatu Naatu hook step
-  { pose: (b, i) => aryaFloor(b, i), from: -1.6, to: -1.6, sparks: true },
+  { pose: (b, i) => aryaFloor(b, i), from: -0.6, to: -1.6, sparks: true, face: -1.25, floor: true },
+  { pose: (b, i) => aryaFloor(b, i), from: -1.6, to: -2.6, sparks: true, face: -1.25, floor: true },
   { pose: (b) => naatu(b), from: -1.6, to: 0.4 },
   { pose: (b) => naatu(b), from: 0.4, to: -1.6 },
   { pose: (b) => srivalli(b), from: -1.6, to: 0.6 },
   { pose: (b) => buttaBomma(b), from: 0.6, to: 0.6 },
   { pose: (b) => ramuloo(b), from: 0.6, to: -1.6, side: [0, 1.0] },
   { pose: (b) => seetiMaar(b), from: -1.6, to: -1.6, side: [1.0, 0] },
+  { pose: (b) => jinthaak(b), from: -1.6, to: -0.6 },
+  { pose: (_b, i) => grinder(_b, i), from: -0.6, to: -1.6, sparks: true, face: -1.1, floor: true },
   { pose: (b, i) => billieJean(b, i), from: -1.6, to: 1.6 },
   { pose: (b) => moonwalk(b), from: 1.6, to: 0, stepped: true },
   { pose: (b) => moonwalk(b), from: 0, to: -1.6, stepped: true },
@@ -627,6 +718,8 @@ const MOVES: Move[] = [
   { pose: (b) => bhangra(b), from: -1.6, to: -1.6, side: [0, 1.0] },
   { pose: (b, i) => gangnam(b, i), from: -1.6, to: -1.6, side: [1.0, -1.0] },
   { pose: (b) => classical(b), from: -1.6, to: -1.6, side: [-1.0, 0] },
+  { pose: (b) => kurchi(b), from: -1.6, to: -1.6, side: [0, 0.9] },
+  { pose: (b) => megastar(b), from: -1.6, to: -1.6, side: [0.9, 0] },
   { pose: (b) => mindBlock(b), from: -1.6, to: -1.6, side: [0, -0.8] },
   { pose: (b) => salsa(b), from: -1.6, to: -0.6, side: [-0.8, 0] },
   { pose: (_b, i) => backflip(i), from: -0.6, to: -1.6, sparks: true },
@@ -743,7 +836,7 @@ function Limb({ len, w, tip, mat, children }: { len: number; w: number; tip?: "h
     </>
   );
 }
-function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<HeroState>; dancerRef: MutableRefObject<{ x: number; z: number; foot: number }>; onStomp: (x: number, z: number, a: number) => void }) {
+function Dancer({ stateRef, dancerRef, onStomp, frozen }: { stateRef: MutableRefObject<HeroState>; dancerRef: MutableRefObject<{ x: number; z: number; foot: number; flat: number }>; onStomp: (x: number, z: number, a: number) => void; frozen?: { move: number; inBar: number } }) {
   const root = useRef<THREE.Group>(null);
   const body = useRef<THREE.Group>(null);
   const hips = useRef<THREE.Group>(null);
@@ -786,32 +879,35 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
     if (!g) return;
     const bpm = 62;
     // the routine starts once he has appeared, so the opener isn't missed
-    const b = Math.max(0, age - 2.4) * (bpm / 60);
-    const bar = Math.floor(b / 8);
-    const inBar = b - bar * 8;
+    const bRun = Math.max(0, age - 2.4) * (bpm / 60);
+    const b = frozen ? frozen.move * 8 + frozen.inBar : bRun;
+    const bar = frozen ? frozen.move : Math.floor(b / 8);
+    const inBar = frozen ? frozen.inBar : b - bar * 8;
     const cur = movePose(bar, b, inBar);
     const m = inBar > 7.4 ? sm((inBar - 7.4) / 0.6) : 0;
     const target = m > 0 ? mixPose(cur, movePose(bar + 1, b, 0), m) : cur;
     // grace: every joint eases toward its target; the robot keeps its snap
     const rate = moveAt(bar).snap ? 40 : 13;
-    const P = mixPose(smooth.current, target, 1 - Math.exp(-dt * rate));
+    const P = frozen ? target : mixPose(smooth.current, target, 1 - Math.exp(-dt * rate));
     P.hatMode = target.hatMode;
     smooth.current = P;
     const sB = Math.sin(b * Math.PI);
     const bounce = Math.abs(sB);
 
     // stage position: slow drift around the centre, facing the viewer, plus the walk/moonwalk glide
-    const heading = 0.72 + Math.sin(t * 0.21) * 0.3;
+    const mv = moveAt(bar);
+    const heading = (frozen ? 0.5 : 0.72 + Math.sin(t * 0.21) * 0.3) + (mv.face ?? 0);
     const [gl, gs] = glide(bar, inBar);
     const cx = Math.sin(t * 0.11) * 0.8;
     const cz = Math.cos(t * 0.09) * 0.7;
-    const x = cx + Math.sin(heading) * gl + Math.cos(heading) * gs;
-    const z = cz + Math.cos(heading) * gl - Math.sin(heading) * gs;
+    const x = frozen ? 0 : cx + Math.sin(heading) * gl + Math.cos(heading) * gs;
+    const z = frozen ? 0 : cz + Math.cos(heading) * gl - Math.sin(heading) * gs;
     const d = dancerRef.current;
     d.x = x;
     d.z = z;
+    d.flat = THREE.MathUtils.damp(d.flat, mv.floor ? 1 : 0, 5, dt);
     const s = stateRef.current;
-    const appear = THREE.MathUtils.clamp((age - 1.4) / 1.2, 0, 1);
+    const appear = frozen ? 1 : THREE.MathUtils.clamp((age - 1.4) / 1.2, 0, 1);
     const fade = 1 - THREE.MathUtils.clamp((s.spread - 0.15) / 0.5, 0, 1);
     const sc = appear * fade;
 
@@ -907,7 +1003,7 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
     const u = THREE.MathUtils.clamp((t - stompAt.current) / 0.35, 0, 1);
     const sq = Math.sin(u * Math.PI) * (1 - u) * 0.22;
 
-    g.position.set(x, d.foot + P.rise - (1 - appear) * 0.6, z);
+    g.position.set(x, (frozen ? 0 : d.foot) + P.rise - (1 - appear) * 0.6, z);
     g.rotation.y = heading + P.spin;
     g.scale.setScalar(Math.max(0.0001, sc * 0.9));
     g.visible = sc > 0.001;
@@ -1067,6 +1163,24 @@ function Rig({ children, stateRef }: { children: React.ReactNode; stateRef: Muta
   return <group ref={group}>{children}</group>;
 }
 
+function PoseGrid({ stateRef, spec }: { stateRef: MutableRefObject<HeroState>; spec: { move: number; inBar: number }[] }) {
+  const dancerRef = useRef({ x: 0, z: 0, foot: 0, flat: 0 });
+  const cols = Math.ceil(Math.sqrt(spec.length));
+  return (
+    <group position={[0, -1.5, 0]} scale={0.62}>
+      {spec.map((f, i) => (
+        <group key={i} position={[(i % cols) * 2.6 - ((cols - 1) * 2.6) / 2, 0, Math.floor(i / cols) * 3 - 2]}>
+          <Dancer stateRef={stateRef} dancerRef={dancerRef} onStomp={() => {}} frozen={f} />
+        </group>
+      ))}
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[40, 40]} />
+        <meshStandardMaterial color="#1a1a20" />
+      </mesh>
+    </group>
+  );
+}
+
 function Scene({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
   return (
     <>
@@ -1078,10 +1192,14 @@ function Scene({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
         <Lightformer form="rect" intensity={2} color="#ffffff" position={[0, 6, -3]} rotation={[-Math.PI / 2.2, 0, 0]} scale={[10, 4, 1]} />
         <Lightformer form="rect" intensity={1.2} color="#e9a23b" position={[-6, 2, 2]} rotation={[0, Math.PI / 2, 0]} scale={[4, 6, 1]} />
       </Environment>
-      <Rig stateRef={stateRef}>
-        <City stateRef={stateRef} />
-      </Rig>
-      <Sparkles count={120} scale={[16, 6, 12]} position={[2, 1, -2]} size={2} speed={0.2} opacity={0.35} color="#e9a23b" />
+      {poseGridSpec() ? (
+        <PoseGrid stateRef={stateRef} spec={poseGridSpec()!} />
+      ) : (
+        <Rig stateRef={stateRef}>
+          <City stateRef={stateRef} />
+        </Rig>
+      )}
+      {!poseGridSpec() && <Sparkles count={120} scale={[16, 6, 12]} position={[2, 1, -2]} size={2} speed={0.2} opacity={0.35} color="#e9a23b" />}
       <fog attach="fog" args={["#0a0a0c", 12, 30]} />
     </>
   );
