@@ -222,13 +222,9 @@ export function IntroScene() {
 
           <div className="proj-visual pointer-events-auto relative mt-5 w-full lg:absolute lg:right-[var(--spacing-gutter)] lg:top-[6.5rem] lg:mt-0 lg:w-[min(46vw,40rem)] motion-reduce:relative motion-reduce:right-auto motion-reduce:top-auto motion-reduce:my-10 motion-reduce:w-full">
             <ProductVisual project={project} priority />
-            <div className="pointer-events-none absolute inset-x-2 bottom-2 lg:hidden">
-              <StagePanel className="stage-challenge" index="A" label="Challenge" title={project.challenge!.title} body={project.challenge!.body} compact />
-              <StagePanel className="stage-solution" index="B" label="Solution" title={project.solution!.title} body={project.solution!.body} compact />
-            </div>
           </div>
 
-          <ul className="proj-chips-m mt-4 flex flex-wrap gap-2 lg:hidden" aria-label="Technologies">
+          <ul className="proj-chips-m mt-4 flex flex-wrap gap-2 lg:hidden [@media(max-height:720px)]:hidden" aria-label="Technologies">
             {project.technologies.map((t) => (
               <li key={t} className="label rounded-full border border-line-2 px-3 py-2 text-[10.5px] text-fg-1">
                 {t}
@@ -236,7 +232,10 @@ export function IntroScene() {
             ))}
           </ul>
 
-          <div className="flex-1 lg:hidden" />
+          <div className="pointer-events-none relative mt-3 min-h-[8.5rem] flex-1 lg:hidden">
+            <StagePanel className="stage-challenge" index="A" label="Challenge" title={project.challenge!.title} body={project.challenge!.body} compact />
+            <StagePanel className="stage-solution" index="B" label="Solution" title={project.solution!.title} body={project.solution!.body} compact />
+          </div>
 
           <div className="pointer-events-auto grid grid-cols-12 items-end gap-x-6 gap-y-6">
             <div className="col-span-12 lg:col-span-6">

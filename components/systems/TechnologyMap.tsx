@@ -281,7 +281,7 @@ export function SystemsSection() {
             <SplitText by="words">Not a list of logos. A map of decisions.</SplitText>
           </h2>
           <Reveal delay={0.15} className="max-w-[34ch] text-[15px] leading-relaxed text-fg-2">
-            Every node is tied to a system I built with it. Hover one to see where — and what it connects to.
+            Every node is tied to a system I built with it. Tap or hover one to see where — and what it connects to.
           </Reveal>
         </div>
         <TechnologyMap />

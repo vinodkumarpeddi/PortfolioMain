@@ -65,7 +65,7 @@ export function CardFan({ cards }: { cards: FanCard[] }) {
       </div>
 
       {/* mobile row */}
-      <div className="-mx-[var(--spacing-gutter)] flex snap-x snap-mandatory gap-4 overflow-x-auto px-[var(--spacing-gutter)] pb-2 no-scrollbar lg:hidden" role="list" aria-label="Profile cards">
+      <div className="-mx-[var(--spacing-gutter)] flex snap-x snap-mandatory items-start gap-4 overflow-x-auto px-[var(--spacing-gutter)] pb-2 no-scrollbar lg:hidden" role="list" aria-label="Profile cards">
         {cards.map((c, i) => (
           <motion.div
             key={c.id}

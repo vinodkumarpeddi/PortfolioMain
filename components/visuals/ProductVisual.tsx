@@ -6,6 +6,7 @@ import { SaasScreen } from "./screens/SaasScreen";
 import { ExamScreen } from "./screens/ExamScreen";
 import { GrillBotScreen } from "./screens/GrillBotScreen";
 import { cn } from "@/lib/utils";
+import { ScreenLightbox } from "./ScreenLightbox";
 
 export const screenFor: Record<string, React.ComponentType> = {
   "payment-orchestrator": PaymentScreen,
@@ -25,6 +26,11 @@ export function ProductVisual({ project, className }: { project: Project; classN
       <ScaledFrame className="relative rounded-[22px]" label={`${project.title} — product screen (demo data)`}>
         <Screen />
       </ScaledFrame>
+      <ScreenLightbox title={project.title}>
+        <ScaledFrame className="rounded-2xl" label={`${project.title} — product screen (demo data)`}>
+          <Screen />
+        </ScaledFrame>
+      </ScreenLightbox>
     </div>
   );
 }
