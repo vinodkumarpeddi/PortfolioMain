@@ -74,7 +74,7 @@ export function ExperienceTimeline() {
         <div className="mt-10 grid grid-cols-12 gap-x-4 lg:gap-x-8">
           {/* planet + orbit (sticky) */}
           <div className="col-span-12 lg:col-span-6">
-            <div className="sticky top-16 z-10 h-[40vh] lg:top-24 lg:h-[calc(100svh-7rem)]">
+            <div className="relative z-10 h-[40vh] lg:sticky lg:top-24 lg:h-[calc(100svh-7rem)]">
               <div className="absolute inset-0 rounded-[28px] border border-line-1 bg-bg-1/40 [box-shadow:var(--shadow-soft)]">
                 <div aria-hidden className="grid-bg absolute inset-0 rounded-[28px] opacity-60 [mask-image:radial-gradient(70%_70%_at_50%_50%,black,transparent)]" />
                 <HeroCanvas stateRef={state} variant="orbit" orbit={{ count: ordered.length, activeRef, labels: ordered.map((m) => `${m.start.slice(0, 4)} · ${m.org}`), onSelect: jump }} className="absolute inset-0 [&_canvas]:pointer-events-auto" />
@@ -92,20 +92,46 @@ export function ExperienceTimeline() {
                     <p className="label tabular-nums text-fg-3">
                       <span className="text-fg-1">{String(active + 1).padStart(2, "0")}</span> / {String(ordered.length).padStart(2, "0")}
                     </p>
-                    <div className="flex gap-1.5" role="tablist" aria-label="Jump to milestone">
+                    <div className="hidden gap-1.5 lg:flex" role="tablist" aria-label="Jump to milestone">
                       {ordered.map((m, i) => (
                         <button key={m.id} type="button" role="tab" aria-selected={active === i} aria-label={m.org} onClick={() => jump(i)} className="grid h-6 place-items-center px-0.5"><span className={cn("block h-2 rounded-full transition-all duration-[var(--duration-slow)]", active === i ? "w-6 bg-accent" : "w-2 bg-fg-3/60 hover:bg-fg-2")} /></button>
                       ))}
                     </div>
                   </div>
                 </div>
-                <p className="label pointer-events-none absolute left-5 top-5 text-fg-3 lg:left-7 lg:top-7">Orbit · click a marker to jump</p>
+                <p className="label pointer-events-none absolute left-5 top-5 text-fg-3 lg:left-7 lg:top-7">
+                  Orbit · <span className="lg:hidden">tap a marker</span>
+                  <span className="hidden lg:inline">click a marker to jump</span>
+                </p>
               </div>
             </div>
           </div>
 
           {/* story panels */}
-          <ol ref={panelsRef} className="col-span-12 lg:col-span-6">
+          <div className="col-span-12 lg:col-span-6">
+            {/* phones: a slim sticky scrubber keeps the orbit's context while the cards scroll */}
+            <div className="sticky top-[4.25rem] z-30 mb-5 lg:hidden">
+              <div className="flex items-center gap-3 rounded-full border border-line-1 bg-bg-1/90 pl-4 pr-2 backdrop-blur-xl [box-shadow:var(--shadow-soft)]">
+                <span className="tabular-nums text-[15px] font-semibold text-fg-1">{current.start.slice(0, 4)}</span>
+                <span className="min-w-0 flex-1 truncate text-[13px] text-fg-2">{current.org}</span>
+                <div className="flex items-center" role="tablist" aria-label="Jump to milestone">
+                  {ordered.map((m, i) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={active === i}
+                      aria-label={`${m.start.slice(0, 4)} · ${m.org}`}
+                      onClick={() => jump(i)}
+                      className="grid h-11 w-7 place-items-center transition-transform duration-150 active:scale-90"
+                    >
+                      <span className={cn("block h-1.5 rounded-full transition-all duration-[var(--duration-slow)]", active === i ? "w-5 bg-accent" : "w-1.5 bg-fg-3/60")} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <ol ref={panelsRef}>
             {ordered.map((m, i) => (
               <li key={m.id} data-panel={i} className="flex items-center py-5 sm:min-h-[70vh] sm:py-8 lg:min-h-[100svh]">
                 <motion.article
@@ -147,16 +173,7 @@ export function ExperienceTimeline() {
                         </p>
                       </div>
                       <p className="mt-3 max-w-[64ch] text-[15px] leading-relaxed text-fg-2">{m.summary}</p>
-                      {m.points.length > 0 && (
-                        <ul className="mt-4 grid gap-x-8 gap-y-2 text-sm text-fg-2 sm:grid-cols-2">
-                          {m.points.slice(0, 4).map((p) => (
-                            <li key={p} className="flex gap-3">
-                              <span className="mt-[9px] h-px w-3 shrink-0 bg-accent/70" aria-hidden />
-                              <span>{p}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                      {m.points.length > 0 && <Points points={m.points} />}
                       <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-line-1 pt-4">
                         {m.technologies.length > 0 && (
                           <ul className="flex flex-wrap gap-1.5" aria-label="Technologies">
@@ -176,9 +193,39 @@ export function ExperienceTimeline() {
                 </motion.article>
               </li>
             ))}
-          </ol>
+            </ol>
+          </div>
         </div>
       </div>
     </section>
+  );
+}
+
+/** Cards stay short on phones: two points, then a toggle. All four from sm up. */
+function Points({ points }: { points: string[] }) {
+  const [open, setOpen] = useState(false);
+  const shown = points.slice(0, 4);
+  const extra = shown.length - 2;
+  return (
+    <>
+      <ul className="mt-4 grid gap-x-8 gap-y-2 text-sm text-fg-2 sm:grid-cols-2">
+        {shown.map((p, i) => (
+          <li key={p} className={cn("flex gap-3", !open && i >= 2 && "hidden sm:flex")}>
+            <span className="mt-[9px] h-px w-3 shrink-0 bg-accent/70" aria-hidden />
+            <span>{p}</span>
+          </li>
+        ))}
+      </ul>
+      {extra > 0 && (
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          className="label mt-3 inline-flex h-10 items-center rounded-full border border-line-1 px-3.5 text-fg-3 transition-transform duration-150 active:scale-95 sm:hidden"
+        >
+          {open ? "Show less" : `+${extra} more`}
+        </button>
+      )}
+    </>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { useLenis } from "lenis/react";
 import { gsap, SplitText, useGSAP, MOTION_OK, DESKTOP } from "@/lib/gsap";
 import { principles } from "@/data/principles";
 import { SectionLabel } from "@/components/ui/Section";
@@ -12,6 +13,27 @@ import { cn } from "@/lib/utils";
  */
 export function Principles() {
   const ref = useRef<HTMLElement>(null);
+  const stRef = useRef<{ start: number; end: number } | null>(null);
+  const indexRef = useRef(0);
+  const [index, setIndex] = useState(0);
+  const lenis = useLenis();
+
+  // phones: the chapter chips jump the pinned timeline to a principle. The pin spacer's
+  // geometry is the fallback for when the ScrollTrigger has not been created yet.
+  const jump = (i: number) => {
+    const st = stRef.current;
+    const el = ref.current;
+    let start = st?.start;
+    let end = st?.end;
+    if ((start === undefined || end === undefined) && el) {
+      start = el.getBoundingClientRect().top + window.scrollY;
+      end = start + Math.max(0, el.offsetHeight - window.innerHeight);
+    }
+    if (start === undefined || end === undefined) return;
+    const y = start + (end - start) * ((i + 0.5) / principles.length);
+    if (lenis) lenis.scrollTo(y, { duration: 0.9 });
+    else window.scrollTo({ top: y, behavior: "smooth" });
+  };
 
   useGSAP(
     () => {
@@ -43,9 +65,15 @@ export function Principles() {
             onUpdate: (self) => {
               const i = Math.min(principles.length - 1, Math.floor(self.progress * principles.length + 0.0001));
               if (counter) counter.textContent = String(i + 1).padStart(2, "0");
+              if (indexRef.current !== i) {
+                indexRef.current = i;
+                setIndex(i);
+              }
             },
           },
         });
+
+        stRef.current = tl.scrollTrigger ?? null;
 
         items.forEach((item, i) => {
           const chars = splits[i].chars;
@@ -89,7 +117,27 @@ export function Principles() {
           Engineering principles
         </h2>
 
-        <div className="relative flex flex-1 items-center">
+        <nav className="gutter mx-auto mt-5 w-full max-w-[100rem] motion-reduce:hidden lg:hidden" aria-label="Principles">
+          <ul className="flex flex-wrap gap-1.5">
+            {principles.map((p, i) => (
+              <li key={p.id}>
+                <button
+                  type="button"
+                  onClick={() => jump(i)}
+                  aria-current={i === index ? "true" : undefined}
+                  className={cn(
+                    "label inline-flex h-10 items-center rounded-full border px-3 transition-[color,background-color,border-color,transform] duration-[var(--duration-base)] active:scale-95",
+                    i === index ? "border-accent/60 bg-accent-soft text-fg-1" : i < index ? "border-line-1 text-fg-3" : "border-line-1/60 text-fg-3/70",
+                  )}
+                >
+                  {p.word}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className="relative flex flex-1 flex-col justify-center">
           <div className="gutter mx-auto w-full max-w-[100rem]">
             <div className="relative min-h-[50vh] motion-reduce:min-h-0">
               {principles.map((p) => (
@@ -99,7 +147,7 @@ export function Principles() {
                     "pr-item absolute inset-0 flex flex-col justify-center motion-reduce:relative motion-reduce:mb-20",
                   )}
                 >
-                  <p className="pr-word whitespace-nowrap text-[clamp(2.1rem,9.5vw,12rem)] font-semibold uppercase leading-[0.9] tracking-[-0.045em] text-fg-1" aria-label={p.word}>
+                  <p className="pr-word whitespace-nowrap text-[clamp(2.4rem,11.5vw,12rem)] sm:text-[clamp(2.1rem,9.5vw,12rem)] font-semibold uppercase leading-[0.9] tracking-[-0.045em] text-fg-1" aria-label={p.word}>
                     {p.word}
                   </p>
                   <div className="pr-meta mt-6 grid grid-cols-12 gap-x-6 gap-y-3 sm:mt-8">
@@ -112,6 +160,14 @@ export function Principles() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        <div className="gutter mx-auto mb-8 w-full max-w-[100rem] motion-reduce:hidden lg:hidden" aria-hidden>
+          <div className="flex gap-1.5">
+            {principles.map((p, i) => (
+              <span key={p.id} className={cn("h-0.5 flex-1 rounded-full transition-colors duration-[var(--duration-slow)]", i <= index ? "bg-accent" : "bg-line-2")} />
+            ))}
           </div>
         </div>
       </div>

@@ -23,6 +23,7 @@ type Line = { d: string; key: string };
 
 export function TechnologyMap() {
   const rootRef = useRef<HTMLDivElement>(null);
+  const railRef = useRef<HTMLUListElement>(null);
   const [activeTech, setActiveTech] = useState<string | null>(null);
   const [activeProject, setActiveProject] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
@@ -56,6 +57,16 @@ export function TechnologyMap() {
       io.disconnect();
     };
   }, [touched, reduced]);
+
+  // phones: keep the active system chip centred in the rail so taps and the auto-cycle stay visible
+  useEffect(() => {
+    const rail = railRef.current;
+    const key = activeProject ?? tech?.projects[0];
+    if (!rail || !key) return;
+    const el = rail.querySelector<HTMLElement>(`[data-chip="${CSS.escape(key)}"]`);
+    if (!el) return;
+    rail.scrollTo({ left: el.offsetLeft - rail.clientWidth / 2 + el.offsetWidth / 2, behavior: reduced ? "auto" : "smooth" });
+  }, [activeProject, tech, reduced]);
 
   const computeLines = useCallback(() => {
     const root = rootRef.current;
@@ -119,7 +130,8 @@ export function TechnologyMap() {
             </motion.div>
           ) : (
             <motion.p key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-sm leading-relaxed text-fg-3">
-              Tap or hover a technology to see where it was used and which systems it connects to. Pick a system to see its stack.
+              <span className="sm:hidden">Tap a technology to see where it was used — or a system to see its stack.</span>
+              <span className="hidden sm:inline">Tap or hover a technology to see where it was used and which systems it connects to. Pick a system to see its stack.</span>
             </motion.p>
           )}
         </AnimatePresence>
@@ -127,7 +139,7 @@ export function TechnologyMap() {
     </div>
   );
   const chips = (compact: boolean) => (
-    <ul className={cn("flex gap-2", compact ? "flex-nowrap overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : "mt-5 flex-wrap")} aria-label="Systems">
+    <ul ref={compact ? railRef : undefined} className={cn("flex gap-2", compact ? "flex-nowrap overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : "mt-5 flex-wrap")} aria-label="Systems">
       {projectRefs.map((p) => {
         const on = connectedProjects.has(p.key);
         const selected = activeProject === p.key;
@@ -137,12 +149,13 @@ export function TechnologyMap() {
             <button
               type="button"
               data-project={compact ? undefined : p.key}
+              data-chip={compact ? p.key : undefined}
               onMouseEnter={() => interact(() => { setActiveTech(null); setActiveProject(p.key); })}
               onFocus={() => interact(() => { setActiveTech(null); setActiveProject(p.key); })}
               onClick={() => interact(() => { setActiveTech(null); setActiveProject(p.key); })}
               aria-pressed={selected}
               className={cn(
-                "label whitespace-nowrap rounded-full border px-3 py-2 transition-[opacity,border-color,color,background-color,box-shadow] duration-[var(--duration-base)]",
+                "label whitespace-nowrap rounded-full border px-3 py-2 transition-[opacity,border-color,color,background-color,box-shadow,transform] duration-[var(--duration-base)] active:scale-95 max-sm:min-h-11",
                 on || selected ? "border-accent/70 bg-accent-soft text-fg-1 [box-shadow:0_8px_24px_-10px_rgba(233,162,59,0.5)]" : "border-line-1 text-fg-2 hover:border-line-2 hover:text-fg-1",
                 p.kind === "featured" && "font-semibold",
                 dim && "opacity-35",
@@ -210,7 +223,10 @@ export function TechnologyMap() {
 
           <div className="sticky top-[4.25rem] z-20 -mx-2 mb-6 rounded-[20px] bg-bg-1/85 p-2 backdrop-blur-xl lg:hidden">
             {consoleBox}
-            <div className="mt-3">{chips(true)}</div>
+            <div className="relative mt-3">
+              {chips(true)}
+              <span aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-10 rounded-r-[20px] bg-gradient-to-r from-transparent to-bg-1" />
+            </div>
           </div>
 
           <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 sm:gap-y-8 xl:grid-cols-5" role="list" aria-label="Technology map">
@@ -237,7 +253,7 @@ export function TechnologyMap() {
                             onClick={() => interact(() => { setActiveProject(null); setActiveTech(t.id); })}
                             aria-pressed={on}
                             className={cn(
-                              "group relative flex w-auto items-center gap-2.5 rounded-full border px-2.5 py-2 text-left text-[14px] leading-snug transition-[opacity,color,background-color,border-color,box-shadow] duration-[var(--duration-base)] sm:w-full sm:rounded-xl sm:text-[14.5px]",
+                              "group relative flex w-auto items-center gap-2.5 rounded-full border px-3 py-2 text-left text-[14px] leading-snug transition-[opacity,color,background-color,border-color,box-shadow,transform] duration-[var(--duration-base)] active:scale-95 max-sm:min-h-11 sm:w-full sm:rounded-xl sm:px-2.5 sm:text-[14.5px]",
                               on ? "border-accent/50 bg-accent-soft text-fg-1 [box-shadow:0_0_0_1px_rgba(233,162,59,0.15),0_10px_30px_-12px_rgba(233,162,59,0.45)]" : inProject ? "border-accent/30 bg-fg-1/[0.05] text-fg-1" : "border-transparent text-fg-2 hover:border-line-1 hover:bg-fg-1/[0.03] hover:text-fg-1",
                               dim && "opacity-35",
                             )}
