@@ -511,6 +511,9 @@ function hipRoll(b: number): Pose {
 }
 type Move = { pose: (b: number, inBar: number) => Pose; from: number; to: number; stepped?: boolean; sparks?: boolean; side?: [number, number]; hat?: boolean; snap?: boolean };
 const MOVES: Move[] = [
+  // the show opens with the Naatu Naatu hook step
+  { pose: (b) => naatu(b), from: -1.6, to: 0.4 },
+  { pose: (b) => naatu(b), from: 0.4, to: -1.6 },
   { pose: (b, i) => billieJean(b, i), from: -1.6, to: 1.6 },
   { pose: (b) => moonwalk(b), from: 1.6, to: 0, stepped: true },
   { pose: (b) => moonwalk(b), from: 0, to: -1.6, stepped: true },
@@ -528,8 +531,6 @@ const MOVES: Move[] = [
   { pose: (b) => hipRoll(b), from: -0.8, to: -0.8 },
   { pose: (b, i) => spinGlide(b, i), from: -0.8, to: -1.6, stepped: true, sparks: true },
   { pose: (_b, i) => kneeDrop(i), from: -1.6, to: -1.6, sparks: true },
-  { pose: (b) => naatu(b), from: -1.6, to: 0.4 },
-  { pose: (b) => naatu(b), from: 0.4, to: -1.6 },
   { pose: (b) => bhangra(b), from: -1.6, to: -1.6, side: [0, 1.0] },
   { pose: (b, i) => gangnam(b, i), from: -1.6, to: -1.6, side: [1.0, -1.0] },
   { pose: (b) => classical(b), from: -1.6, to: -1.6, side: [-1.0, 0] },
@@ -679,7 +680,8 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
   const lastOutfit = useRef(-1);
   const bornRef = useRef<number | null>(null);
   const smooth = useRef<Pose>({ ...REST });
-  const trailGrp = useRef<THREE.Group>(null);
+  const trailMesh = useRef<THREE.Object3D>(null);
+  const appearedAt = useRef<number | null>(null);
   const flyState = useRef({ x: 0, y: 0, z: 0, rot: 0 });
 
   useFrame((state, dt) => {
@@ -745,7 +747,10 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
     }
     for (const bu of bursts) bu.step(dt);
     if (sparks.current) sparks.current.visible = !!moveAt(bar).sparks || P.spin > 0.2;
-    if (trailGrp.current) trailGrp.current.visible = sc > 0.95;
+    // the trail portals to the scene root; keep it hidden until its buffer has caught up with the glove
+    if (sc > 0.95 && appearedAt.current === null) appearedAt.current = t;
+    if (sc < 0.5) appearedAt.current = null;
+    if (trailMesh.current) trailMesh.current.visible = appearedAt.current !== null && t - appearedAt.current > 0.9;
 
     // wardrobe: a new outfit every bar, colours morph in with a flash
     const o = OUTFITS[bar % OUTFITS.length];
@@ -903,14 +908,12 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
                     <Part size={[0.36, 0.22, 0.36]} pos={[0, 0.13, 0]} mat={wardrobe.hat} />
                     <Part size={[0.38, 0.06, 0.38]} pos={[0, 0.06, 0]} mat={wardrobe.band} />
                   </group>
-                  <group ref={trailGrp} visible={false}>
-                  <Trail width={0.5} length={5} decay={2.5} color="#ffe2b0" attenuation={(w) => w * w}>
+                  <Trail ref={trailMesh as unknown as React.Ref<never>} width={0.5} length={5} decay={2.5} color="#ffe2b0" attenuation={(w) => w * w}>
                     <mesh position={[0, -0.42, 0]}>
                       <boxGeometry args={[0.02, 0.02, 0.02]} />
                       <meshBasicMaterial color="#ffffff" transparent opacity={0} depthWrite={false} />
                     </mesh>
                   </Trail>
-                  </group>
                 </group>
               </Limb>
             </group>

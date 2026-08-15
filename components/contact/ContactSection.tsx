@@ -7,6 +7,7 @@ import { SectionLabel } from "@/components/ui/Section";
 import { ArrowUpRight, GitHub, LinkedIn, XLogo, Mail } from "@/components/ui/Icons";
 import { Magnetic } from "@/components/ui/Magnetic";
 import { RotatingCta } from "@/components/ui/RotatingCta";
+import { ContactForm } from "./ContactForm";
 import { Marquee } from "@/components/ui/Marquee";
 import { LocalTime } from "@/components/ui/LocalTime";
 import { KineticText } from "@/components/ui/KineticText";
@@ -26,6 +27,7 @@ const ticker = ["Distributed systems", "Payments infrastructure", "Event-driven 
 export function ContactSection() {
   const ref = useRef<HTMLElement>(null);
   const [copied, setCopied] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
   const coreState = useRef<HeroState>({ spread: 0.3, opacity: 1, energy: 0 });
 
   useGSAP(
@@ -63,12 +65,16 @@ export function ContactSection() {
       window.location.href = mailHref;
     }
   };
-  // the mailto still fires; copying first means the address is in hand even when no mail app is set up
-  const onCta = () => {
-    void navigator.clipboard?.writeText(profile.email).then(() => {
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1800);
-    }).catch(() => {});
+  const openForm = () => {
+    setFormOpen(true);
+    window.setTimeout(() => {
+      document.getElementById("contact-form")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      document.querySelector<HTMLInputElement>("#contact-form input")?.focus({ preventScroll: true });
+    }, 250);
+  };
+  const onCta = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    openForm();
   };
 
   return (
@@ -94,7 +100,7 @@ export function ContactSection() {
             onPointerEnter={() => { coreState.current.energy = 1; }}
             onPointerLeave={() => { coreState.current.energy = 0; }}
           >
-            <RotatingCta href={mailHref} onClick={onCta} badge={copied ? "Copied" : undefined} label="Email Vinod" ring="Email me — Let's talk" cursor="Contact" />
+            <RotatingCta href="#contact-form" onClick={onCta} badge={formOpen ? "Open" : undefined} label="Write to Vinod" ring="Write to me — Let's talk" cursor="Write" />
           </div>
         </div>
 
@@ -116,13 +122,18 @@ export function ContactSection() {
               </button>
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Magnetic strength={7}>
-                  <a href={mailHref} className="group inline-flex h-11 items-center gap-2 rounded-full bg-fg-1 pl-5 pr-4 text-sm font-medium text-accent-ink transition-colors hover:bg-white" data-cursor="Contact">
-                    Write an email <Mail width={16} height={16} />
+                  <button type="button" onClick={openForm} className="group inline-flex h-11 items-center gap-2 rounded-full bg-fg-1 pl-5 pr-4 text-sm font-medium text-accent-ink transition-colors hover:bg-white" data-cursor="Write">
+                    Write a message <Mail width={16} height={16} />
+                  </button>
+                </Magnetic>
+                <Magnetic strength={7}>
+                  <a href={mailHref} className="group inline-flex h-11 items-center gap-2 rounded-full border border-line-2 px-5 text-sm font-medium text-fg-1 transition-colors hover:border-fg-1/60" data-cursor="Mail app">
+                    Mail app
                   </a>
                 </Magnetic>
                 <Magnetic strength={7}>
                   <a href={gmailHref} target="_blank" rel="noopener noreferrer" className="group inline-flex h-11 items-center gap-2 rounded-full border border-line-2 px-5 text-sm font-medium text-fg-1 transition-colors hover:border-fg-1/60" data-cursor="Gmail ↗">
-                    Open in Gmail <ArrowUpRight className="transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-expo)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    Gmail <ArrowUpRight className="transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-expo)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                   </a>
                 </Magnetic>
                 <Magnetic strength={7}>
@@ -166,6 +177,7 @@ export function ContactSection() {
               </ul>
             </div>
           </div>
+          <ContactForm id="contact-form" open={formOpen} onClose={() => setFormOpen(false)} />
         </div>
       </div>
 
