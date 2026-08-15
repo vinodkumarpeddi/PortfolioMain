@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useLenis } from "lenis/react";
+import { usePathname } from "next/navigation";
 import { navigation, profile, sections } from "@/data/profile";
 import { useScrollState } from "@/components/providers/ScrollState";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,9 @@ export function Nav() {
   const { active, index, total, scrolled } = useScrollState();
   const [open, setOpen] = useState(false);
   const lenis = useLenis();
+  const pathname = usePathname();
+  const home = pathname === "/";
+  const hrefFor = (id: string) => (home ? `#${id}` : `/#${id}`);
 
   useEffect(() => {
     if (open) lenis?.stop();
@@ -37,7 +41,7 @@ export function Nav() {
   return (
     <>
       <a
-        href="#work"
+        href={home ? "#work" : "#main"}
         className="label fixed left-4 top-4 z-[90] -translate-y-24 rounded-full bg-fg-1 px-4 py-3 text-accent-ink focus:translate-y-0"
       >
         Skip to content
@@ -48,7 +52,7 @@ export function Nav() {
           className={cn(
             "mx-auto flex items-center justify-between transition-[max-width,padding,margin,background-color,border-color,backdrop-filter,transform] duration-[var(--duration-slow)] ease-[var(--ease-standard)]",
             scrolled
-              ? "mt-3 max-w-[min(56rem,calc(100%-1.5rem))] rounded-full border border-line-1 bg-bg-1/70 py-1.5 pl-4 pr-1.5 backdrop-blur-xl [box-shadow:var(--shadow-float)]"
+              ? "mt-3 max-w-[min(62rem,calc(100%-1.5rem))] rounded-full border border-line-1 bg-bg-1/70 py-1.5 pl-4 pr-1.5 backdrop-blur-xl [box-shadow:var(--shadow-float)]"
               : "mt-0 max-w-none border border-transparent bg-transparent px-[var(--spacing-gutter)] py-5",
           )}
         >
@@ -62,34 +66,25 @@ export function Nav() {
               <span className="h-1.5 w-1.5 rounded-full bg-accent" />
             </span>
             <span className="flex flex-col leading-none">
-              <span className="text-[13px] font-semibold tracking-[-0.01em]">{profile.name}</span>
+              <span className="whitespace-nowrap text-[13px] font-semibold tracking-[-0.01em]">{profile.name}</span>
               <span className={cn("label mt-1 text-fg-3 transition-opacity", scrolled && "hidden")}>Software Engineer</span>
             </span>
           </Link>
 
           <nav className="pointer-events-auto hidden items-center gap-1 lg:flex" aria-label="Primary">
             <span className="label mr-3 hidden min-w-[9.5rem] text-fg-3 lg:block" aria-hidden>
-              <AnimatePresence mode="wait" initial={false}>
-                {scrolled && (
-                  <motion.span
-                    key={current.id}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: 0.28, ease: ease.outExpo }}
-                    className="inline-block"
-                  >
-                    <span className="text-accent">{current.index}</span> / {current.label}
-                  </motion.span>
-                )}
-              </AnimatePresence>
+              {scrolled && home && (
+                <span key={current.id} className="inline-block [animation:fade-in_400ms_var(--ease-out-expo)]">
+                  <span className="text-accent">{current.index}</span> / {current.label}
+                </span>
+              )}
             </span>
             {navigation.map((item) => {
-              const isActive = active === item.id;
+              const isActive = home && active === item.id;
               return (
                 <a
                   key={item.id}
-                  href={`#${item.id}`}
+                  href={hrefFor(item.id)}
                   className={cn(
                     "relative rounded-full px-3 py-2 text-[13px] font-medium tracking-[-0.005em] transition-colors duration-[var(--duration-base)]",
                     isActive ? "text-fg-1" : "text-fg-2 hover:text-fg-1",
@@ -161,7 +156,7 @@ export function Nav() {
               {[{ id: "intro", label: "Intro", index: "01" }, ...navigation].map((item, i) => (
                 <motion.a
                   key={item.id}
-                  href={`#${item.id}`}
+                  href={hrefFor(item.id)}
                   onClick={() => setOpen(false)}
                   initial={{ opacity: 0, y: 24 }}
                   animate={{ opacity: 1, y: 0, transition: { delay: 0.06 + i * 0.05, duration: 0.6, ease: ease.outExpo } }}

@@ -2,11 +2,11 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, type MutableRefObject } from "react";
-import type { CoreState } from "./SystemCore";
+import type { GlassShape, HeroState } from "./HeroObject";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 
-const SystemCore = dynamic(() => import("./SystemCore"), { ssr: false });
+const HeroObject = dynamic(() => import("./HeroObject"), { ssr: false });
 
 function hasWebGL() {
   try {
@@ -17,11 +17,8 @@ function hasWebGL() {
   }
 }
 
-/**
- * Lazily mounts the WebGL scene when supported, keeps it rendering only while
- * on screen, and fades it in once the first frame is ready.
- */
-export function CoreCanvas({ stateRef, className, compact }: { stateRef: MutableRefObject<CoreState>; className?: string; compact?: boolean }) {
+/** Lazily mounts the WebGL scene, renders only while on screen, fades in when ready. */
+export function HeroCanvas({ stateRef, className, ambient, shape, terrain }: { stateRef: MutableRefObject<HeroState>; className?: string; ambient?: boolean; shape?: GlassShape; terrain?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = usePrefersReducedMotion();
   const [ok, setOk] = useState(false);
@@ -41,7 +38,7 @@ export function CoreCanvas({ stateRef, className, compact }: { stateRef: Mutable
     if (!ok || !ref.current) return;
     const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { threshold: 0 });
     io.observe(ref.current);
-    const t = window.setTimeout(() => setReady(true), 500);
+    const t = window.setTimeout(() => setReady(true), 600);
     return () => {
       io.disconnect();
       window.clearTimeout(t);
@@ -51,8 +48,8 @@ export function CoreCanvas({ stateRef, className, compact }: { stateRef: Mutable
   if (reduced || !ok) return null;
 
   return (
-    <div ref={ref} className={cn("transition-opacity duration-[1400ms] ease-[var(--ease-standard)]", ready ? "opacity-100" : "opacity-0", className)}>
-      <SystemCore stateRef={stateRef} active={visible} compact={compact} />
+    <div ref={ref} className={cn("transition-opacity duration-[1600ms] ease-[var(--ease-standard)]", ready ? "opacity-100" : "opacity-0", className)}>
+      <HeroObject stateRef={stateRef} active={visible} ambient={ambient} shape={shape} terrain={terrain} />
     </div>
   );
 }

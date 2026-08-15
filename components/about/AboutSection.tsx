@@ -8,34 +8,17 @@ import { Notes } from "./Notes";
 import { certifications, education } from "@/data/experience";
 import { profile } from "@/data/profile";
 import { ArrowUpRight } from "@/components/ui/Icons";
-
-const columns = [
-  {
-    title: "Interests",
-    items: ["Distributed systems", "Payments infrastructure", "Event-driven architecture", "Real-time systems", "Developer tooling"],
-  },
-  {
-    title: "Current focus",
-    items: ["Reliability and observability at EverUptime", "Production-shaped backend patterns", "Typed, well-documented services"],
-  },
-  {
-    title: "Learning",
-    items: ["GitOps and Kubernetes delivery", "Smart-contract systems", "Applied ML pipelines"],
-  },
-  {
-    title: "How I work",
-    items: ["Design the failure path first", "One command from clone to running", "The README is part of the system"],
-  },
-];
+import { SectionNumeral } from "@/components/ui/SectionNumeral";
 
 export function AboutSection() {
   return (
     <section id="about" data-section="about" className="relative" aria-labelledby="about-title">
-      <div className="gutter mx-auto max-w-[100rem] py-[var(--spacing-section)]">
+      <div className="gutter relative mx-auto max-w-[100rem] py-[var(--spacing-section)]">
+        <SectionNumeral>06</SectionNumeral>
         <Reveal>
           <SectionLabel index="06">About</SectionLabel>
         </Reveal>
-        <h2 id="about-title" className="text-h1 mt-6 max-w-[22ch] text-balance text-fg-1">
+        <h2 id="about-title" className="text-h1 relative mt-6 max-w-[22ch] text-balance text-fg-1">
           <SplitText by="words">I care about the parts of software you only notice when they break.</SplitText>
         </h2>
         <Reveal delay={0.15} className="mt-6 max-w-[60ch]">
@@ -45,35 +28,18 @@ export function AboutSection() {
           </p>
         </Reveal>
 
-        <div className="mt-16 grid grid-cols-12 gap-x-6 gap-y-12">
+        <div className="relative mt-16 grid grid-cols-12 gap-x-6 gap-y-12">
           <div className="col-span-12 lg:col-span-5">
             <Reveal amount={0.2}>
               <Manifest />
             </Reveal>
-          </div>
-          <RevealGroup className="col-span-12 grid grid-cols-2 gap-x-6 gap-y-10 lg:col-span-7 lg:pl-8">
-            {columns.map((c) => (
-              <RevealItem key={c.title}>
-                <p className="label text-fg-3">{c.title}</p>
-                <ul className="mt-4 space-y-2 border-t border-line-1 pt-4 text-[15px] text-fg-1">
-                  {c.items.map((i) => (
-                    <li key={i}>{i}</li>
-                  ))}
-                </ul>
-              </RevealItem>
-            ))}
-          </RevealGroup>
-        </div>
-
-        <div className="mt-20 grid grid-cols-12 gap-x-6 gap-y-12">
-          <div className="col-span-12 lg:col-span-6">
-            <Reveal amount={0.2}>
+            <Reveal amount={0.2} className="mt-6">
               <Suspense fallback={<div className="h-[26rem] rounded-2xl border border-line-1 bg-bg-2/50" />}>
                 <GitHubPanel />
               </Suspense>
             </Reveal>
           </div>
-          <div className="col-span-12 lg:col-span-6 lg:pl-8">
+          <div className="col-span-12 lg:col-span-7 lg:pl-10">
             <RevealGroup>
               <RevealItem>
                 <p className="label text-fg-3">Education</p>

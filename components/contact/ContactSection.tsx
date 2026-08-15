@@ -7,6 +7,8 @@ import { SectionLabel } from "@/components/ui/Section";
 import { ArrowUpRight, GitHub, LinkedIn, XLogo, Mail } from "@/components/ui/Icons";
 import { Magnetic } from "@/components/ui/Magnetic";
 import { cn } from "@/lib/utils";
+import { HeroCanvas } from "@/components/three/HeroCanvas";
+import type { HeroState } from "@/components/three/HeroObject";
 
 const rows = [
   { label: "Email", value: profile.email, href: `mailto:${profile.email}`, Icon: Mail, cursor: "Contact" },
@@ -18,6 +20,7 @@ const rows = [
 export function ContactSection() {
   const ref = useRef<HTMLElement>(null);
   const [copied, setCopied] = useState(false);
+  const coreState = useRef<HeroState>({ spread: 0.3, opacity: 1 });
 
   useGSAP(
     () => {
@@ -37,6 +40,11 @@ export function ContactSection() {
             stagger: 0.12,
             scrollTrigger: { trigger: q(".ct-head")[0], start: "top 95%", end: "top 35%", scrub: 0.8 },
           },
+        );
+        gsap.fromTo(
+          coreState.current,
+          { spread: 1 },
+          { spread: 0.15, ease: "none", scrollTrigger: { trigger: el, start: "top 90%", end: "bottom bottom", scrub: 1 } },
         );
         gsap.fromTo(
           q(".ct-glow"),
@@ -70,6 +78,10 @@ export function ContactSection() {
   return (
     <section id="contact" ref={ref} data-section="contact" className="relative overflow-hidden" aria-labelledby="contact-title">
       <div aria-hidden className="ct-glow pointer-events-none absolute left-1/2 top-[30%] h-[60vh] w-[60vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/[0.07] blur-[140px]" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[52vw] opacity-80 lg:block motion-reduce:hidden" aria-hidden>
+        <HeroCanvas stateRef={coreState} ambient className="absolute inset-0" />
+        <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[var(--bg-current)] to-transparent" />
+      </div>
       <div className="gutter relative mx-auto max-w-[100rem] pb-24 pt-[var(--spacing-section)]">
         <SectionLabel index="07">Connect</SectionLabel>
 

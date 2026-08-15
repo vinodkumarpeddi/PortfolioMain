@@ -10,6 +10,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { usePrefersReducedMotion, useIsDesktop } from "@/lib/hooks/use-media-query";
 import { ease } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { SectionNumeral } from "@/components/ui/SectionNumeral";
 
 type ProjectRef = { key: string; title: string; kind: "featured" | "index" };
 
@@ -239,18 +240,17 @@ export function TechnologyMap() {
 export function SystemsSection() {
   return (
     <section id="systems" data-section="systems" className="relative" aria-labelledby="sys-title">
-      <div className="gutter mx-auto max-w-[100rem] py-[var(--spacing-section)]">
+      <div className="gutter relative mx-auto max-w-[100rem] py-[var(--spacing-section)]">
+        <SectionNumeral>04</SectionNumeral>
         <Reveal>
           <SectionLabel index="04">Systems &amp; technology</SectionLabel>
         </Reveal>
-        <div className="mt-6 grid grid-cols-12 gap-x-6 gap-y-6">
-          <h2 id="sys-title" className="text-h1 col-span-12 max-w-[14ch] text-fg-1 lg:col-span-7">
+        <div className="relative mt-6 flex flex-wrap items-end justify-between gap-6">
+          <h2 id="sys-title" className="text-h1 max-w-[14ch] text-fg-1">
             <SplitText by="words">Not a list of logos. A map of decisions.</SplitText>
           </h2>
-          <Reveal delay={0.15} className="col-span-12 lg:col-span-5 lg:pt-3">
-            <p className="max-w-[46ch] text-lead text-fg-2">
-              Every node here is tied to a system I actually built with it. Hover to see where — and what it connects to.
-            </p>
+          <Reveal delay={0.15} className="max-w-[34ch] text-[15px] leading-relaxed text-fg-2">
+            Every node is tied to a system I built with it. Hover one to see where — and what it connects to.
           </Reveal>
         </div>
         <TechnologyMap />

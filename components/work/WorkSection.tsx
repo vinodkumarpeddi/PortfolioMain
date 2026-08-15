@@ -7,24 +7,22 @@ import { SplitScene } from "./SplitScene";
 import { HorizontalScene } from "./HorizontalScene";
 import { CompactScene } from "./CompactScene";
 import { ProjectIndex } from "./ProjectIndex";
+import { SectionNumeral } from "@/components/ui/SectionNumeral";
 
 export function WorkSection() {
   const [, cqrs, exam, saas, grillbot] = projects;
   return (
     <section id="work" data-section="work" className="relative" aria-labelledby="work-title">
-      <div className="gutter mx-auto max-w-[100rem] pt-[calc(var(--spacing-section)*0.9)]">
+      <div className="gutter relative mx-auto max-w-[100rem] pt-[calc(var(--spacing-section)*0.9)]">
+        <SectionNumeral>02</SectionNumeral>
         <Reveal>
           <SectionLabel index="02">Selected work</SectionLabel>
         </Reveal>
-        <h2 id="work-title" className="text-h1 mt-6 max-w-[16ch] text-fg-1">
+        <h2 id="work-title" className="text-h1 relative mt-6 max-w-[16ch] text-fg-1">
           <SplitText by="words">Five systems, five different problems.</SplitText>
         </h2>
-        <Reveal delay={0.15} className="mt-6 flex flex-wrap items-baseline justify-between gap-4">
-          <p className="max-w-[56ch] text-lead text-fg-2">
-            From a payment engine and a CQRS pipeline to a platform used across web and mobile — each one chosen because it forced a real
-            engineering decision.
-          </p>
-          <ol className="label flex flex-wrap gap-x-5 gap-y-2 text-fg-3" aria-label="Projects in this section">
+        <Reveal delay={0.15} className="relative mt-8">
+          <ol className="label flex flex-wrap gap-x-6 gap-y-2 text-fg-3" aria-label="Projects in this section">
             {projects.map((p) => (
               <li key={p.slug} className="flex items-center gap-2">
                 <span className="text-accent">{p.number}</span> {p.title}
@@ -35,7 +33,7 @@ export function WorkSection() {
       </div>
 
       <div className="mt-8 border-t border-line-1">
-        <ArchitectureScene project={cqrs} highlight={{ challenge: ["cmd", "wdb", "mq"], solution: ["wdb", "mq", "consumer"] }} />
+        <ArchitectureScene project={cqrs} />
       </div>
       <div className="border-t border-line-1">
         <SplitScene project={exam} />

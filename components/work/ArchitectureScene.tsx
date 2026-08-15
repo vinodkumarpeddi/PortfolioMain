@@ -3,25 +3,22 @@
 import { useRef } from "react";
 import { gsap, useGSAP, MOTION_OK, DESKTOP, MOBILE } from "@/lib/gsap";
 import type { Project } from "@/data/types";
-import { SystemViz } from "@/components/viz/SystemViz";
-import { createVizAmbient, createVizReveal } from "@/components/viz/animate";
+import { ProductVisual } from "@/components/visuals/ProductVisual";
+import { Tilt } from "@/components/visuals/Tilt";
 import { FactList, ProjectHeader, ProjectLinks, TechList } from "./ProjectMeta";
 import { cn } from "@/lib/utils";
 
 /**
- * Pinned scene: the architecture builds itself while the story
- * (intro → challenge → solution → facts) advances in the side column.
+ * Pinned story scene: the product visual rises into place while the story
+ * (intro → challenge → solution → facts) advances; stages spotlight parts of the visual.
  */
-export function ArchitectureScene({ project, highlight }: { project: Project; highlight: { challenge: string[]; solution: string[] } }) {
+export function ArchitectureScene({ project }: { project: Project }) {
   const ref = useRef<HTMLElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
-  const arch = project.architecture!;
 
   useGSAP(
     () => {
       const el = ref.current;
-      const svg = svgRef.current;
-      if (!el || !svg) return;
+      if (!el) return;
       const q = gsap.utils.selector(el);
       const mm = gsap.matchMedia();
 
@@ -29,23 +26,18 @@ export function ArchitectureScene({ project, highlight }: { project: Project; hi
         const { motion, desktop } = ctx.conditions as { motion: boolean; desktop: boolean };
         if (!motion) return;
 
-        const reveal = createVizReveal(svg, arch, { restOpacity: 0.18 });
-        const killAmbient = createVizAmbient(svg, arch, { speed: 80 });
-        const allNodes = svg.querySelectorAll(".viz-node");
-        const box = (ids: string[]) => ids.map((id) => svg.querySelector(`[data-node="${id}"] .viz-node-box`)).filter(Boolean);
-        const nodes = (ids: string[]) => ids.map((id) => svg.querySelector(`[data-node="${id}"]`)).filter(Boolean);
-        const others = (ids: string[]) => Array.from(allNodes).filter((n) => !ids.includes((n as SVGGElement).dataset.node ?? ""));
 
         gsap.set(q(".stage"), { autoAlpha: 0, y: 16 });
         gsap.set(q(".stage-intro"), { autoAlpha: 1, y: 0 });
         gsap.set(q(".scene-facts"), { autoAlpha: 0, y: 12 });
+        gsap.set(q(".scene-visual"), { autoAlpha: 0, y: 80, rotateY: desktop ? -10 : 0, rotateX: 6, scale: 0.92, transformPerspective: 1600, transformOrigin: "50% 60%" });
 
         const tl = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: {
             trigger: q(".pin")[0],
             start: "top top",
-            end: desktop ? "+=320%" : "+=280%",
+            end: desktop ? "+=300%" : "+=260%",
             pin: true,
             scrub: 0.7,
             anticipatePin: 1,
@@ -53,28 +45,15 @@ export function ArchitectureScene({ project, highlight }: { project: Project; hi
           },
         });
 
-        tl.to(reveal, { progress: 1, duration: 3.2 }, 0)
-          .to(q(".stage-intro"), { autoAlpha: 0, y: -12, duration: 0.5 }, 3.4)
-          .to(q(".stage-challenge"), { autoAlpha: 1, y: 0, duration: 0.7 }, 3.6)
-          .to(others(highlight.challenge), { opacity: 0.35, duration: 0.6 }, 3.6)
-          .to(box(highlight.challenge), { stroke: "var(--color-accent)", duration: 0.5 }, 3.7)
-          .to(q(".stage-challenge"), { autoAlpha: 0, y: -12, duration: 0.5 }, 5.6)
-          .to(box(highlight.challenge), { stroke: "var(--color-line-2)", duration: 0.4 }, 5.6)
-          .to(others(highlight.challenge), { opacity: 1, duration: 0.4 }, 5.6)
-          .to(q(".stage-solution"), { autoAlpha: 1, y: 0, duration: 0.7 }, 5.9)
-          .to(others(highlight.solution), { opacity: 0.35, duration: 0.6 }, 5.9)
-          .to(box(highlight.solution), { stroke: "var(--color-accent)", duration: 0.5 }, 6.0)
-          .to(nodes(highlight.solution), { scale: 1.03, transformOrigin: "50% 50%", duration: 0.5 }, 6.0)
-          .to(others(highlight.solution), { opacity: 1, duration: 0.5 }, 7.8)
-          .to(box(highlight.solution), { stroke: "var(--color-line-2)", duration: 0.5 }, 7.8)
-          .to(nodes(highlight.solution), { scale: 1, duration: 0.5 }, 7.8)
-          .to(q(".scene-facts"), { autoAlpha: 1, y: 0, duration: 0.7 }, 8.0)
-          .to({}, { duration: 1.2 }, 8.4);
-
-        return () => {
-          reveal.kill();
-          killAmbient();
-        };
+        tl.to(q(".scene-visual"), { autoAlpha: 1, y: 0, rotateY: 0, rotateX: 0, scale: 1, duration: 2.2, ease: "power2.out" }, 0)
+          .to(q(".stage-intro"), { autoAlpha: 0, y: -12, duration: 0.5 }, 2.6)
+          .to(q(".stage-challenge"), { autoAlpha: 1, y: 0, duration: 0.7 }, 2.9)
+          .to(q(".scene-visual"), { rotateY: 6, scale: 0.98, duration: 1.2 }, 2.9)
+          .to(q(".stage-challenge"), { autoAlpha: 0, y: -12, duration: 0.5 }, 5.0)
+          .to(q(".stage-solution"), { autoAlpha: 1, y: 0, duration: 0.7 }, 5.4)
+          .to(q(".scene-visual"), { rotateY: -4, scale: 1, duration: 1.2 }, 5.4)
+          .to(q(".scene-facts"), { autoAlpha: 1, y: 0, duration: 0.7 }, 7.6)
+          .to({}, { duration: 1.2 }, 8.0);
       });
       return () => mm.revert();
     },
@@ -102,14 +81,10 @@ export function ArchitectureScene({ project, highlight }: { project: Project; hi
           </div>
 
           <div className="col-span-12 lg:col-span-7 lg:pl-6 xl:col-span-8 xl:pl-8">
-            <div className="rounded-3xl border border-line-1 bg-bg-1/40 p-4 sm:p-6 lg:p-8">
-              <SystemViz
-                ref={svgRef}
-                id={`viz-${project.slug}`}
-                architecture={arch}
-                title={`${project.title} architecture`}
-                desc={project.description}
-              />
+            <div className="scene-visual group/tilt">
+              <Tilt max={4}>
+                <ProductVisual project={project} />
+              </Tilt>
             </div>
             <FactList facts={project.facts} className="scene-facts mt-8" />
           </div>

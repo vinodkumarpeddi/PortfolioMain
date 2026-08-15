@@ -13,6 +13,11 @@ export const ArrowRight = (p: P) => (
     <path d="M5 12h14M13 6l6 6-6 6" />
   </svg>
 );
+export const ArrowLeft = (p: P) => (
+  <svg viewBox="0 0 24 24" width="1em" height="1em" {...base} {...p}>
+    <path d="M19 12H5M11 18l-6-6 6-6" />
+  </svg>
+);
 export const ArrowDown = (p: P) => (
   <svg viewBox="0 0 24 24" width="1em" height="1em" {...base} {...p}>
     <path d="M12 5v14M6 13l6 6 6-6" />

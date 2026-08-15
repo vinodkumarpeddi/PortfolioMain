@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { gsap, useGSAP, MOTION_OK, DESKTOP } from "@/lib/gsap";
 import type { Project } from "@/data/types";
-import { VizInView } from "@/components/viz/VizInView";
+import { ProductVisual } from "@/components/visuals/ProductVisual";
 import { FactList, ProjectHeader, ProjectLinks, TechList } from "./ProjectMeta";
 import { cn } from "@/lib/utils";
 
@@ -114,8 +114,8 @@ export function HorizontalScene({ project }: { project: Project }) {
           {/* panel 3 — request path */}
           <Panel wide>
             <p className="h-reveal label text-fg-3">Every request, in order</p>
-            <div className="h-reveal mt-6 rounded-3xl border border-line-1 bg-bg-1/40 p-4 sm:p-6">
-              <VizInView architecture={project.architecture!} id={`viz-${project.slug}`} title={`${project.title} request path`} speed={70} />
+            <div className="h-reveal mt-6">
+              <ProductVisual project={project} />
             </div>
             <p className="h-reveal mt-4 max-w-[60ch] text-sm leading-relaxed text-fg-2">
               Identity from the JWT, then role, then tenant — each enforced by middleware before a controller runs, so isolation cannot be forgotten in a query.

@@ -3,18 +3,16 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { gsap, ScrollTrigger, SplitText, useGSAP, MOTION_OK, DESKTOP, MOBILE } from "@/lib/gsap";
-import { heroArchitecture, projects } from "@/data/projects";
+import { projects } from "@/data/projects";
 import { profile } from "@/data/profile";
-import { SystemViz } from "@/components/viz/SystemViz";
-import { createVizAmbient, createVizReveal } from "@/components/viz/animate";
 import { SplitText as SplitReveal } from "@/components/ui/SplitText";
 import { Button } from "@/components/ui/Button";
 import { SectionLabel } from "@/components/ui/Section";
 import { ArrowDown, ArrowRight, ArrowUpRight, GitHub } from "@/components/ui/Icons";
 import { setSectionOverride } from "@/components/providers/ScrollState";
-import { CoreCanvas } from "@/components/three/CoreCanvas";
-import type { CoreState } from "@/components/three/SystemCore";
-import { useIsDesktop } from "@/lib/hooks/use-media-query";
+import { HeroCanvas } from "@/components/three/HeroCanvas";
+import type { HeroState } from "@/components/three/HeroObject";
+import { ProductVisual } from "@/components/visuals/ProductVisual";
 import { cn } from "@/lib/utils";
 
 const project = projects[0];
@@ -23,19 +21,14 @@ const heroStack = ["Node.js", "TypeScript", "PostgreSQL", "Redis", "RabbitMQ", "
 export function IntroScene() {
   const sectionRef = useRef<HTMLElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
-  const vizWrapRef = useRef<HTMLDivElement>(null);
-  const vizRef = useRef<SVGSVGElement>(null);
   const coreWrapRef = useRef<HTMLDivElement>(null);
-  const coreState = useRef<CoreState>({ explode: 0, opacity: 1 });
-  const isDesktop = useIsDesktop();
+  const heroState = useRef<HeroState>({ spread: 0, opacity: 1 });
 
   useGSAP(
     () => {
       const pin = pinRef.current;
-      const vizWrap = vizWrapRef.current;
-      const svg = vizRef.current;
       const coreWrap = coreWrapRef.current;
-      if (!pin || !vizWrap || !svg || !coreWrap) return;
+      if (!pin || !coreWrap) return;
 
       const q = gsap.utils.selector(pin);
       const mm = gsap.matchMedia();
@@ -48,100 +41,82 @@ export function IntroScene() {
           .from(q(".hero-lead"), { opacity: 0, y: 18, filter: "blur(6px)" }, 0.55)
           .from(q(".hero-cta"), { opacity: 0, y: 14 }, 0.75)
           .from(q(".hero-bottom > *"), { opacity: 0, y: 10, stagger: 0.08, duration: 0.8 }, 0.9)
-          .from(q("[data-grid]"), { opacity: 0, duration: 1.6, ease: "power1.out" }, 0);
+          .fromTo(q("[data-grid]"), { clipPath: "inset(0 100% 100% 0)" }, { clipPath: "inset(0 0% 0% 0)", duration: 1.8, ease: "power3.inOut" }, 0);
         return () => intro.kill();
       });
 
-      // ---- ambient viz packets ----
-      let killAmbient = () => {};
-      mm.add(MOTION_OK, () => {
-        killAmbient = createVizAmbient(svg, heroArchitecture, { speed: 90 });
-        return () => killAmbient();
-      });
-
       // ---- scroll choreography ----
-      mm.add(
-        { motion: MOTION_OK, desktop: DESKTOP, mobile: MOBILE },
-        (ctx) => {
-          const { desktop, motion } = ctx.conditions as { desktop: boolean; mobile: boolean; motion: boolean };
-          if (!motion) return;
-          const reveal = createVizReveal(svg, heroArchitecture, { restOpacity: 0.55 });
-          reveal.progress(0);
+      mm.add({ motion: MOTION_OK, desktop: DESKTOP, mobile: MOBILE }, (ctx) => {
+        const { desktop, motion } = ctx.conditions as { desktop: boolean; mobile: boolean; motion: boolean };
+        if (!motion) return;
 
-          const titleSplit = SplitText.create(q(".proj-title"), { type: "words", mask: "words", aria: "auto" });
-          const chips = q(".proj-chip");
-          const mainLabels = svg.querySelectorAll(".viz-label-main");
-          const altLabels = svg.querySelectorAll(".viz-label-alt");
+        const titleSplit = SplitText.create(q(".proj-title"), { type: "words", mask: "words", aria: "auto" });
+        const chips = q(".proj-chip");
+        heroState.current.spread = 0;
+        heroState.current.opacity = 1;
 
-          gsap.set(vizWrap, { opacity: 0, scale: 0.94, y: 24, transformOrigin: "50% 50%" });
-          coreState.current.explode = 0;
-          coreState.current.opacity = 1;
-          gsap.set(q(".proj-layer"), { autoAlpha: 0 });
-          gsap.set(q(".proj-head"), { autoAlpha: 0, y: 12 });
-          gsap.set(titleSplit.words, { yPercent: 110 });
-          gsap.set(q(".proj-tagline, .proj-links"), { autoAlpha: 0, y: 14 });
-          gsap.set(q(".stage-tech"), { autoAlpha: 0, y: 10 });
-          gsap.set(q(".stage-challenge, .stage-solution"), { autoAlpha: 0, y: 16 });
-          gsap.set(chips, { opacity: 0.45 });
+        gsap.set(q(".proj-layer"), { autoAlpha: 0 });
+        gsap.set(q(".proj-visual"), { autoAlpha: 0, y: 90, scale: 0.9, rotateX: 10, transformPerspective: 1400, transformOrigin: "50% 100%" });
+        gsap.set(q(".proj-head"), { autoAlpha: 0, y: 12 });
+        gsap.set(titleSplit.words, { yPercent: 110 });
+        gsap.set(q(".proj-tagline, .proj-links"), { autoAlpha: 0, y: 14 });
+        gsap.set(q(".stage-tech"), { autoAlpha: 0, y: 10 });
+        gsap.set(q(".stage-challenge, .stage-solution"), { autoAlpha: 0, y: 16 });
+        gsap.set(chips, { opacity: 0.45 });
 
-          const tl = gsap.timeline({
-            defaults: { ease: "none" },
-            scrollTrigger: {
-              trigger: pin,
-              start: "top top",
-              end: desktop ? "+=520%" : "+=420%",
-              pin: true,
-              scrub: 0.7,
-              anticipatePin: 1,
-              invalidateOnRefresh: true,
-              onUpdate: (self) => setSectionOverride(self.progress > 0.42 ? "work" : "intro"),
-              onLeave: () => setSectionOverride(null),
-              onLeaveBack: () => setSectionOverride(null),
-              onEnterBack: (self) => setSectionOverride(self.progress > 0.42 ? "work" : "intro"),
-            },
-          });
+        const tl = gsap.timeline({
+          defaults: { ease: "none" },
+          scrollTrigger: {
+            trigger: pin,
+            start: "top top",
+            end: desktop ? "+=470%" : "+=400%",
+            pin: true,
+            scrub: 0.7,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => setSectionOverride(self.isActive ? (self.progress > 0.4 ? "work" : "intro") : null),
+            onRefresh: (self) => setSectionOverride(self.isActive ? (self.progress > 0.4 ? "work" : "intro") : null),
+            onLeave: () => setSectionOverride(null),
+            onLeaveBack: () => setSectionOverride(null),
+          },
+        });
 
-          // 0 → 10 units
-          tl.to(q("[data-grid]"), { backgroundPositionY: -120, duration: 10, ease: "none" }, 0)
-            .to(coreState.current, { explode: 1, duration: 2.4, ease: "power2.inOut" }, 0.5)
-            .to(coreState.current, { opacity: 0, duration: 1.6, ease: "power2.in" }, 1.3)
-            .to(coreWrap, { autoAlpha: 0, y: -40, duration: 1.4, ease: "power2.inOut" }, 1.5)
-            .to(vizWrap, { opacity: 1, scale: 1, y: 0, duration: 1.6, ease: "power2.out" }, 1.4)
-            .to(reveal, { progress: 1, duration: 2.6, ease: "none" }, 1.7)
-            .to(q(".hero-bottom"), { autoAlpha: 0, y: 10, duration: 0.6 }, 1.9)
-            .to(q(".hero-copy"), { yPercent: -18, scale: 0.9, autoAlpha: 0, transformOrigin: "0% 0%", duration: 1.6, ease: "power2.inOut" }, 2.4)
-            .set(q(".proj-layer"), { autoAlpha: 1 }, 3.9)
-            .to(mainLabels, { autoAlpha: 0, duration: 0.5, stagger: 0.06 }, 4.0)
-            .to(altLabels, { autoAlpha: 1, duration: 0.5, stagger: 0.06 }, 4.15)
-            .to(q(".proj-head"), { autoAlpha: 1, y: 0, duration: 0.7 }, 4.2)
-            .to(titleSplit.words, { yPercent: 0, duration: 0.9, stagger: 0.06, ease: "power2.out" }, 4.5)
-            .to(q(".proj-tagline, .proj-links"), { autoAlpha: 1, y: 0, duration: 0.7, stagger: 0.15 }, 5.3);
+        // 0 → 10 units
+        tl.to(q("[data-grid]"), { backgroundPositionY: -120, duration: 10, ease: "none" }, 0)
+          .to(heroState.current, { spread: 1, duration: 2.4, ease: "power2.inOut" }, 0.3)
+          .to(coreWrap, { y: -80, scale: 1.08, duration: 2.6, ease: "power1.inOut" }, 0.3)
+          .to(heroState.current, { opacity: 0, duration: 1.4, ease: "power2.in" }, 1.4)
+          .to(coreWrap, { autoAlpha: 0, duration: 1.2, ease: "power2.inOut" }, 1.6)
+          .to(q(".hero-bottom"), { autoAlpha: 0, y: 10, duration: 0.6 }, 0.8)
+          .to(q(".hero-copy"), { yPercent: -14, scale: 0.92, autoAlpha: 0, transformOrigin: "0% 0%", duration: 1.5, ease: "power2.inOut" }, 1.0)
+          .set(q(".proj-layer"), { autoAlpha: 1 }, 1.9)
+          .to(q(".proj-visual"), { autoAlpha: 1, y: 0, scale: 1, rotateX: 0, duration: 1.6, ease: "power2.out" }, 2.0)
+          .to(q(".proj-head"), { autoAlpha: 1, y: 0, duration: 0.7 }, 3.2)
+          .to(titleSplit.words, { yPercent: 0, duration: 0.9, stagger: 0.06, ease: "power2.out" }, 3.4)
+          .to(q(".proj-tagline, .proj-links"), { autoAlpha: 1, y: 0, duration: 0.7, stagger: 0.15 }, 4.1);
 
-          if (desktop) {
-            tl.to(q(".stage-tech"), { autoAlpha: 1, y: 0, duration: 0.6 }, 5.7)
-              .to(chips, { opacity: 1, duration: 0.25, stagger: 0.16 }, 6.1)
-              .to(q(".stage-tech"), { autoAlpha: 0, y: -10, duration: 0.5 }, 7.5)
-              .to(q(".stage-challenge"), { autoAlpha: 1, y: 0, duration: 0.7 }, 7.7)
-              .to(q(".stage-challenge"), { autoAlpha: 0, y: -10, duration: 0.5 }, 8.7)
-              .to(q(".stage-solution"), { autoAlpha: 1, y: 0, duration: 0.7 }, 8.9)
-              .to({}, { duration: 1.1 }, 9.0);
-          } else {
-            tl.to(q(".stage-challenge"), { autoAlpha: 1, y: 0, duration: 0.7 }, 6.2)
-              .to(q(".stage-challenge"), { autoAlpha: 0, y: -10, duration: 0.5 }, 7.6)
-              .to(q(".stage-solution"), { autoAlpha: 1, y: 0, duration: 0.7 }, 7.8)
-              .to({}, { duration: 1.2 }, 8.8);
-          }
+        if (desktop) {
+          tl.to(q(".stage-tech"), { autoAlpha: 1, y: 0, duration: 0.6 }, 4.4)
+            .to(chips, { opacity: 1, duration: 0.25, stagger: 0.16 }, 4.8)
+            .to(q(".stage-tech"), { autoAlpha: 0, y: -10, duration: 0.4 }, 6.3)
+            .to(q(".stage-challenge"), { autoAlpha: 1, y: 0, duration: 0.6 }, 6.75)
+            .to(q(".stage-challenge"), { autoAlpha: 0, y: -10, duration: 0.4 }, 7.9)
+            .to(q(".stage-solution"), { autoAlpha: 1, y: 0, duration: 0.6 }, 8.35)
+            .to({}, { duration: 1.2 }, 8.8);
+        } else {
+          tl.to(q(".stage-challenge"), { autoAlpha: 1, y: 0, duration: 0.6 }, 5.0)
+            .to(q(".stage-challenge"), { autoAlpha: 0, y: -10, duration: 0.4 }, 6.6)
+            .to(q(".stage-solution"), { autoAlpha: 1, y: 0, duration: 0.6 }, 7.05)
+            .to({}, { duration: 1.5 }, 8.5);
+        }
 
-          const refresh = () => ScrollTrigger.refresh();
-          document.fonts?.ready.then(refresh);
+        document.fonts?.ready.then(() => ScrollTrigger.refresh());
 
-          return () => {
-            titleSplit.revert();
-            reveal.kill();
-            setSectionOverride(null);
-          };
-        },
-      );
+        return () => {
+          titleSplit.revert();
+          setSectionOverride(null);
+        };
+      });
 
       return () => mm.revert();
     },
@@ -159,10 +134,12 @@ export function IntroScene() {
           aria-hidden
           className="grid-bg pointer-events-none absolute inset-0 [mask-image:radial-gradient(70%_60%_at_60%_40%,black,transparent)]"
         />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-[10%] top-[10%] h-[60vh] w-[60vw] rounded-full bg-accent/[0.06] blur-[120px]"
-        />
+        <div aria-hidden className="pointer-events-none absolute -right-[10%] top-[5%] h-[70vh] w-[60vw] rounded-full bg-accent/[0.07] blur-[140px]" />
+
+        {/* 3D OBJECT (hero state) */}
+        <div ref={coreWrapRef} className="core-wrap absolute inset-y-0 right-0 z-0 w-full lg:w-[64vw] motion-reduce:hidden">
+          <HeroCanvas stateRef={heroState} className="absolute inset-0 opacity-80 lg:opacity-100" />
+        </div>
 
         {/* HERO LAYER */}
         <div className="hero-layer pointer-events-none absolute inset-0 z-10 flex flex-col motion-reduce:relative motion-reduce:min-h-[100svh]">
@@ -214,7 +191,6 @@ export function IntroScene() {
                 </Button>
               </div>
             </div>
-
           </div>
 
           <div className="hero-bottom gutter pointer-events-auto mx-auto flex w-full max-w-[100rem] flex-wrap items-end justify-between gap-4 pb-7 lg:pb-9">
@@ -233,35 +209,15 @@ export function IntroScene() {
           </div>
         </div>
 
-        {/* 3D SYSTEM CORE (hero state) */}
-        <div
-          ref={coreWrapRef}
-          className="core-wrap absolute inset-y-0 right-0 z-0 w-full lg:w-[62vw] motion-reduce:hidden"
-        >
-          <CoreCanvas stateRef={coreState} compact={!isDesktop} className="absolute inset-0 opacity-70 lg:opacity-100" />
-          <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[var(--bg-current)] to-transparent lg:hidden" />
-        </div>
-
-        {/* SHARED VIZ */}
-        <div
-          ref={vizWrapRef}
-          className="viz-wrap pointer-events-none absolute left-1/2 top-[44%] z-[5] w-[min(94vw,900px)] -translate-x-1/2 -translate-y-1/2 opacity-0 lg:top-[41%] lg:w-[min(68vw,1120px)] motion-reduce:opacity-100 motion-reduce:relative motion-reduce:left-auto motion-reduce:top-auto motion-reduce:mx-auto motion-reduce:my-16 motion-reduce:translate-x-0 motion-reduce:translate-y-0"
-        >
-          <SystemViz
-            ref={vizRef}
-            id="hero-viz"
-            architecture={heroArchitecture}
-            altLabels={project.architecture!.nodes.map((n) => ({ label: n.label, sub: n.sub }))}
-            title="System architecture visualisation"
-            desc="Client, API, services, queue, workers, database and infrastructure connected by data flow; morphs into the Payment Orchestrator architecture."
-          />
-        </div>
-
         {/* PROJECT 01 LAYER */}
         <div className="proj-layer gutter absolute inset-0 z-20 mx-auto flex max-w-[100rem] flex-col justify-between pb-7 pt-24 motion-safe:invisible motion-safe:opacity-0 motion-reduce:relative motion-reduce:pt-0 lg:pb-9">
           <div className="proj-head flex items-center justify-between gap-4">
             <SectionLabel index={project.number}>Selected work</SectionLabel>
             <span className="label hidden text-fg-3 sm:block">{project.category}</span>
+          </div>
+
+          <div className="proj-visual pointer-events-auto absolute left-1/2 top-[7.5rem] w-[92vw] -translate-x-1/2 lg:top-[7rem] lg:w-auto lg:h-[min(50vh,560px)] motion-reduce:relative motion-reduce:left-auto motion-reduce:top-auto motion-reduce:my-10 motion-reduce:w-full motion-reduce:translate-x-0">
+            <ProductVisual project={project} className="h-full w-full lg:aspect-[16/10] lg:w-auto" priority />
           </div>
 
           <div className="pointer-events-auto grid grid-cols-12 items-end gap-x-6 gap-y-6">

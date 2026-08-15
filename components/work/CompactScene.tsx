@@ -2,6 +2,7 @@ import type { Project } from "@/data/types";
 import { Reveal } from "@/components/ui/Reveal";
 import { SplitText } from "@/components/ui/SplitText";
 import { ProjectImage } from "./ProjectImage";
+import { Tilt } from "@/components/visuals/Tilt";
 import { FactList, ProjectHeader, ProjectLinks, TechList } from "./ProjectMeta";
 
 /** Minimal compact presentation. */
@@ -25,7 +26,11 @@ export function CompactScene({ project }: { project: Project }) {
         </div>
         <div className="col-span-12 lg:col-span-6 lg:order-1">
           {project.image && (
-            <ProjectImage image={project.image} href={project.live ?? project.github} className="aspect-[4/3]" sizes="(min-width: 1024px) 48vw, 100vw" />
+            <div className="group/tilt">
+              <Tilt max={5}>
+                <ProjectImage image={project.image} href={project.live ?? project.github} className="aspect-[4/3]" sizes="(min-width: 1024px) 48vw, 100vw" />
+              </Tilt>
+            </div>
           )}
           <Reveal className="mt-6" amount={0.5}>
             <FactList facts={project.facts} className="sm:grid-cols-2" />

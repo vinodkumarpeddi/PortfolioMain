@@ -3,7 +3,7 @@ import { Reveal, RevealGroup, RevealItem } from "@/components/ui/Reveal";
 import { SplitText } from "@/components/ui/SplitText";
 import { ProjectImage } from "./ProjectImage";
 import { FactList, ProjectHeader, ProjectLinks, TechList } from "./ProjectMeta";
-import { VizInView } from "@/components/viz/VizInView";
+import { Tilt } from "@/components/visuals/Tilt";
 
 /** Split-screen editorial: sticky copy on the left, image + architecture on the right. */
 export function SplitScene({ project }: { project: Project }) {
@@ -34,12 +34,11 @@ export function SplitScene({ project }: { project: Project }) {
         </div>
         <div className="col-span-12 lg:col-span-7">
           {project.image && (
-            <ProjectImage image={project.image} href={project.live ?? project.github} priority={false} className="aspect-[4/3] lg:aspect-[1/1]" sizes="(min-width: 1024px) 56vw, 100vw" />
-          )}
-          {project.architecture && (
-            <Reveal className="mt-8 rounded-3xl border border-line-1 bg-bg-1/40 p-4 sm:p-6" amount={0.4}>
-              <VizInView architecture={project.architecture} id={`viz-${project.slug}`} title={`${project.title} architecture`} />
-            </Reveal>
+            <div className="group/tilt">
+              <Tilt max={5}>
+                <ProjectImage image={project.image} href={project.live ?? project.github} priority={false} className="aspect-[4/3] lg:aspect-[1/1]" sizes="(min-width: 1024px) 56vw, 100vw" />
+              </Tilt>
+            </div>
           )}
           <Reveal className="mt-8" amount={0.4}>
             <FactList facts={project.facts} />
