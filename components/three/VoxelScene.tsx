@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, type MutableRefObject } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, Lightformer, Sparkles, Trail } from "@react-three/drei";
+import { Environment, Lightformer, PerformanceMonitor, Sparkles, Trail } from "@react-three/drei";
 import * as THREE from "three";
 import type { HeroState } from "./HeroObject";
 
@@ -62,6 +62,10 @@ function poseGridSpec() {
     return { move: Number(m), inBar: Number(c ?? 2) };
   });
 }
+
+/* Static signals are blind on iOS (hardwareConcurrency is always 4, the renderer is "Apple GPU"),
+   so form factor only picks the opening preset; PerformanceMonitor does the real work. */
+const isHeavyDevice = () => typeof window === "undefined" || window.innerWidth >= 1024;
 
 const dummy = new THREE.Object3D();
 const color = new THREE.Color();
@@ -1031,7 +1035,7 @@ function Dancer({ stateRef, dancerRef, onStomp, frozen }: { stateRef: MutableRef
   return (
     <>
       <group ref={beams}>
-        {BEAMS.map((bm) => (
+        {(isHeavyDevice() ? BEAMS : BEAMS.slice(0, 2)).map((bm) => (
           <mesh key={bm.color + bm.phase} position={bm.pos} geometry={beamGeo}>
             <meshBasicMaterial color={bm.color} transparent opacity={0.04} depthWrite={false} blending={THREE.AdditiveBlending} side={THREE.DoubleSide} />
           </mesh>
@@ -1186,7 +1190,7 @@ function Scene({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
     <>
       <AutoSize />
       <ambientLight intensity={0.25} />
-      <directionalLight position={[6, 10, 4]} intensity={1.6} castShadow shadow-mapSize={[1024, 1024]} />
+      <directionalLight position={[6, 10, 4]} intensity={1.6} castShadow={isHeavyDevice()} shadow-mapSize={[1024, 1024]} />
       <pointLight position={[-4, 4, 4]} intensity={4} color="#e9a23b" distance={20} decay={2} />
       <Environment resolution={128} frames={1}>
         <Lightformer form="rect" intensity={2} color="#ffffff" position={[0, 6, -3]} rotation={[-Math.PI / 2.2, 0, 0]} scale={[10, 4, 1]} />
@@ -1206,12 +1210,14 @@ function Scene({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
 }
 
 export default function VoxelScene({ stateRef, active }: { stateRef: MutableRefObject<HeroState>; active: boolean }) {
+  const heavy = isHeavyDevice();
+  const [dpr, setDpr] = useState(heavy ? 1.5 : 1.25);
   return (
     <Canvas
-      dpr={[1, 1.5]}
-      shadows
+      dpr={dpr}
+      shadows={heavy}
       camera={{ position: [0, 5.5, 12], fov: 30, near: 0.1, far: 80 }}
-      gl={{ antialias: typeof window !== "undefined" && window.devicePixelRatio < 2, alpha: true, powerPreference: "high-performance" }}
+      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       frameloop={active ? "always" : "never"}
       onCreated={({ gl, camera }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1221,6 +1227,13 @@ export default function VoxelScene({ stateRef, active }: { stateRef: MutableRefO
       style={{ position: "absolute", inset: 0 }}
       aria-hidden
     >
+      <PerformanceMonitor
+        bounds={(refresh) => [refresh * 0.55, refresh * 0.9]}
+        flipflops={3}
+        onDecline={() => setDpr((d) => Math.max(0.75, Math.round((d - 0.25) * 100) / 100))}
+        onIncline={() => setDpr((d) => Math.min(heavy ? 1.5 : 1.25, Math.round((d + 0.25) * 100) / 100))}
+        onFallback={() => setDpr(0.75)}
+      />
       <Suspense fallback={null}>
         <Scene stateRef={stateRef} />
       </Suspense>
