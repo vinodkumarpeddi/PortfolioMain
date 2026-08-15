@@ -66,16 +66,35 @@ export function Nav() {
               <span className="h-1.5 w-1.5 rounded-full bg-accent" />
             </span>
             <span className="flex flex-col leading-none">
-              <span className="whitespace-nowrap text-[13px] font-semibold tracking-[-0.01em]">{profile.name}</span>
-              <span className={cn("label mt-1 text-fg-3 transition-opacity", scrolled && "hidden")}>Software Engineer</span>
+              <span className="whitespace-nowrap text-[13px] font-semibold tracking-[-0.01em]">
+                {profile.name}
+              </span>
+              <span
+                className={cn(
+                  "label mt-1 text-fg-3 transition-opacity",
+                  scrolled && "hidden",
+                )}
+              >
+                Software Engineer
+              </span>
             </span>
           </Link>
 
-          <nav className="pointer-events-auto hidden items-center gap-1 lg:flex" aria-label="Primary">
-            <span className="label mr-3 hidden min-w-[9.5rem] text-fg-3 lg:block" aria-hidden>
+          <nav
+            className="pointer-events-auto hidden items-center gap-1 lg:flex"
+            aria-label="Primary"
+          >
+            <span
+              className="label mr-3 hidden min-w-[9.5rem] text-fg-3 lg:block"
+              aria-hidden
+            >
               {scrolled && home && (
-                <span key={current.id} className="inline-block [animation:fade-in_400ms_var(--ease-out-expo)]">
-                  <span className="text-accent">{current.index}</span> / {current.label}
+                <span
+                  key={current.id}
+                  className="inline-block [animation:fade-in_400ms_var(--ease-out-expo)]"
+                >
+                  <span className="text-accent">{current.index}</span> /{" "}
+                  {current.label}
                 </span>
               )}
             </span>
@@ -153,37 +172,77 @@ export function Nav() {
             transition={{ duration: 0.35, ease: ease.standard }}
           >
             <nav aria-label="Mobile" className="flex flex-1 flex-col gap-1">
-              {[{ id: "intro", label: "Intro", index: "01" }, ...navigation].map((item, i) => (
+              {[
+                { id: "intro", label: "Intro", index: "01" },
+                ...navigation,
+              ].map((item, i) => (
                 <motion.a
                   key={item.id}
                   href={hrefFor(item.id)}
                   onClick={() => setOpen(false)}
                   initial={{ opacity: 0, y: 24 }}
-                  animate={{ opacity: 1, y: 0, transition: { delay: 0.06 + i * 0.05, duration: 0.6, ease: ease.outExpo } }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                    transition: {
+                      delay: 0.06 + i * 0.05,
+                      duration: 0.6,
+                      ease: ease.outExpo,
+                    },
+                  }}
                   exit={{ opacity: 0, y: 8, transition: { duration: 0.15 } }}
                   className="flex items-baseline gap-4 border-b border-line-1 py-4"
                 >
                   <span className="label w-6 text-accent">{item.index}</span>
-                  <span className={cn("text-h2", active === item.id ? "text-fg-1" : "text-fg-2")}>{item.label}</span>
+                  <span
+                    className={cn(
+                      "text-h2",
+                      active === item.id ? "text-fg-1" : "text-fg-2",
+                    )}
+                  >
+                    {item.label}
+                  </span>
                 </motion.a>
               ))}
             </nav>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1, transition: { delay: 0.4 } }}
-              className="flex items-center justify-between gap-4"
+              className="flex flex-col gap-5"
             >
-              <a href={`mailto:${profile.email}`} className="text-sm text-fg-2">
-                {profile.email}
-              </a>
-              <a
-                href={profile.resumeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-10 items-center gap-1.5 rounded-full bg-fg-1 px-4 text-sm font-medium text-accent-ink"
+              <ul
+                className="label flex flex-wrap gap-x-5 gap-y-2 text-fg-3"
+                aria-label="Elsewhere"
               >
-                Resume <ArrowUpRight />
-              </a>
+                {profile.socials.map((s) => (
+                  <li key={s.label}>
+                    <a
+                      href={s.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 py-1 transition-colors hover:text-fg-1"
+                    >
+                      {s.label} <ArrowUpRight />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex items-center justify-between gap-4">
+                <a
+                  href={`mailto:${profile.email}`}
+                  className="break-all text-sm text-fg-2"
+                >
+                  {profile.email}
+                </a>
+                <a
+                  href={profile.resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-10 items-center gap-1.5 rounded-full bg-fg-1 px-4 text-sm font-medium text-accent-ink"
+                >
+                  Resume <ArrowUpRight />
+                </a>
+              </div>
             </motion.div>
           </motion.div>
         )}

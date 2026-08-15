@@ -30,7 +30,7 @@ export function SectionNumeral({ children, className, align = "right" }: { child
       className={cn(
         "pointer-events-none absolute top-0 z-0 select-none font-semibold leading-none tracking-[-0.06em] text-transparent [-webkit-text-stroke:1px_rgba(241,239,233,0.09)]",
         "text-[clamp(10rem,26vw,26rem)]",
-        align === "right" ? "right-[-0.05em]" : "left-[-0.05em]",
+        align === "right" ? "right-0 sm:right-[-0.05em]" : "left-0 sm:left-[-0.05em]",
         className,
       )}
     >

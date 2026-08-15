@@ -55,7 +55,7 @@ export function ArchitectureScene({ project }: { project: Project }) {
 
       mm.add(`${MOTION_OK} and ${MOBILE}`, () => {
         gsap.from(q(".scene-visual"), { y: 40, opacity: 0, scale: 0.96, duration: 1, ease: "expo.out", scrollTrigger: { trigger: q(".scene-visual")[0], start: "top 85%", once: true } });
-        gsap.from(q(".stage"), { y: 24, opacity: 0, duration: 0.8, ease: "expo.out", stagger: 0.1, scrollTrigger: { trigger: q(".stage-challenge")[0], start: "top 88%", once: true } });
+        gsap.from(q(".stage-challenge, .stage-solution"), { y: 24, opacity: 0, duration: 0.8, ease: "expo.out", stagger: 0.1, scrollTrigger: { trigger: q(".stage-challenge")[0], start: "top 88%", once: true } });
       });
       return () => mm.revert();
     },

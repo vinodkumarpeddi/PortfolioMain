@@ -62,6 +62,7 @@ export function IntroScene() {
         gsap.set(titleSplit.words, { yPercent: 110 });
         gsap.set(q(".proj-tagline, .proj-links"), { autoAlpha: 0, y: 14 });
         gsap.set(q(".stage-tech"), { autoAlpha: 0, y: 10 });
+        gsap.set(q(".proj-chips-m"), { autoAlpha: 0, y: 10 });
         gsap.set(q(".stage-challenge, .stage-solution"), { autoAlpha: 0, y: 16 });
         gsap.set(chips, { opacity: 0.45 });
 
@@ -88,7 +89,7 @@ export function IntroScene() {
           .to(coreWrap, { y: -80, scale: 1.08, duration: 2.6, ease: "power1.inOut" }, 0.3)
           .to(heroState.current, { opacity: 0, duration: 1.4, ease: "power2.in" }, 1.4)
           .to(coreWrap, { autoAlpha: 0, duration: 1.2, ease: "power2.inOut" }, 1.6)
-          .to(q(".hero-bottom"), { autoAlpha: 0, y: 10, duration: 0.6 }, 0.8)
+          .to(q(".hero-bottom, .hero-scrim"), { autoAlpha: 0, y: 10, duration: 0.6 }, 0.8)
           .to(q(".hero-copy"), { yPercent: -14, scale: 0.92, autoAlpha: 0, transformOrigin: "0% 0%", duration: 1.5, ease: "power2.inOut" }, 1.0)
           .set(q(".proj-layer"), { autoAlpha: 1 }, 1.9)
           .to(q(".proj-visual"), { autoAlpha: 1, y: 0, scale: 1, rotateX: 0, duration: 1.6, ease: "power2.out" }, 2.0)
@@ -105,7 +106,8 @@ export function IntroScene() {
             .to(q(".stage-solution"), { autoAlpha: 1, y: 0, duration: 0.6 }, 8.35)
             .to({}, { duration: 1.2 }, 8.8);
         } else {
-          tl.to(q(".stage-challenge"), { autoAlpha: 1, y: 0, duration: 0.6 }, 5.0)
+          tl.to(q(".proj-chips-m"), { autoAlpha: 1, y: 0, duration: 0.6 }, 4.4)
+            .to(q(".stage-challenge"), { autoAlpha: 1, y: 0, duration: 0.6 }, 5.0)
             .to(q(".stage-challenge"), { autoAlpha: 0, y: -10, duration: 0.4 }, 6.6)
             .to(q(".stage-solution"), { autoAlpha: 1, y: 0, duration: 0.6 }, 7.05)
             .to({}, { duration: 1.5 }, 8.5);
@@ -144,6 +146,7 @@ export function IntroScene() {
 
         {/* HERO LAYER */}
         <div className="hero-layer pointer-events-none absolute inset-0 z-10 flex flex-col motion-reduce:relative motion-reduce:min-h-[100svh]">
+          <div aria-hidden className="hero-scrim pointer-events-none absolute inset-x-0 top-0 h-[64%] bg-gradient-to-b from-bg-0 via-bg-0/80 to-transparent lg:hidden" />
           <div className="gutter mx-auto grid w-full max-w-[100rem] flex-1 grid-cols-12 gap-x-6 pt-24 sm:pt-28 lg:items-center lg:pt-24">
             <div className="hero-copy pointer-events-auto relative z-10 col-span-12 lg:col-span-7">
               <div className="hero-meta label flex flex-wrap items-center gap-x-4 gap-y-2 text-fg-3">
@@ -178,12 +181,12 @@ export function IntroScene() {
                 </span>
               </h1>
 
-              <p className="hero-lead text-lead mt-7 max-w-[46ch] text-balance text-fg-2 lg:mt-9">
+              <p className="hero-lead text-lead mt-6 max-w-[46ch] text-balance text-fg-2 max-sm:text-[16px] max-sm:leading-[1.55] sm:mt-7 lg:mt-9">
                 Software engineer building full-stack products and the backend systems behind them — queues, ledgers,
                 access control — designed to stay correct under load, failure and time.
               </p>
 
-              <div className="hero-cta mt-8 flex flex-wrap items-center gap-3 lg:mt-10">
+              <div className="hero-cta mt-7 flex flex-wrap items-center gap-3 sm:mt-8 lg:mt-10">
                 <Button href="#work" icon={<ArrowDown />} magnetic>
                   Selected work
                 </Button>
@@ -203,7 +206,7 @@ export function IntroScene() {
                 </li>
               ))}
             </ul>
-            <a href="#work" className="label inline-flex items-center gap-2 text-fg-3 transition-colors hover:text-fg-1">
+            <a href="#work" className="label ml-auto inline-flex items-center gap-2 text-fg-3 transition-colors hover:text-fg-1 sm:ml-0">
               Scroll
               <ArrowDown className="animate-[bob_1.6s_ease-in-out_infinite] motion-reduce:animate-none" />
             </a>
@@ -224,6 +227,14 @@ export function IntroScene() {
               <StagePanel className="stage-solution" index="B" label="Solution" title={project.solution!.title} body={project.solution!.body} compact />
             </div>
           </div>
+
+          <ul className="proj-chips-m mt-4 flex flex-wrap gap-2 lg:hidden" aria-label="Technologies">
+            {project.technologies.map((t) => (
+              <li key={t} className="label rounded-full border border-line-2 px-3 py-2 text-[10.5px] text-fg-1">
+                {t}
+              </li>
+            ))}
+          </ul>
 
           <div className="flex-1 lg:hidden" />
 

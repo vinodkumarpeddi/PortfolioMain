@@ -21,7 +21,7 @@ export function ProductVisual({ project, className }: { project: Project; classN
   if (!Screen) return null;
   return (
     <div className={cn("relative", className)}>
-      <div aria-hidden className="pointer-events-none absolute -inset-6 rounded-[32px] bg-accent/[0.07] blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute -inset-3 rounded-[32px] sm:-inset-6 bg-accent/[0.07] blur-3xl" />
       <ScaledFrame className="relative rounded-[22px]" label={`${project.title} — product screen (demo data)`}>
         <Screen />
       </ScaledFrame>
