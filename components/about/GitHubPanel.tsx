@@ -1,6 +1,7 @@
 import { getGitHubSummary } from "@/lib/github";
 import { profile } from "@/data/profile";
 import { ArrowUpRight, GitHub } from "@/components/ui/Icons";
+import { Counter } from "@/components/ui/Counter";
 
 export async function GitHubPanel() {
   const gh = await getGitHubSummary();
@@ -19,11 +20,11 @@ export async function GitHubPanel() {
       <dl className="mt-6 grid grid-cols-3 gap-4">
         <div>
           <dt className="label text-fg-3"><span className="sm:hidden">Repos</span><span className="hidden sm:inline">Public repos</span></dt>
-          <dd className="mt-2 text-h2 tabular-nums text-fg-1">{gh.publicRepos}</dd>
+          <dd className="mt-2 text-h2 tabular-nums text-fg-1"><Counter value={gh.publicRepos} /></dd>
         </div>
         <div>
           <dt className="label text-fg-3">Original</dt>
-          <dd className="mt-2 text-h2 tabular-nums text-fg-1">{gh.ownRepos}</dd>
+          <dd className="mt-2 text-h2 tabular-nums text-fg-1"><Counter value={gh.ownRepos} /></dd>
         </div>
         <div>
           <dt className="label text-fg-3">Since</dt>

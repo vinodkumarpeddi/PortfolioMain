@@ -200,6 +200,21 @@ video {
   background-size: 96px 96px;
 }
 
+@utility deck-focus {
+  scale: calc(0.945 + var(--focus, 1) * 0.055);
+  opacity: calc(0.66 + var(--focus, 1) * 0.34);
+  transition:
+    scale var(--duration-base) var(--ease-standard),
+    opacity var(--duration-base) var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck-focus {
+    scale: 1;
+    opacity: 1;
+  }
+}
+
 @utility no-scrollbar {
   scrollbar-width: none;
   &::-webkit-scrollbar {
@@ -310,7 +325,14 @@ video {
 @keyframes spin-slow {
   to { transform: rotate(360deg); }
 }
-.marquee-track { display: flex; width: max-content; animation: marquee 32s linear infinite; }
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+  animation-duration: calc(32s / var(--marquee-boost, 1));
+  transform: skewX(var(--marquee-skew, 0deg));
+  transition: transform 400ms var(--ease-standard);
+}
 .marquee:hover .marquee-track { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
   .marquee-track { animation: none; }

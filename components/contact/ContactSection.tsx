@@ -2,6 +2,8 @@
 
 import { useRef, useState } from "react";
 import { gsap, useGSAP, MOTION_OK } from "@/lib/gsap";
+import { AnimatePresence, motion } from "motion/react";
+import { ease } from "@/lib/motion";
 import { profile } from "@/data/profile";
 import { SectionLabel } from "@/components/ui/Section";
 import { ArrowUpRight, GitHub, LinkedIn, XLogo, Mail } from "@/components/ui/Icons";
@@ -116,7 +118,22 @@ export function ContactSection() {
                   {profile.email}
                   <span aria-hidden className="absolute bottom-0 left-0 h-[2px] w-full origin-left scale-x-0 bg-accent transition-transform duration-[var(--duration-slow)] ease-[var(--ease-in-out)] group-hover:scale-x-100" />
                 </span>
-                <span className={cn("label mt-3 inline-flex h-11 items-center gap-2 rounded-full border px-4 transition-colors", copied ? "border-success/50 bg-success/10 text-success" : "border-line-2 text-fg-3 group-hover:text-fg-1")}>
+                <span className={cn("label relative mt-3 inline-flex h-11 items-center gap-2 rounded-full border px-4 transition-colors", copied ? "border-success/50 bg-success/10 text-success" : "border-line-2 text-fg-3 group-hover:text-fg-1")}>
+                  <AnimatePresence>
+                    {copied && (
+                      <motion.span aria-hidden className="pointer-events-none absolute inset-0" initial={false}>
+                        {[0, 1, 2, 3, 4, 5].map((i) => (
+                          <motion.span
+                            key={i}
+                            className="absolute left-1/2 top-1/2 h-1 w-1 rounded-full bg-success"
+                            initial={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+                            animate={{ opacity: 0, x: Math.cos((i / 6) * Math.PI * 2) * 44, y: Math.sin((i / 6) * Math.PI * 2) * 26, scale: 0.4 }}
+                            transition={{ duration: 0.7, ease: ease.outExpo }}
+                          />
+                        ))}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                   {copied ? "Copied to clipboard" : "Click to copy"}
                 </span>
               </button>

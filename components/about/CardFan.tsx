@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type ReactNode } from "react";
+import { useDeckFocus } from "@/lib/hooks/use-deck-focus";
 import { motion } from "motion/react";
 import { useIsFinePointer } from "@/lib/hooks/use-media-query";
 import { ease } from "@/lib/motion";
@@ -20,6 +21,7 @@ export function CardFan({ cards }: { cards: FanCard[] }) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const row = useRef<HTMLDivElement>(null);
   const fine = useIsFinePointer();
+  useDeckFocus(row);
   const n = cards.length;
 
   const onRowScroll = () => {
@@ -102,7 +104,7 @@ export function CardFan({ cards }: { cards: FanCard[] }) {
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.6, ease: ease.outExpo, delay: i * 0.05 }}
               className={cn(
-                "relative flex w-[80vw] max-w-[22rem] shrink-0 snap-center flex-col overflow-hidden rounded-[26px] border bg-[#101013]/95 p-6 text-left transition-[border-color,transform] active:scale-[0.99]",
+                "deck-focus relative flex w-[80vw] max-w-[22rem] shrink-0 snap-center flex-col overflow-hidden rounded-[26px] border bg-[#101013]/95 p-6 text-left transition-[border-color] active:opacity-80",
                 current === i ? "border-accent/35" : "border-line-1",
               )}
             >
