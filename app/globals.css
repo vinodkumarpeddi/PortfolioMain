@@ -126,10 +126,23 @@ video {
 }
 
 @utility text-display {
-  font-size: clamp(3.25rem, 11.5vw, 12rem);
+  font-size: clamp(4rem, 17.5vw, 12rem);
   line-height: 0.88;
   letter-spacing: -0.045em;
   font-weight: 600;
+  @media (min-width: 40rem) {
+    font-size: clamp(3.25rem, 11.5vw, 12rem);
+  }
+}
+
+@utility text-display-safe {
+  font-size: clamp(2.75rem, 14.5vw, 12rem);
+  line-height: 0.9;
+  letter-spacing: -0.045em;
+  font-weight: 600;
+  @media (min-width: 40rem) {
+    font-size: clamp(3.25rem, 11vw, 12rem);
+  }
 }
 
 @utility text-h1 {

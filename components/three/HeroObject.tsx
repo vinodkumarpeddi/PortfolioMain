@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useRef, type MutableRefObject } from "react";
+import { Suspense, useEffect, useMemo, useRef, type MutableRefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -100,6 +100,35 @@ function ParticleSculpture({ stateRef, ambient, geometry, halo }: { stateRef: Mu
   );
 }
 
+/** R3F's own measurement can miss the first layout (e.g. inside iframes); keep the drawing buffer in sync with the container. */
+function AutoSize() {
+  const gl = useThree((st) => st.gl);
+  const setSize = useThree((st) => st.setSize);
+  useEffect(() => {
+    const el = gl.domElement.parentElement;
+    if (!el) return;
+    let w = 0;
+    let h = 0;
+    const apply = () => {
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0 && (Math.round(r.width) !== w || Math.round(r.height) !== h)) {
+        w = Math.round(r.width);
+        h = Math.round(r.height);
+        setSize(r.width, r.height);
+      }
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    const t = window.setTimeout(apply, 400);
+    return () => {
+      ro.disconnect();
+      window.clearTimeout(t);
+    };
+  }, [gl, setSize]);
+  return null;
+}
+
 function Rig({ children, ambient }: { children: React.ReactNode; ambient: boolean }) {
   const group = useRef<THREE.Group>(null);
   const { pointer, viewport, size } = useThree();
@@ -108,10 +137,10 @@ function Rig({ children, ambient }: { children: React.ReactNode; ambient: boolea
     const desktop = size.width >= 900;
     group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, pointer.x * 0.25, 4, dt);
     group.current.rotation.x = THREE.MathUtils.damp(group.current.rotation.x, -pointer.y * 0.18, 4, dt);
-    const s = ambient ? Math.min(1.1, viewport.width / 7) : desktop ? Math.min(1.35, viewport.width / 6) : Math.min(0.95, viewport.width / 5.2);
+    const s = ambient ? Math.min(1.1, viewport.width / 7) : desktop ? Math.min(1.35, viewport.width / 6) : Math.min(0.9, viewport.width / 3.1);
     group.current.scale.setScalar(THREE.MathUtils.damp(group.current.scale.x, s, 4, dt));
-    group.current.position.x = ambient ? 0.2 : desktop ? 0.2 : 0.8;
-    group.current.position.y = ambient ? 0 : desktop ? -0.1 : 1.5;
+    group.current.position.x = ambient ? 0.2 : desktop ? 0.2 : 0.15;
+    group.current.position.y = ambient ? 0 : desktop ? -0.1 : -viewport.height * 0.22;
   });
   return <group ref={group}>{children}</group>;
 }
@@ -155,17 +184,20 @@ function Scene({ stateRef, ambient }: { stateRef: MutableRefObject<HeroState>; a
   const { size } = useThree();
   const geometry = useSculptureGeometry(size.width >= 900 ? COUNT_DESKTOP : COUNT_MOBILE);
   return (
-    <Rig ambient={ambient}>
-      <ParticleSculpture stateRef={stateRef} ambient={ambient} geometry={geometry} halo />
-      <ParticleSculpture stateRef={stateRef} ambient={ambient} geometry={geometry} />
-    </Rig>
+    <>
+      <AutoSize />
+      <Rig ambient={ambient}>
+        <ParticleSculpture stateRef={stateRef} ambient={ambient} geometry={geometry} halo />
+        <ParticleSculpture stateRef={stateRef} ambient={ambient} geometry={geometry} />
+      </Rig>
+    </>
   );
 }
 
 export default function HeroObject({ stateRef, active, ambient = false }: { stateRef: MutableRefObject<HeroState>; active: boolean; ambient?: boolean }) {
   return (
     <Canvas
-      dpr={[1, 1.75]}
+      dpr={[1, 1.5]}
       camera={{ position: [0, 0, 8.5], fov: 34, near: 0.1, far: 60 }}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       frameloop={active ? "always" : "never"}

@@ -143,7 +143,7 @@ export function IntroScene() {
 
         {/* HERO LAYER */}
         <div className="hero-layer pointer-events-none absolute inset-0 z-10 flex flex-col motion-reduce:relative motion-reduce:min-h-[100svh]">
-          <div className="gutter mx-auto grid w-full max-w-[100rem] flex-1 grid-cols-12 gap-x-6 pt-28 lg:items-center lg:pt-24">
+          <div className="gutter mx-auto grid w-full max-w-[100rem] flex-1 grid-cols-12 gap-x-6 pt-24 sm:pt-28 lg:items-center lg:pt-24">
             <div className="hero-copy pointer-events-auto relative z-10 col-span-12 lg:col-span-7">
               <div className="hero-meta label flex flex-wrap items-center gap-x-4 gap-y-2 text-fg-3">
                 <span className="inline-flex items-center gap-2 text-fg-2">
@@ -194,7 +194,7 @@ export function IntroScene() {
           </div>
 
           <div className="hero-bottom gutter pointer-events-auto mx-auto flex w-full max-w-[100rem] flex-wrap items-end justify-between gap-4 pb-7 lg:pb-9">
-            <ul className="label flex flex-wrap items-center gap-x-3 gap-y-1 text-fg-3" aria-label="Core stack">
+            <ul className="label hidden flex-wrap items-center gap-x-3 gap-y-1 text-fg-3 sm:flex" aria-label="Core stack">
               {heroStack.map((s, i) => (
                 <li key={s} className="flex items-center gap-3">
                   <span>{s}</span>
@@ -202,7 +202,7 @@ export function IntroScene() {
                 </li>
               ))}
             </ul>
-            <a href="#work" className="label hidden items-center gap-2 text-fg-3 transition-colors hover:text-fg-1 sm:inline-flex">
+            <a href="#work" className="label inline-flex items-center gap-2 text-fg-3 transition-colors hover:text-fg-1">
               Scroll
               <ArrowDown className="animate-[bob_1.6s_ease-in-out_infinite] motion-reduce:animate-none" />
             </a>
@@ -210,21 +210,27 @@ export function IntroScene() {
         </div>
 
         {/* PROJECT 01 LAYER */}
-        <div className="proj-layer gutter absolute inset-0 z-20 mx-auto flex max-w-[100rem] flex-col justify-between pb-7 pt-24 motion-safe:invisible motion-safe:opacity-0 motion-reduce:relative motion-reduce:pt-0 lg:pb-9">
+        <div className="proj-layer gutter absolute inset-0 z-20 mx-auto flex max-w-[100rem] flex-col pb-6 pt-24 motion-safe:invisible motion-safe:opacity-0 motion-reduce:relative motion-reduce:pt-0 lg:justify-between lg:pb-9">
           <div className="proj-head flex items-center justify-between gap-4">
             <SectionLabel index={project.number}>Selected work</SectionLabel>
             <span className="label hidden text-fg-3 sm:block">{project.category}</span>
           </div>
 
-          <div className="proj-visual pointer-events-auto absolute right-[var(--spacing-gutter)] top-[6.5rem] hidden w-[min(46vw,40rem)] sm:block lg:top-[6.5rem] motion-reduce:relative motion-reduce:right-auto motion-reduce:top-auto motion-reduce:my-10 motion-reduce:w-full">
+          <div className="proj-visual pointer-events-auto relative mt-5 w-full lg:absolute lg:right-[var(--spacing-gutter)] lg:top-[6.5rem] lg:mt-0 lg:w-[min(46vw,40rem)] motion-reduce:relative motion-reduce:right-auto motion-reduce:top-auto motion-reduce:my-10 motion-reduce:w-full">
             <ProductVisual project={project} priority />
+            <div className="pointer-events-none absolute inset-x-2 bottom-2 lg:hidden">
+              <StagePanel className="stage-challenge" index="A" label="Challenge" title={project.challenge!.title} body={project.challenge!.body} compact />
+              <StagePanel className="stage-solution" index="B" label="Solution" title={project.solution!.title} body={project.solution!.body} compact />
+            </div>
           </div>
+
+          <div className="flex-1 lg:hidden" />
 
           <div className="pointer-events-auto grid grid-cols-12 items-end gap-x-6 gap-y-6">
             <div className="col-span-12 lg:col-span-6">
               <h2 className="proj-title text-h1 text-fg-1">{project.title}</h2>
-              <p className="proj-tagline text-lead mt-4 max-w-[50ch] text-balance text-fg-2">{project.tagline}</p>
-              <div className="proj-links mt-6 flex flex-wrap items-center gap-3">
+              <p className="proj-tagline text-lead mt-3 max-w-[50ch] text-balance text-fg-2 lg:mt-4">{project.tagline}</p>
+              <div className="proj-links mt-5 flex flex-wrap items-center gap-3 lg:mt-6">
                 <Button href={`/work/${project.slug}`} icon={<ArrowRight />} cursor="Case study">
                   Read the case study
                 </Button>
@@ -236,9 +242,9 @@ export function IntroScene() {
               </div>
             </div>
 
-            <div className="col-span-12 lg:col-span-6">
-              <div className="relative min-h-[8.5rem] lg:min-h-[9.5rem]">
-                <ul className="stage-tech absolute inset-x-0 bottom-0 hidden flex-wrap justify-end gap-2 lg:flex" aria-label="Technologies">
+            <div className="hidden lg:col-span-6 lg:block">
+              <div className="relative min-h-[9.5rem]">
+                <ul className="stage-tech absolute inset-x-0 bottom-0 flex flex-wrap justify-end gap-2" aria-label="Technologies">
                   {project.technologies.map((t) => (
                     <li key={t} className="proj-chip label rounded-full border border-line-2 px-3 py-2 text-fg-1 transition-colors">
                       {t}
@@ -259,15 +265,15 @@ export function IntroScene() {
   );
 }
 
-function StagePanel({ className, index, label, title, body }: { className: string; index: string; label: string; title: string; body: string }) {
+function StagePanel({ className, index, label, title, body, compact }: { className: string; index: string; label: string; title: string; body: string; compact?: boolean }) {
   return (
-    <div className={cn("absolute inset-x-0 bottom-0 rounded-2xl border border-line-1 bg-bg-2/70 p-5 backdrop-blur-md lg:ml-auto lg:max-w-[26rem]", className)}>
+    <div className={cn("absolute inset-x-0 bottom-0 rounded-2xl border border-line-1 bg-bg-1/85 backdrop-blur-md lg:ml-auto lg:max-w-[26rem]", compact ? "p-3.5" : "p-5", className)}>
       <div className="label flex items-center gap-3 text-fg-3">
         <span className="text-accent">{index}</span>
         <span>{label}</span>
       </div>
-      <p className="mt-3 text-[15px] font-medium text-fg-1">{title}</p>
-      <p className="mt-1.5 text-sm leading-relaxed text-fg-2">{body}</p>
+      <p className={cn("mt-2 font-medium text-fg-1", compact ? "text-[13.5px]" : "mt-3 text-[15px]")}>{title}</p>
+      <p className={cn("mt-1 leading-relaxed text-fg-2", compact ? "line-clamp-3 text-[12px]" : "mt-1.5 text-sm")}>{body}</p>
     </div>
   );
 }

@@ -85,7 +85,7 @@ export function ContactSection() {
       <div className="gutter relative mx-auto max-w-[100rem] pb-24 pt-[var(--spacing-section)]">
         <SectionLabel index="07">Connect</SectionLabel>
 
-        <h2 id="contact-title" className="ct-head text-display mt-10 uppercase text-fg-1">
+        <h2 id="contact-title" className="ct-head text-display-safe mt-10 uppercase text-fg-1">
           <span className="ct-line block">Let&apos;s build</span>
           <span className="ct-line block text-fg-2">something</span>
           <span className="ct-line block">
