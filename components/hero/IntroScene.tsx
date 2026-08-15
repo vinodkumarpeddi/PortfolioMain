@@ -6,6 +6,7 @@ import { gsap, ScrollTrigger, SplitText, useGSAP, MOTION_OK, DESKTOP, MOBILE } f
 import { projects } from "@/data/projects";
 import { profile } from "@/data/profile";
 import { SplitText as SplitReveal } from "@/components/ui/SplitText";
+import { KineticText } from "@/components/ui/KineticText";
 import { Button } from "@/components/ui/Button";
 import { SectionLabel } from "@/components/ui/Section";
 import { ArrowDown, ArrowRight, ArrowUpRight, GitHub } from "@/components/ui/Icons";
@@ -161,18 +162,18 @@ export function IntroScene() {
 
               <h1 id="hero-title" className="text-display mt-7 uppercase text-fg-1 lg:mt-9">
                 <span className="block">
-                  <SplitReveal immediate by="chars" delay={0.1} stagger={0.028}>
-                    Systems
+                  <SplitReveal immediate by="lines" delay={0.1}>
+                    <KineticText text="Systems" />
                   </SplitReveal>
                 </span>
                 <span className="block text-fg-2">
-                  <SplitReveal immediate by="chars" delay={0.24} stagger={0.028}>
-                    that
+                  <SplitReveal immediate by="lines" delay={0.22}>
+                    <KineticText text="that" />
                   </SplitReveal>
                 </span>
                 <span className="block">
-                  <SplitReveal immediate by="chars" delay={0.36} stagger={0.028}>
-                    hold<span className="text-accent">.</span>
+                  <SplitReveal immediate by="lines" delay={0.34}>
+                    <KineticText text="hold." accentLast />
                   </SplitReveal>
                 </span>
               </h1>

@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import { SectionLabel } from "@/components/ui/Section";
 import { SplitText } from "@/components/ui/SplitText";
-import { Reveal, RevealGroup, RevealItem } from "@/components/ui/Reveal";
+import { Reveal, RevealGroup } from "@/components/ui/Reveal";
+import { BentoTile as Tile } from "./BentoTile";
 import { Manifest } from "./Manifest";
 import { GitHubPanel } from "./GitHubPanel";
 import { Notes } from "./Notes";
@@ -12,7 +13,6 @@ import { ArrowUpRight } from "@/components/ui/Icons";
 import { SectionNumeral } from "@/components/ui/SectionNumeral";
 import { LocalTime } from "@/components/ui/LocalTime";
 import { Marquee } from "@/components/ui/Marquee";
-import { cn } from "@/lib/utils";
 
 const services = [
   { title: "Backend systems", body: "APIs, queues, workers and data models built to stay correct under retries, failures and load — payments, event pipelines, tenant-scoped platforms." },
@@ -22,22 +22,6 @@ const services = [
 
 const stackA = technologies.filter((t) => ["frontend", "backend"].includes(t.branch)).map((t) => t.name);
 const stackB = technologies.filter((t) => ["data", "infrastructure", "systems"].includes(t.branch)).map((t) => t.name);
-
-function Tile({ children, className, label, span }: { children: React.ReactNode; className?: string; label?: string; span?: string }) {
-  return (
-    <RevealItem
-      className={cn(
-        "group relative overflow-hidden rounded-3xl border border-line-1 bg-bg-2/50 p-6 backdrop-blur-md transition-[border-color,transform] duration-[var(--duration-slow)] ease-[var(--ease-out-expo)] hover:-translate-y-0.5 hover:border-line-2 [box-shadow:var(--shadow-soft)]",
-        span,
-        className,
-      )}
-    >
-      <span aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-accent/[0.07] blur-3xl transition-opacity duration-[var(--duration-slow)] group-hover:opacity-100" />
-      {label && <p className="label relative text-fg-3">{label}</p>}
-      <div className="relative">{children}</div>
-    </RevealItem>
-  );
-}
 
 export function AboutSection() {
   return (

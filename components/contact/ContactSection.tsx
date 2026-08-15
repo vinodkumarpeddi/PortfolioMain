@@ -9,6 +9,8 @@ import { Magnetic } from "@/components/ui/Magnetic";
 import { RotatingCta } from "@/components/ui/RotatingCta";
 import { Marquee } from "@/components/ui/Marquee";
 import { LocalTime } from "@/components/ui/LocalTime";
+import { KineticText } from "@/components/ui/KineticText";
+import { CurvedDivider } from "@/components/ui/CurvedDivider";
 import { HeroCanvas } from "@/components/three/HeroCanvas";
 import type { HeroState } from "@/components/three/HeroObject";
 import { cn } from "@/lib/utils";
@@ -67,16 +69,15 @@ export function ContactSection() {
         <HeroCanvas stateRef={coreState} ambient className="absolute inset-0" />
       </div>
 
-      <div className="gutter relative mx-auto max-w-[100rem] pt-[var(--spacing-section)]">
+      <CurvedDivider className="relative h-24 w-full" />
+      <div className="gutter relative mx-auto max-w-[100rem] pt-[calc(var(--spacing-section)*0.6)]">
         <SectionLabel index="07">Connect</SectionLabel>
 
         <div className="mt-10 grid grid-cols-12 items-end gap-x-6 gap-y-10">
           <h2 id="contact-title" className="ct-head text-display-safe col-span-12 uppercase text-fg-1 lg:col-span-9">
-            <span className="ct-line block">Let&apos;s build</span>
-            <span className="ct-line block text-fg-2">something</span>
-            <span className="ct-line block">
-              that lasts<span className="text-accent">.</span>
-            </span>
+            <span className="ct-line block"><KineticText text="Let's build" /></span>
+            <span className="ct-line block text-fg-2"><KineticText text="something" /></span>
+            <span className="ct-line block"><KineticText text="that lasts." accentLast /></span>
           </h2>
           <div className="ct-cta col-span-12 flex lg:col-span-3 lg:justify-end">
             <RotatingCta href={`mailto:${profile.email}`} label="Email Vinod" ring="Email me — Let's talk" cursor="Contact" />

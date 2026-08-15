@@ -42,8 +42,8 @@ const vertexShader = /* glsl */ `
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     vec2 d = mv.xy - uMouse;
     float dist = length(d);
-    float force = smoothstep(1.6, 0.0, dist) * uMouseForce;
-    mv.xy += normalize(d + 0.0001) * force;
+    float force = smoothstep(1.4, 0.0, dist) * uMouseForce;
+    mv.xy -= normalize(d + 0.0001) * force * 0.35 * aRand;
     gl_Position = projectionMatrix * mv;
     gl_PointSize = uSize * uPixelRatio * (0.55 + aRand * 0.9) * (7.0 / -mv.z);
     vAlpha = (0.2 + 0.8 * aRand * aRand) * vLit;
@@ -98,7 +98,7 @@ function ParticleSculpture({ stateRef, ambient, geometry, halo }: { stateRef: Mu
     // pointer in view space (approximation at the sculpture's depth)
     const target = new THREE.Vector2((pointer.x * viewport.width) / 2, (pointer.y * viewport.height) / 2);
     u.uMouse.value.lerp(target, 1 - Math.exp(-6 * dt));
-    u.uMouseForce.value = THREE.MathUtils.damp(u.uMouseForce.value, ambient ? 0.25 : 0.55, 3, dt);
+    u.uMouseForce.value = THREE.MathUtils.damp(u.uMouseForce.value, ambient ? 0.15 : 0.35, 3, dt);
 
   });
 
@@ -205,11 +205,15 @@ function useSculptureGeometry(count: number) {
       const keep = isLand ? true : rnd() < 0.18;
       if (!keep) continue;
       const R = 1.7 + (rnd() - 0.5) * (isLand ? 0.04 : 0.02);
-      knot.push(nx * R, ny * R, nz * R);
+      const j = isLand ? 0.035 : 0.01;
+      const jx = nx + (rnd() - 0.5) * j, jy = ny + (rnd() - 0.5) * j, jz = nz + (rnd() - 0.5) * j;
+      const jl = Math.hypot(jx, jy, jz) || 1;
+      knot.push((jx / jl) * R, (jy / jl) * R, (jz / jl) * R);
       const R2 = R * (1.35 + rnd() * 0.9);
       sphere.push(nx * R2, ny * R2, nz * R2);
       // land is brighter (rand drives brightness/size in the shader)
-      rand.push(isLand ? 0.45 + rnd() * 0.55 : rnd() * 0.35);
+      const city = isLand && rnd() < 0.06;
+      rand.push(city ? 0.9 + rnd() * 0.1 : isLand ? 0.4 + rnd() * 0.45 : rnd() * 0.3);
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute("position", new THREE.Float32BufferAttribute(knot, 3));
