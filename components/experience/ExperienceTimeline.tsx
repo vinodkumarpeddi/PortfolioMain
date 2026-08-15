@@ -62,6 +62,7 @@ export function ExperienceTimeline() {
         };
 
         const state = { angle: 0 };
+        gsap.set(ring, { z: -radius(), rotateY: 0 });
         update(0);
         gsap.timeline({
           scrollTrigger: {
@@ -75,7 +76,7 @@ export function ExperienceTimeline() {
             snap: { snapTo: 1 / (n - 1), duration: { min: 0.2, max: 0.6 }, ease: "power2.inOut", delay: 0.05 },
             onRefresh: () => {
               cards.forEach((c, i) => gsap.set(c, { transform: `translate(-50%, -50%) rotateY(${-i * STEP}deg) translateZ(${radius()}px)` }));
-              gsap.set(ring, { rotateY: -state.angle });
+              gsap.set(ring, { z: -radius(), rotateY: state.angle });
             },
           },
         })
@@ -83,7 +84,7 @@ export function ExperienceTimeline() {
             angle: (n - 1) * STEP,
             ease: "none",
             onUpdate: () => {
-              gsap.set(ring, { rotateY: state.angle });
+              gsap.set(ring, { z: -radius(), rotateY: state.angle });
               update(state.angle);
             },
           }, 0)
