@@ -159,12 +159,12 @@ function MilestoneCard({ m, index }: { m: Milestone; index: number }) {
     <article
       data-year={m.start.slice(0, 4)}
       className={cn(
-        "xp-card group relative w-full lg:absolute lg:left-0 lg:top-0 lg:w-[min(38vw,36rem)] lg:[backface-visibility:hidden]",
+        "xp-card group relative w-full lg:absolute lg:left-0 lg:top-0 lg:w-[min(40vw,36rem)] lg:[backface-visibility:hidden]",
       )}
     >
       <div
         className={cn(
-          "relative overflow-hidden rounded-[28px] border border-line-1 bg-bg-2/70 p-7 backdrop-blur-2xl transition-[border-color,box-shadow] duration-[var(--duration-cinematic)] sm:p-8",
+          "relative overflow-hidden rounded-[28px] border border-line-1 bg-bg-2/70 p-6 backdrop-blur-2xl transition-[border-color,box-shadow] duration-[var(--duration-cinematic)] sm:p-7",
           "[box-shadow:var(--shadow-soft)] group-[.is-front]:border-accent/30 group-[.is-front]:[box-shadow:0_1px_0_rgba(255,255,255,0.07)_inset,0_40px_100px_-30px_rgba(233,162,59,0.28),0_30px_80px_-30px_rgba(0,0,0,0.8)]",
         )}
       >
@@ -192,15 +192,15 @@ function MilestoneCard({ m, index }: { m: Milestone; index: number }) {
               )}
             </div>
           </div>
-          <h3 className="text-h2 mt-6 text-fg-1">{m.org}</h3>
+          <h3 className="text-h2 mt-5 text-fg-1">{m.org}</h3>
           <p className="mt-2 text-[15px] text-fg-2">
             {m.role}
             {m.location && <span className="text-fg-3"> · {m.location}</span>}
           </p>
-          <p className="mt-5 max-w-[52ch] text-[15px] leading-relaxed text-fg-2">{m.summary}</p>
+          <p className="mt-4 max-w-[52ch] text-[14.5px] leading-relaxed text-fg-2">{m.summary}</p>
           {m.points.length > 0 && (
-            <ul className="mt-5 space-y-2 border-t border-line-1 pt-5 text-sm text-fg-2">
-              {m.points.slice(0, 4).map((p) => (
+            <ul className="mt-4 space-y-1.5 border-t border-line-1 pt-4 text-[13.5px] text-fg-2">
+              {m.points.slice(0, 3).map((p) => (
                 <li key={p} className="flex gap-3">
                   <span className="mt-[9px] h-px w-3 shrink-0 bg-accent/70" aria-hidden />
                   <span>{p}</span>
