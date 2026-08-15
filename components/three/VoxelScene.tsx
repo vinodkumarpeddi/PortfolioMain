@@ -564,6 +564,31 @@ function mindBlock(b: number): Pose {
     lLeg: [0, 0, 0.1 + Math.max(0, sB) * 0.4], rLeg: [0, 0, -0.1 - Math.max(0, -sB) * 0.4], lShin: Math.max(0, sB) * 0.4, rShin: Math.max(0, -sB) * 0.4,
   };
 }
+function aryaFloor(_b: number, inBar: number): Pose {
+  // "My Love Is Gone" floor transition: arms cross overhead, a hard drop to a squat with palms on the floor,
+  // one leg slides out along the ground, then a snap back up into a chest pop — twice, mirrored, the second one faster
+  const phase = inBar < 4 ? inBar / 4 : (inBar - 4) / 3.2;
+  const left = inBar < 4;
+  const p = THREE.MathUtils.clamp(phase, 0, 1);
+  const cross = Math.sin(THREE.MathUtils.clamp(p / 0.25, 0, 1) * Math.PI);
+  const drop = sm((p - 0.2) / 0.12) * (1 - sm((p - 0.72) / 0.1));
+  const slide = sm((p - 0.36) / 0.14) * (1 - sm((p - 0.66) / 0.1));
+  const rise = sm((p - 0.72) / 0.1);
+  const pop = Math.sin(THREE.MathUtils.clamp((p - 0.8) / 0.2, 0, 1) * Math.PI);
+  const sw = left ? 1 : -1;
+  const outLeg: V3 = [-0.25 * (1 - slide), 0, sw * (0.15 + slide * 1.25)];
+  const outShin = 1.4 * (1 - slide) + 0.05;
+  const inLeg: V3 = [-1.15 * drop, 0, -sw * 0.15];
+  const inShin = 2.0 * drop;
+  return {
+    ...REST, hipsY: 0.9 - drop * 0.55 + rise * 0.02, hips: [drop * 0.35, sw * slide * 0.3, 0], torso: [drop * 0.55 - pop * 0.25, sw * slide * 0.2, -sw * slide * 0.15],
+    head: [cross * 0.2 - drop * 0.3 - pop * 0.2, sw * slide * 0.3, 0],
+    lArm: [-cross * 2.4 - drop * 1.3, 0, -0.2 - cross * 0.6 - pop * 1.5 + slide * 0.5 * (sw > 0 ? 1 : 0)],
+    rArm: [-cross * 2.4 - drop * 1.3, 0, 0.2 + cross * 0.6 + pop * 1.5 - slide * 0.5 * (sw < 0 ? 1 : 0)],
+    lFore: [-cross * 0.6 - drop * 0.4, 0, cross * 1.4], rFore: [-cross * 0.6 - drop * 0.4, 0, -cross * 1.4],
+    lLeg: left ? outLeg : inLeg, rLeg: left ? inLeg : outLeg, lShin: left ? outShin : inShin, rShin: left ? inShin : outShin,
+  };
+}
 function hipRoll(b: number): Pose {
   const a = b * Math.PI;
   return {
@@ -574,7 +599,8 @@ function hipRoll(b: number): Pose {
 }
 type Move = { pose: (b: number, inBar: number) => Pose; from: number; to: number; stepped?: boolean; sparks?: boolean; side?: [number, number]; hat?: boolean; snap?: boolean };
 const MOVES: Move[] = [
-  // the show opens with the Naatu Naatu hook step
+  // the show opens with the Arya 2 floor transition, then the Naatu Naatu hook step
+  { pose: (b, i) => aryaFloor(b, i), from: -1.6, to: -1.6, sparks: true },
   { pose: (b) => naatu(b), from: -1.6, to: 0.4 },
   { pose: (b) => naatu(b), from: 0.4, to: -1.6 },
   { pose: (b) => srivalli(b), from: -1.6, to: 0.6 },
@@ -759,7 +785,8 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
     const g = root.current;
     if (!g) return;
     const bpm = 62;
-    const b = t * (bpm / 60);
+    // the routine starts once he has appeared, so the opener isn't missed
+    const b = Math.max(0, age - 2.4) * (bpm / 60);
     const bar = Math.floor(b / 8);
     const inBar = b - bar * 8;
     const cur = movePose(bar, b, inBar);
