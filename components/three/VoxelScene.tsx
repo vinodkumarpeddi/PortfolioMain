@@ -215,21 +215,127 @@ function City({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
 }
 
 
-/* A voxel figure dancing on the city. Slow groove, spins and jumps every few bars; each landing rolls a wave through the streets. */
-const BODY = "#f3b453";
-function Limb({ len, w, children }: { len: number; w: number; children?: React.ReactNode }) {
+/* A voxel dancer on the city, in the spirit of the King of Pop: fedora, one white glove, black suit, white socks.
+   Five moves cycle bar by bar (Billie Jean side-steps, moonwalk, the lean, spin into toe-stand, Thriller arms),
+   blended at bar boundaries; stomps and bar changes roll waves through the streets. */
+const SUIT = "#111116";
+const SKIN = "#f1d9b8";
+const WHITE = "#fbf7ef";
+const GLOW = "#f3b453";
+type V3 = [number, number, number];
+type Pose = {
+  hipsY: number; lean: number; spin: number; rise: number;
+  hips: V3; torso: V3; head: V3; lArm: V3; rArm: V3; lFore: V3; rFore: V3; lLeg: V3; rLeg: V3; lShin: number; rShin: number;
+};
+const l3 = (a: V3, b: V3, m: number): V3 => [a[0] + (b[0] - a[0]) * m, a[1] + (b[1] - a[1]) * m, a[2] + (b[2] - a[2]) * m];
+const l1 = (a: number, b: number, m: number) => a + (b - a) * m;
+function mixPose(a: Pose, b: Pose, m: number): Pose {
+  return {
+    hipsY: l1(a.hipsY, b.hipsY, m), lean: l1(a.lean, b.lean, m), spin: l1(a.spin, b.spin, m), rise: l1(a.rise, b.rise, m),
+    hips: l3(a.hips, b.hips, m), torso: l3(a.torso, b.torso, m), head: l3(a.head, b.head, m),
+    lArm: l3(a.lArm, b.lArm, m), rArm: l3(a.rArm, b.rArm, m), lFore: l3(a.lFore, b.lFore, m), rFore: l3(a.rFore, b.rFore, m),
+    lLeg: l3(a.lLeg, b.lLeg, m), rLeg: l3(a.rLeg, b.rLeg, m), lShin: l1(a.lShin, b.lShin, m), rShin: l1(a.rShin, b.rShin, m),
+  };
+}
+const REST: Pose = { hipsY: 0.9, lean: 0, spin: 0, rise: 0, hips: [0, 0, 0], torso: [0, 0, 0], head: [0, 0, 0], lArm: [0, 0, -0.12], rArm: [0, 0, 0.12], lFore: [0, 0, 0], rFore: [0, 0, 0], lLeg: [0, 0, 0.04], rLeg: [0, 0, -0.04], lShin: 0, rShin: 0 };
+const sm = (x: number) => THREE.MathUtils.smoothstep(x, 0, 1);
+// b: beats elapsed · inBar: 0..8 within the current bar
+function billieJean(b: number, inBar: number): Pose {
+  const sB = Math.sin(b * Math.PI), half = Math.sin(b * Math.PI * 0.5), bounce = Math.abs(sB);
+  const hat = inBar < 4 ? 1 : 0;
+  return {
+    ...REST, hipsY: 0.88 + bounce * 0.1, hips: [0, half * 0.3, sB * 0.16], torso: [-0.06, -half * 0.25, -sB * 0.14],
+    head: [sB * 0.1, half * 0.45, sB * 0.1],
+    lArm: [half * 0.5, 0, -0.35 - Math.max(0, sB) * 0.5], lFore: [-0.5 - Math.max(0, sB) * 0.6, 0, -0.2],
+    rArm: hat ? [-1.3, 0, 0.9] : [-half * 0.5, 0, 0.35 + Math.max(0, -sB) * 0.5],
+    rFore: hat ? [-1.7, 0, 0.9] : [-0.5 - Math.max(0, -sB) * 0.6, 0, 0.2],
+    lLeg: [0, 0, 0.12 + Math.max(0, sB) * 0.4], rLeg: [0, 0, -0.12 - Math.max(0, -sB) * 0.4],
+    lShin: Math.max(0, sB) * 0.5, rShin: Math.max(0, -sB) * 0.5,
+  };
+}
+function moonwalk(b: number): Pose {
+  const sB = Math.sin(b * Math.PI);
+  return {
+    ...REST, hipsY: 0.85 + Math.abs(sB) * 0.03, hips: [0.08, 0, sB * 0.05], torso: [0.22, sB * 0.08, 0], head: [-0.05, 0, sB * 0.05],
+    lArm: [-sB * 0.35, 0, -0.2], rArm: [sB * 0.35, 0, 0.2], lFore: [-0.3, 0, -0.1], rFore: [-0.3, 0, 0.1],
+    lLeg: [0.15 + sB * 0.4, 0, 0.05], rLeg: [0.15 - sB * 0.4, 0, -0.05],
+    lShin: Math.max(0, -sB) * 1.0, rShin: Math.max(0, sB) * 1.0,
+  };
+}
+function theLean(inBar: number): Pose {
+  const a = sm(inBar / 2) * (1 - sm((inBar - 5) / 2.5));
+  return {
+    ...REST, lean: a * 0.7, hipsY: 0.9, torso: [-a * 0.1, 0, 0], head: [-a * 0.55, 0, 0],
+    lArm: [a * 0.35, 0, -0.14], rArm: [a * 0.35, 0, 0.14], lFore: [0, 0, 0], rFore: [0, 0, 0],
+    lLeg: [0, 0, 0.05], rLeg: [0, 0, -0.05], lShin: 0, rShin: 0,
+  };
+}
+function spinToes(inBar: number): Pose {
+  const sp = sm(inBar / 3.2);
+  const spin = (1 - Math.pow(1 - sp, 3)) * Math.PI * 4;
+  const toes = sm((inBar - 3) / 0.7) * (1 - sm((inBar - 6.4) / 1.2));
+  const tuck = 1 - toes;
+  return {
+    ...REST, spin, rise: toes * 0.17, hipsY: 0.9 + toes * 0.02, hips: [0, 0, 0], torso: [-toes * 0.08, 0, 0], head: [-toes * 0.25, 0, toes * 0.15],
+    lArm: [0, 0, -0.18 - toes * 1.1], lFore: [0, 0, -toes * 0.4],
+    rArm: [-toes * 1.35, 0, 0.18 + toes * 0.75], rFore: [-toes * 1.7, 0, toes * 0.9],
+    lLeg: [0, 0, 0.03 * tuck], rLeg: [0, 0, -0.03 * tuck], lShin: toes * 0.1, rShin: toes * 0.1,
+  };
+}
+function thriller(b: number): Pose {
+  const sB = Math.sin(b * Math.PI), bounce = Math.abs(sB);
+  return {
+    ...REST, hipsY: 0.85 + bounce * 0.05, hips: [0.05, 0, sB * 0.1], torso: [0.3, sB * 0.1, 0], head: [0.25, sB * 0.35, 0.2],
+    lArm: [-1.45 + sB * 0.35, 0, -0.35], rArm: [-1.45 - sB * 0.35, 0, 0.35], lFore: [1.35, 0, 0], rFore: [1.35, 0, 0],
+    lLeg: [0, 0, 0.18 + Math.max(0, sB) * 0.45], rLeg: [0, 0, -0.18 - Math.max(0, -sB) * 0.45],
+    lShin: Math.max(0, sB) * 0.5, rShin: Math.max(0, -sB) * 0.5,
+  };
+}
+const MOVES = 5;
+function movePose(move: number, b: number, inBar: number): Pose {
+  switch (((move % MOVES) + MOVES) % MOVES) {
+    case 0: return billieJean(b, inBar);
+    case 1: return moonwalk(b);
+    case 2: return theLean(inBar);
+    case 3: return spinToes(inBar);
+    default: return thriller(b);
+  }
+}
+// forward glide: walks forward during Billie Jean, glides back during the moonwalk, stays otherwise
+function glide(move: number, inBar: number) {
+  const m = ((move % MOVES) + MOVES) % MOVES;
+  if (m === 0) return -0.9 + 1.8 * sm(inBar / 8);
+  if (m === 1) return 0.9 - 1.8 * sm(inBar / 8);
+  return -0.9;
+}
+const setE = (g: THREE.Group | null, e: V3) => { if (g) g.rotation.set(e[0], e[1], e[2]); };
+function Part({ size, pos, color = SUIT, glow = 0, emissive = GLOW, rough = 0.35, metal = 0.5 }: { size: V3; pos: V3; color?: string; glow?: number; emissive?: string; rough?: number; metal?: number }) {
+  return (
+    <mesh position={pos} castShadow>
+      <boxGeometry args={size} />
+      <meshStandardMaterial color={color} emissive={emissive} emissiveIntensity={glow} roughness={rough} metalness={metal} />
+    </mesh>
+  );
+}
+function Limb({ len, w, tip, children }: { len: number; w: number; tip?: "hand" | "glove" | "shoe"; children?: React.ReactNode }) {
   return (
     <>
-      <mesh position={[0, -len / 2, 0]} castShadow>
-        <boxGeometry args={[w, len, w]} />
-        <meshStandardMaterial color={BODY} emissive={BODY} emissiveIntensity={0.55} roughness={0.35} metalness={0.2} />
-      </mesh>
+      <Part size={[w, len, w]} pos={[0, -len / 2, 0]} />
+      {tip === "hand" && <Part size={[w * 1.05, w * 0.8, w * 1.05]} pos={[0, -len - w * 0.3, 0]} color={SKIN} metal={0.1} rough={0.6} />}
+      {tip === "glove" && <Part size={[w * 1.2, w * 0.95, w * 1.2]} pos={[0, -len - w * 0.35, 0]} color={WHITE} emissive={WHITE} glow={0.9} metal={0.2} rough={0.3} />}
+      {tip === "shoe" && (
+        <>
+          <Part size={[w * 1.1, 0.1, w * 1.1]} pos={[0, -len + 0.06, 0]} color={WHITE} emissive={WHITE} glow={0.35} metal={0.1} rough={0.6} />
+          <Part size={[w * 1.2, w * 0.6, w * 2.0]} pos={[0, -len - w * 0.15, w * 0.4]} color="#08080a" metal={0.8} rough={0.25} />
+        </>
+      )}
       <group position={[0, -len, 0]}>{children}</group>
     </>
   );
 }
 function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<HeroState>; dancerRef: MutableRefObject<{ x: number; z: number; foot: number }>; onStomp: (x: number, z: number, a: number) => void }) {
   const root = useRef<THREE.Group>(null);
+  const body = useRef<THREE.Group>(null);
   const hips = useRef<THREE.Group>(null);
   const torso = useRef<THREE.Group>(null);
   const head = useRef<THREE.Group>(null);
@@ -242,8 +348,11 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
   const lShin = useRef<THREE.Group>(null);
   const rShin = useRef<THREE.Group>(null);
   const light = useRef<THREE.PointLight>(null);
-  const lastBar = useRef(-1);
+  const spot = useRef<THREE.PointLight>(null);
+  const ring = useRef<THREE.Mesh>(null);
   const lastStep = useRef(-1);
+  const lastBar = useRef(-1);
+  const stompAt = useRef(-10);
   const bornRef = useRef<number | null>(null);
 
   useFrame((state) => {
@@ -252,118 +361,128 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
     const age = t - bornRef.current;
     const g = root.current;
     if (!g) return;
-    const bpm = 52;
+    const bpm = 58;
     const b = t * (bpm / 60);
-    const sB = Math.sin(b * Math.PI);
-    const bounce = Math.abs(sB);
-    const half = Math.sin(b * Math.PI * 0.5);
     const bar = Math.floor(b / 8);
     const inBar = b - bar * 8;
-    // spin + jump on the last two beats of every second bar
-    const p = bar % 2 === 1 && inBar > 6 ? (inBar - 6) / 2 : 0;
-    const spin = p > 0 ? (1 - Math.pow(1 - p, 3)) * Math.PI * 2 : 0;
-    const jump = p > 0 ? Math.sin(p * Math.PI) * 0.9 : 0;
+    const cur = movePose(bar, b, inBar);
+    const m = inBar > 7.2 ? sm((inBar - 7.2) / 0.8) : 0;
+    const P = m > 0 ? mixPose(cur, movePose(bar + 1, b, 0), m) : cur;
+    const sB = Math.sin(b * Math.PI);
+    const bounce = Math.abs(sB);
 
-    // slow wander around the city centre
-    const ang = t * 0.09;
-    const x = Math.cos(ang) * 2.4 + Math.sin(t * 0.23) * 0.4;
-    const z = Math.sin(ang * 1.3) * 2.0 + Math.cos(t * 0.17) * 0.4;
+    // stage position: slow drift around the centre, facing the viewer, plus the walk/moonwalk glide
+    const heading = 0.72 + Math.sin(t * 0.21) * 0.3;
+    const gl = glide(bar, inBar);
+    const cx = Math.sin(t * 0.11) * 1.1;
+    const cz = Math.cos(t * 0.09) * 0.9;
+    const x = cx + Math.sin(heading) * gl;
+    const z = cz + Math.cos(heading) * gl;
     const d = dancerRef.current;
-    const heading = Math.atan2(x - d.x, z - d.z);
     d.x = x;
     d.z = z;
     const s = stateRef.current;
     const appear = THREE.MathUtils.clamp((age - 1.4) / 1.2, 0, 1);
     const fade = 1 - THREE.MathUtils.clamp((s.spread - 0.15) / 0.5, 0, 1);
     const sc = appear * fade;
-    g.position.set(x, d.foot + jump - (1 - appear) * 0.6, z);
-    g.rotation.y = heading + spin;
-    g.scale.setScalar(Math.max(0.0001, sc * 0.85));
-    g.visible = sc > 0.001;
 
-    if (hips.current) {
-      hips.current.position.y = 0.95 + bounce * 0.1 - 0.05;
-      hips.current.rotation.set(0, half * 0.35, sB * 0.1);
-    }
-    if (torso.current) torso.current.rotation.set(Math.sin(t * 0.5) * 0.06 - 0.05, -half * 0.3, -sB * 0.08);
-    if (head.current) head.current.rotation.set(Math.sin(b * Math.PI + 0.6) * 0.12, Math.sin(b * Math.PI * 0.5 + 1) * 0.45, sB * 0.12);
-    const swing = sB * 0.9;
-    if (lArm.current) lArm.current.rotation.set(half * 0.6, 0, -(0.55 + swing));
-    if (rArm.current) rArm.current.rotation.set(-half * 0.6, 0, 0.55 - swing);
-    if (lFore.current) lFore.current.rotation.set(-0.5 - Math.max(0, sB) * 0.9, 0, -0.35);
-    if (rFore.current) rFore.current.rotation.set(-0.5 - Math.max(0, -sB) * 0.9, 0, 0.35);
-    const step = sB * 0.5;
-    if (lLeg.current) lLeg.current.rotation.set(step, 0, 0.06);
-    if (rLeg.current) rLeg.current.rotation.set(-step, 0, -0.06);
-    if (lShin.current) lShin.current.rotation.x = Math.max(0, sB) * 0.9;
-    if (rShin.current) rShin.current.rotation.x = Math.max(0, -sB) * 0.9;
-    if (light.current) light.current.intensity = (7 + bounce * 4 + jump * 6) * sc;
-
-    // landings: a stomp every two beats, a big one after each jump
+    // waves: a light stomp every two beats, a big one at every bar change
     const stepIdx = Math.floor(b / 2);
     if (sc > 0.5 && stepIdx !== lastStep.current) {
       lastStep.current = stepIdx;
-      onStomp(x, z, 0.35);
+      onStomp(x, z, 0.3);
     }
     if (bar !== lastBar.current) {
-      if (lastBar.current % 2 === 1 && sc > 0.5) onStomp(x, z, 1.2);
+      if (lastBar.current >= 0 && sc > 0.5) { onStomp(x, z, 1.2); stompAt.current = t; }
       lastBar.current = bar;
+    }
+    const u = THREE.MathUtils.clamp((t - stompAt.current) / 0.35, 0, 1);
+    const sq = Math.sin(u * Math.PI) * (1 - u) * 0.22;
+
+    g.position.set(x, d.foot + P.rise - (1 - appear) * 0.6, z);
+    g.rotation.y = heading + P.spin;
+    g.scale.setScalar(Math.max(0.0001, sc * 0.9));
+    g.visible = sc > 0.001;
+    if (body.current) {
+      body.current.rotation.x = -P.lean;
+      body.current.scale.set(1 + sq * 0.6, 1 - sq, 1 + sq * 0.6);
+    }
+    if (hips.current) { hips.current.position.y = P.hipsY; setE(hips.current, P.hips); }
+    setE(torso.current, P.torso);
+    setE(head.current, P.head);
+    setE(lArm.current, P.lArm); setE(rArm.current, P.rArm);
+    setE(lFore.current, P.lFore); setE(rFore.current, P.rFore);
+    setE(lLeg.current, P.lLeg); setE(rLeg.current, P.rLeg);
+    if (lShin.current) lShin.current.rotation.x = P.lShin;
+    if (rShin.current) rShin.current.rotation.x = P.rShin;
+    if (light.current) light.current.intensity = (7 + bounce * 4 + P.rise * 20) * sc;
+    if (spot.current) spot.current.intensity = (5 + bounce * 2) * sc;
+    if (ring.current) {
+      const rs = 1 + bounce * 0.1 + P.rise * 1.5;
+      ring.current.scale.set(rs, rs, 1);
+      (ring.current.material as THREE.MeshBasicMaterial).opacity = (0.3 + bounce * 0.4) * sc;
     }
   });
 
   return (
     <group ref={root}>
-      <pointLight ref={light} position={[0, 1.6, 0]} color="#f3b453" intensity={7} distance={6} decay={2} />
-      <group ref={hips} position={[0, 0.95, 0]}>
-        <mesh position={[0, 0.06, 0]} castShadow>
-          <boxGeometry args={[0.44, 0.22, 0.26]} />
-          <meshStandardMaterial color={BODY} emissive={BODY} emissiveIntensity={0.55} roughness={0.35} metalness={0.2} />
-        </mesh>
-        <group ref={torso} position={[0, 0.17, 0]}>
-          <mesh position={[0, 0.3, 0]} castShadow>
-            <boxGeometry args={[0.5, 0.6, 0.28]} />
-            <meshStandardMaterial color={BODY} emissive={BODY} emissiveIntensity={0.55} roughness={0.35} metalness={0.2} />
-          </mesh>
-          <group ref={head} position={[0, 0.72, 0]}>
-            <mesh position={[0, 0.16, 0]} castShadow>
-              <boxGeometry args={[0.3, 0.3, 0.3]} />
-              <meshStandardMaterial color="#fff1d6" emissive="#f3b453" emissiveIntensity={1.4} roughness={0.3} metalness={0.1} />
-            </mesh>
+      <pointLight ref={light} position={[0, 1.2, 0.8]} color={GLOW} intensity={7} distance={6.5} decay={2} />
+      <pointLight ref={spot} position={[0, 3.2, 0.6]} color="#ffffff" intensity={5} distance={4.5} decay={2} />
+      <mesh ref={ring} position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.55, 0.72, 48]} />
+        <meshBasicMaterial color={GLOW} transparent opacity={0.4} depthWrite={false} />
+      </mesh>
+      <group ref={body}>
+        <group ref={hips} position={[0, 0.9, 0]}>
+          <Part size={[0.46, 0.22, 0.28]} pos={[0, 0.06, 0]} />
+          <group ref={torso} position={[0, 0.17, 0]}>
+            <Part size={[0.52, 0.62, 0.3]} pos={[0, 0.31, 0]} />
+            <Part size={[0.16, 0.5, 0.03]} pos={[0, 0.34, 0.155]} color={WHITE} emissive={WHITE} glow={0.25} metal={0.1} rough={0.6} />
+            <Part size={[0.05, 0.36, 0.035]} pos={[0, 0.34, 0.16]} color="#8a0f1e" metal={0.2} rough={0.5} />
+            <group ref={head} position={[0, 0.7, 0]}>
+              <Part size={[0.34, 0.36, 0.34]} pos={[0, 0.2, 0]} color={SKIN} metal={0.05} rough={0.65} />
+              <Part size={[0.26, 0.05, 0.03]} pos={[0, 0.24, 0.165]} color="#1a1210" metal={0} rough={0.8} />
+              <Part size={[0.36, 0.1, 0.36]} pos={[0, 0.34, -0.02]} color="#0c0c0e" metal={0.1} rough={0.9} />
+              <group rotation={[0.16, 0, 0]} position={[0, 0.39, 0]}>
+                <Part size={[0.62, 0.05, 0.64]} pos={[0, 0, 0.02]} color="#0a0a0c" metal={0.3} rough={0.5} />
+                <Part size={[0.36, 0.22, 0.36]} pos={[0, 0.13, 0]} color="#0a0a0c" metal={0.3} rough={0.5} />
+                <Part size={[0.38, 0.06, 0.38]} pos={[0, 0.06, 0]} color={GLOW} emissive={GLOW} glow={0.6} metal={0.3} rough={0.4} />
+              </group>
+            </group>
+            <group ref={lArm} position={[-0.33, 0.55, 0]}>
+              <Limb len={0.42} w={0.14}>
+                <group ref={lFore}>
+                  <Limb len={0.38} w={0.12} tip="hand" />
+                </group>
+              </Limb>
+            </group>
+            <group ref={rArm} position={[0.33, 0.55, 0]}>
+              <Limb len={0.42} w={0.14}>
+                <group ref={rFore}>
+                  <Limb len={0.38} w={0.12} tip="glove" />
+                </group>
+              </Limb>
+            </group>
           </group>
-          <group ref={lArm} position={[-0.32, 0.55, 0]}>
-            <Limb len={0.42} w={0.14}>
-              <group ref={lFore}>
-                <Limb len={0.4} w={0.12} />
+          <group ref={lLeg} position={[-0.13, -0.02, 0]}>
+            <Limb len={0.46} w={0.16}>
+              <group ref={lShin}>
+                <Limb len={0.42} w={0.14} tip="shoe" />
               </group>
             </Limb>
           </group>
-          <group ref={rArm} position={[0.32, 0.55, 0]}>
-            <Limb len={0.42} w={0.14}>
-              <group ref={rFore}>
-                <Limb len={0.4} w={0.12} />
+          <group ref={rLeg} position={[0.13, -0.02, 0]}>
+            <Limb len={0.46} w={0.16}>
+              <group ref={rShin}>
+                <Limb len={0.42} w={0.14} tip="shoe" />
               </group>
             </Limb>
           </group>
-        </group>
-        <group ref={lLeg} position={[-0.13, -0.02, 0]}>
-          <Limb len={0.48} w={0.16}>
-            <group ref={lShin}>
-              <Limb len={0.45} w={0.14} />
-            </group>
-          </Limb>
-        </group>
-        <group ref={rLeg} position={[0.13, -0.02, 0]}>
-          <Limb len={0.48} w={0.16}>
-            <group ref={rShin}>
-              <Limb len={0.45} w={0.14} />
-            </group>
-          </Limb>
         </group>
       </group>
     </group>
   );
 }
-
 function Rig({ children, stateRef }: { children: React.ReactNode; stateRef: MutableRefObject<HeroState> }) {
   const group = useRef<THREE.Group>(null);
   const { pointer, viewport, size } = useThree();
