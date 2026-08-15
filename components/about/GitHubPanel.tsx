@@ -7,7 +7,7 @@ export async function GitHubPanel() {
   const top = gh.languages.slice(0, 5);
   const shareTotal = top.reduce((a, l) => a + l.share, 0) || 1;
   return (
-    <div className="rounded-2xl border border-line-1 bg-bg-2/50 p-5 sm:p-6">
+    <div className="h-full rounded-3xl p-5 sm:p-6">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-fg-1">
           <GitHub className="text-lg" />

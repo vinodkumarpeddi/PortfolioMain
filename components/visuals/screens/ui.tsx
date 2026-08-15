@@ -3,9 +3,23 @@ import { cn } from "@/lib/utils";
 
 /* Shared building blocks for the product screens (design width 1200px). */
 
-export function AppShell({ title, sidebar, header, children, aside, accentTitle }: { title: string; sidebar: ReactNode; header?: ReactNode; children: ReactNode; aside?: ReactNode; accentTitle?: string }) {
+export function AppShell({ title, sidebar, header, children, aside, accentTitle, url }: { title: string; sidebar: ReactNode; header?: ReactNode; children: ReactNode; aside?: ReactNode; accentTitle?: string; url?: string }) {
   return (
-    <div className="flex h-full w-full overflow-hidden rounded-[22px] border border-line-1 bg-[#0c0c0f] text-fg-1 [box-shadow:var(--shadow-soft)]">
+    <div className="flex h-full w-full flex-col overflow-hidden rounded-[22px] border border-line-1 bg-[#0c0c0f] text-fg-1 [box-shadow:var(--shadow-soft)]">
+      {/* browser chrome */}
+      <div className="flex h-11 shrink-0 items-center gap-3 border-b border-line-1 bg-[#0a0a0d] px-4">
+        <span className="flex gap-1.5" aria-hidden>
+          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]/80" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]/80" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]/80" />
+        </span>
+        <span className="mx-auto flex h-7 w-[46%] items-center justify-center rounded-md border border-line-1 bg-fg-1/[0.04] font-mono text-[11px] text-fg-3">
+          {url ?? "localhost:3000"}
+        </span>
+        <span className="w-12" />
+      </div>
+      <div className="relative flex min-h-0 flex-1">
+      <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-10 h-24 bg-gradient-to-b from-white/[0.035] to-transparent" />
       {/* sidebar */}
       <aside className="flex w-[228px] shrink-0 flex-col border-r border-line-1 bg-[#0a0a0d] p-5">
         <div className="flex items-center gap-2.5">
@@ -27,7 +41,18 @@ export function AppShell({ title, sidebar, header, children, aside, accentTitle 
           {aside && <aside className="w-[300px] shrink-0 overflow-hidden border-l border-line-1 bg-[#0a0a0d] p-5">{aside}</aside>}
         </div>
       </div>
+      </div>
     </div>
+  );
+}
+
+/** Tiny sparkline for KPI tiles. */
+export function Spark({ values, className, up = true }: { values: number[]; className?: string; up?: boolean }) {
+  const pts = values.map((v, i) => `${(i / (values.length - 1)) * 100},${100 - v}`).join(" ");
+  return (
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className={cn("h-8 w-full", className)} aria-hidden>
+      <polyline points={pts} fill="none" stroke={up ? "#62d08c" : "#e9a23b"} strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
   );
 }
 
@@ -41,12 +66,13 @@ export function NavItem({ children, active, icon }: { children: ReactNode; activ
   );
 }
 
-export function Kpi({ label, value, delta, tone = "neutral", delay = 0 }: { label: string; value: string; delta?: string; tone?: "neutral" | "success" | "warning"; delay?: number }) {
+export function Kpi({ label, value, delta, tone = "neutral", delay = 0, spark }: { label: string; value: string; delta?: string; tone?: "neutral" | "success" | "warning"; delay?: number; spark?: number[] }) {
   return (
-    <div className="vis-fade rounded-2xl border border-line-1 bg-bg-2/60 p-4" style={{ animationDelay: `${delay}ms` }}>
+    <div className="vis-fade relative overflow-hidden rounded-2xl border border-line-1 bg-bg-2/60 p-4" style={{ animationDelay: `${delay}ms` }}>
       <p className="label text-[9.5px] text-fg-3">{label}</p>
       <p className="mt-2 text-[24px] font-semibold tracking-tight tabular-nums">{value}</p>
       {delta && <p className={cn("mt-1 font-mono text-[11px]", tone === "success" ? "text-success" : tone === "warning" ? "text-warning" : "text-fg-3")}>{delta}</p>}
+      {spark && <Spark values={spark} up={tone !== "warning"} className="mt-2 opacity-70" />}
     </div>
   );
 }

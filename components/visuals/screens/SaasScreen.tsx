@@ -16,6 +16,7 @@ export function SaasScreen() {
   return (
     <AppShell
       title="Workspace"
+      url="app.localhost:3000 · tenant-a"
       sidebar={
         <>
           <div className="mb-3 flex items-center justify-between rounded-lg border border-line-1 bg-bg-2/60 px-3 py-2">

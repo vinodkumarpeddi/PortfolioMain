@@ -15,6 +15,7 @@ export function PaymentScreen() {
     <AppShell
       title="Orchestrator"
       accentTitle="live"
+      url="dashboard.localhost:3000 · merchant"
       sidebar={
         <>
           <NavItem active>Overview</NavItem>
@@ -72,8 +73,8 @@ export function PaymentScreen() {
       }
     >
       <div className="grid grid-cols-4 gap-4">
-        <Kpi label="Volume · 24h" value="₹48,250" delta="+12.4% vs yesterday" tone="success" delay={200} />
-        <Kpi label="Success rate" value="98.2%" delta="idempotent retries" delay={280} />
+        <Kpi label="Volume · 24h" value="₹48,250" delta="+12.4% vs yesterday" tone="success" delay={200} spark={[20, 35, 30, 48, 44, 60, 58, 72, 80, 88]} />
+        <Kpi label="Success rate" value="98.2%" delta="idempotent retries" delay={280} spark={[90, 92, 91, 95, 94, 96, 97, 96, 98, 98]} />
         <Kpi label="Pending" value="3" delta="in queue" tone="warning" delay={360} />
         <Kpi label="Refunds" value="₹2,000" delta="ledger reconciled" delay={440} />
       </div>

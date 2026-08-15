@@ -41,7 +41,7 @@ export function Manifest() {
   );
 
   return (
-    <div ref={ref} className="rounded-2xl border border-line-1 bg-bg-0/70 [box-shadow:var(--shadow-soft)]" aria-label="Profile manifest">
+    <div ref={ref} className="h-full rounded-3xl bg-bg-0/70" aria-label="Profile manifest">
       <div className="flex items-center justify-between border-b border-line-1 px-4 py-3">
         <span className="label text-fg-3">profile.manifest.yaml</span>
         <span className="flex gap-1.5" aria-hidden>

@@ -10,6 +10,7 @@ import { SectionNumeral } from "@/components/ui/SectionNumeral";
 import { ArrowUpRight } from "@/components/ui/Icons";
 import { cn } from "@/lib/utils";
 import { Tilt } from "@/components/visuals/Tilt";
+import { CoverFor } from "./Covers";
 
 const kindLabel: Record<Milestone["kind"], string> = { work: "Experience", education: "Education", build: "Systems work" };
 const ordered = [...milestones].reverse(); // now → 2022
@@ -110,8 +111,12 @@ function MilestoneCard({ m, index, total }: { m: Milestone; index: number; total
 
         <Tilt max={2} className="group/tilt">
         <div className="relative grid grid-cols-12 gap-x-6 gap-y-8 p-6 sm:p-8 lg:p-10">
+          {/* cover */}
+          <div className="xp-reveal col-span-12 lg:order-3 lg:col-span-3">
+            <CoverFor id={m.id} />
+          </div>
           {/* identity */}
-          <div className="col-span-12 lg:col-span-5">
+          <div className="col-span-12 lg:order-1 lg:col-span-4">
             <div className="xp-reveal flex items-center gap-4">
               <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-line-2 bg-gradient-to-br from-fg-1/[0.10] to-transparent text-[22px] font-semibold text-fg-1">
                 {m.org[0]}
@@ -130,7 +135,7 @@ function MilestoneCard({ m, index, total }: { m: Milestone; index: number; total
                 )}
               </div>
             </div>
-            <h3 className="xp-reveal text-h1 mt-6 text-fg-1">{m.org}</h3>
+            <h3 className="xp-reveal text-h2 mt-6 text-fg-1 xl:text-h1">{m.org}</h3>
             <p className="xp-reveal mt-3 text-lead text-fg-2">
               {m.role}
               {m.location && <span className="block text-[15px] text-fg-3">{m.location}</span>}
@@ -143,10 +148,10 @@ function MilestoneCard({ m, index, total }: { m: Milestone; index: number; total
           </div>
 
           {/* detail */}
-          <div className="col-span-12 lg:col-span-7 lg:border-l lg:border-line-1 lg:pl-10">
+          <div className="col-span-12 lg:order-2 lg:col-span-5 lg:border-l lg:border-line-1 lg:pl-8">
             <p className="xp-reveal max-w-[60ch] text-[15.5px] leading-relaxed text-fg-2">{m.summary}</p>
             {m.points.length > 0 && (
-              <ul className="xp-reveal mt-6 grid gap-x-8 gap-y-3 text-sm text-fg-2 sm:grid-cols-2">
+              <ul className="xp-reveal mt-6 grid gap-x-8 gap-y-3 text-sm text-fg-2">
                 {m.points.map((p) => (
                   <li key={p} className="flex gap-3">
                     <span className="mt-[9px] h-px w-3 shrink-0 bg-accent/70" aria-hidden />

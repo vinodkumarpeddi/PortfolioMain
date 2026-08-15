@@ -13,6 +13,7 @@ export function AnalyticsScreen() {
     <AppShell
       title="Analytics"
       accentTitle="read model"
+      url="localhost:8081 · query service"
       sidebar={
         <>
           <NavItem active>Overview</NavItem>
@@ -63,7 +64,7 @@ export function AnalyticsScreen() {
       }
     >
       <div className="grid grid-cols-4 gap-4">
-        <Kpi label="Orders today" value="1,088" delta="+8.1%" tone="success" delay={200} />
+        <Kpi label="Orders today" value="1,088" delta="+8.1%" tone="success" delay={200} spark={[30, 42, 38, 55, 52, 66, 70, 78, 84, 92]} />
         <Kpi label="Units sold" value="3,039" delta="across 4 products" delay={280} />
         <Kpi label="Revenue" value="$161,659" delta="write model → read model" delay={360} />
         <Kpi label="Consumers" value="3" delta="idempotent" delay={440} />
