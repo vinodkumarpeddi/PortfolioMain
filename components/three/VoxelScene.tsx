@@ -1123,12 +1123,14 @@ function Dancer({ stateRef, dancerRef, onStomp, frozen }: { stateRef: MutableRef
                     <Part size={[0.36, 0.22, 0.36]} pos={[0, 0.13, 0]} mat={wardrobe.hat} />
                     <Part size={[0.38, 0.06, 0.38]} pos={[0, 0.06, 0]} mat={wardrobe.band} />
                   </group>
+                  {isHeavyDevice() && (
                   <Trail ref={trailMesh as unknown as React.Ref<never>} width={0.5} length={5} decay={2.5} color="#ffe2b0" attenuation={(w) => w * w}>
                     <mesh position={[0, -0.42, 0]}>
                       <boxGeometry args={[0.02, 0.02, 0.02]} />
                       <meshBasicMaterial color="#ffffff" transparent opacity={0} depthWrite={false} />
                     </mesh>
                   </Trail>
+                  )}
                 </group>
               </Limb>
             </group>

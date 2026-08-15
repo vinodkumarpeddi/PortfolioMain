@@ -83,14 +83,14 @@ export function Principles() {
           tl.set(item, { autoAlpha: 1 }, t)
             .fromTo(
               chars,
-              { x: (idx: number) => (mid - idx) * (desktop ? 22 : 10), opacity: 0, filter: "blur(10px)" },
-              { x: 0, opacity: 1, filter: "blur(0px)", duration: 1.1, ease: "power2.out", stagger: { each: 0.02, from: "center" } },
+              { x: (idx: number) => (mid - idx) * (desktop ? 22 : 10), opacity: 0, ...(desktop ? { filter: "blur(10px)" } : null) },
+              { x: 0, opacity: 1, ...(desktop ? { filter: "blur(0px)" } : null), duration: 1.1, ease: "power2.out", stagger: { each: 0.02, from: "center" } },
               t,
             )
             .fromTo(meta, { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.12, ease: "power2.out" }, t + 0.7)
             .to(q(".pr-glow"), { xPercent: -30 + (i / (principles.length - 1)) * 60, duration: per, ease: "none" }, t);
           if (i < principles.length - 1) {
-            tl.to(chars, { x: (idx: number) => (idx - mid) * 16, opacity: 0, filter: "blur(8px)", duration: 0.7, ease: "power2.in", stagger: { each: 0.015, from: "center" } }, t + per - 0.8)
+            tl.to(chars, { x: (idx: number) => (idx - mid) * 16, opacity: 0, ...(desktop ? { filter: "blur(8px)" } : null), duration: 0.7, ease: "power2.in", stagger: { each: 0.015, from: "center" } }, t + per - 0.8)
               .to(meta, { y: -10, opacity: 0, duration: 0.4 }, t + per - 0.8)
               .set(item, { autoAlpha: 0 }, t + per);
           }
