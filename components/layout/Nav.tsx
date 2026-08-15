@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { ease, spring } from "@/lib/motion";
 import { ArrowRight, ArrowUpRight } from "@/components/ui/Icons";
 import { Magnetic } from "@/components/ui/Magnetic";
+import { Logo } from "@/components/ui/Logo";
 
 export function Nav() {
   const { active, index, total, scrolled } = useScrollState();
@@ -61,10 +62,7 @@ export function Nav() {
             className="pointer-events-auto flex min-w-0 items-center gap-3 text-fg-1 max-lg:min-h-11"
             aria-label={`${profile.name} — home`}
           >
-            <span className="relative grid h-7 w-7 place-items-center">
-              <span className="absolute inset-0 rounded-full border border-line-2" />
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-            </span>
+            <Logo priority className="h-8 w-8 shrink-0" />
             <span className="flex min-w-0 flex-col leading-none">
               <span className="truncate text-[13px] font-semibold tracking-[-0.01em]">
                 {profile.name}

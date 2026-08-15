@@ -15,7 +15,7 @@ export function Notes() {
         <p className="max-w-[44ch] text-sm leading-relaxed text-fg-2">
           Design decisions written down after they were made — each one links to the repository where it lives.
         </p>
-        <p className="label w-full text-fg-3 sm:hidden">Swipe →</p>
+        <p className="label w-full text-fg-3 sm:hidden">Tap a note to open it</p>
       </Reveal>
       <RevealGroup className="-mx-[var(--spacing-gutter)] mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-[var(--spacing-gutter)] pb-2 no-scrollbar sm:mx-0 sm:mt-10 sm:grid sm:gap-px sm:overflow-hidden sm:rounded-2xl sm:border sm:border-line-1 sm:bg-line-1 sm:px-0 sm:pb-0 sm:grid-cols-2 xl:grid-cols-3">
         {notes.map((n, i) => (

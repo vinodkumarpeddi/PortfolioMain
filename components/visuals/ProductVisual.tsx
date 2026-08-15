@@ -1,3 +1,7 @@
+"use client";
+
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "motion/react";
 import type { Project } from "@/data/types";
 import { ScaledFrame } from "./ScaledFrame";
 import { PaymentScreen } from "./screens/PaymentScreen";
@@ -7,6 +11,7 @@ import { ExamScreen } from "./screens/ExamScreen";
 import { GrillBotScreen } from "./screens/GrillBotScreen";
 import { cn } from "@/lib/utils";
 import { ScreenLightbox } from "./ScreenLightbox";
+import { usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
 
 export const screenFor: Record<string, React.ComponentType> = {
   "payment-orchestrator": PaymentScreen,
@@ -17,51 +22,63 @@ export const screenFor: Record<string, React.ComponentType> = {
 };
 
 /**
- * Designed product screen for a project, scaled to fit its container.
- * `pan` (default) crops to a legible zoom on phones and lets the viewer swipe across it;
- * `fit` always shows the whole frame — used where the composition is fixed, like the hero.
+ * A project's product screen, always shown whole — never cropped or panned. On phones it goes
+ * full-bleed to win back the gutters, lifts on a slight perspective as it enters, and opens
+ * full screen on tap.
  */
-export function ProductVisual({ project, className, variant = "pan" }: { project: Project; className?: string; priority?: boolean; variant?: "pan" | "fit" }) {
+export function ProductVisual({ project, className, bleed = true }: { project: Project; className?: string; priority?: boolean; bleed?: boolean }) {
   const Screen = screenFor[project.slug];
+  const ref = useRef<HTMLDivElement>(null);
+  const reduced = usePrefersReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
+  const rotateX = useTransform(scrollYProgress, [0, 1], [9, 0]);
+  const scale = useTransform(scrollYProgress, [0, 1], [0.93, 1]);
+  const lift = useTransform(scrollYProgress, [0, 1], [26, 0]);
   if (!Screen) return null;
+
   const label = `${project.title} — product screen (demo data)`;
   const frame = (
-    <ScaledFrame className="relative rounded-[22px]" label={label}>
+    <ScaledFrame className="relative rounded-[18px] sm:rounded-[22px]" label={label}>
       <Screen />
     </ScaledFrame>
   );
+
   return (
-    <div className={cn("relative", className)}>
-      <div aria-hidden className="pointer-events-none absolute -inset-3 rounded-[32px] sm:-inset-6 bg-accent/[0.07] blur-3xl" />
-      {variant === "pan" ? (
-        <>
-          <div
-            className="no-scrollbar relative overflow-x-auto overscroll-x-contain overflow-y-hidden rounded-[22px] sm:overflow-visible"
-            style={{ WebkitOverflowScrolling: "touch" }}
-          >
-            <div className="w-[250%] sm:w-full">{frame}</div>
-          </div>
-          <div className="relative mt-3 flex items-center justify-between gap-3 sm:hidden">
-            <span className="label text-fg-3" aria-hidden>
-              Swipe to pan
-            </span>
-            <ScreenLightbox title={project.title} trigger="inline">
-              <ScaledFrame className="rounded-2xl" label={label}>
-                <Screen />
-              </ScaledFrame>
-            </ScreenLightbox>
-          </div>
-        </>
-      ) : (
-        <>
-          {frame}
-          <ScreenLightbox title={project.title}>
-            <ScaledFrame className="rounded-2xl" label={label}>
-              <Screen />
-            </ScaledFrame>
-          </ScreenLightbox>
-        </>
-      )}
+    <div ref={ref} className={cn("relative", bleed && "-mx-[var(--spacing-gutter)] sm:mx-0", className)}>
+      <div aria-hidden className="pointer-events-none absolute -inset-3 rounded-[32px] bg-accent/[0.07] blur-3xl sm:-inset-6" />
+      <motion.div
+        className="relative [transform-style:preserve-3d] [perspective:1200px]"
+        style={reduced ? undefined : { rotateX, scale, y: lift }}
+      >
+        {frame}
+        {/* a light sweeps across the glass as it settles */}
+        {!reduced && (
+          <motion.span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-[18px] sm:rounded-[22px]"
+            style={{ background: "linear-gradient(105deg,transparent 35%,rgba(255,255,255,.16) 48%,transparent 62%)" }}
+            initial={{ x: "-120%" }}
+            whileInView={{ x: "120%" }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 1.5, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          />
+        )}
+      </motion.div>
+      <div className="relative mt-3 flex items-center justify-between gap-3 px-[var(--spacing-gutter)] sm:hidden">
+        <span className="label text-fg-3">{project.category}</span>
+        <ScreenLightbox title={project.title} trigger="inline">
+          <ScaledFrame className="rounded-2xl" label={label}>
+            <Screen />
+          </ScaledFrame>
+        </ScreenLightbox>
+      </div>
+      <div className="hidden sm:block">
+        <ScreenLightbox title={project.title}>
+          <ScaledFrame className="rounded-2xl" label={label}>
+            <Screen />
+          </ScaledFrame>
+        </ScreenLightbox>
+      </div>
     </div>
   );
 }

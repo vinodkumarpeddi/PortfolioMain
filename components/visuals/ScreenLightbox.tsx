@@ -56,7 +56,7 @@ export function ScreenLightbox({ title, trigger = "floating", children }: { titl
                 aria-label={`${title} — full screen`}
               >
                 <div className="flex items-center justify-between gap-3 px-4 pb-2 pt-[max(1rem,env(safe-area-inset-top))]">
-                  <p className="label min-w-0 truncate text-fg-2">{title} · swipe to pan</p>
+                  <p className="label min-w-0 truncate text-fg-2">{title} · pinch to zoom</p>
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
@@ -69,9 +69,9 @@ export function ScreenLightbox({ title, trigger = "floating", children }: { titl
                 <motion.div
                   initial={{ scale: 0.96, y: 12 }}
                   animate={{ scale: 1, y: 0, transition: { duration: 0.6, ease: ease.outExpo } }}
-                  className="no-scrollbar flex-1 overflow-x-auto overscroll-x-contain overflow-y-hidden px-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+                  className="flex flex-1 items-center justify-center px-3 pb-[max(1rem,env(safe-area-inset-bottom))]"
                 >
-                  <div style={{ width: "max(100%, calc((100svh - 7rem) * 1.6))" }}>{children}</div>
+                  <div className="w-full">{children}</div>
                 </motion.div>
               </motion.div>
             )}

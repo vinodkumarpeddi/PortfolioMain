@@ -85,7 +85,7 @@ export function HorizontalScene({ project }: { project: Project }) {
           <Panel wide>
             <div className="h-reveal flex items-baseline justify-between gap-4">
               <p className="label text-fg-3">Roles and what they can touch</p>
-              <p className="label text-fg-3 sm:hidden" aria-hidden>Swipe →</p>
+              <p className="label text-fg-3 sm:hidden" aria-hidden>Three roles</p>
             </div>
             <RoleRow />
           </Panel>

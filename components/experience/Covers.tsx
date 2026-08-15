@@ -5,16 +5,10 @@ import { Avatar, Bars, Donut, Kpi, LineChart, Pill, Tabs, Window, themes } from 
 
 function Cover({ children, label }: { children: React.ReactNode; label: string }) {
   return (
-    <div className="relative rounded-2xl">
-      <div className="no-scrollbar max-h-[220px] overflow-x-auto overscroll-x-contain overflow-y-hidden rounded-2xl [scrollbar-width:none] sm:max-h-none sm:overflow-hidden" style={{ WebkitOverflowScrolling: "touch" }}>
-        <div className="w-[165%] sm:w-full">
-          <ScaledFrame width={1000} height={440} className="rounded-2xl" label={label}>
-            {children}
-          </ScaledFrame>
-        </div>
-      </div>
-      <span aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-10 rounded-r-2xl bg-gradient-to-r from-transparent to-[#101013]/80 sm:hidden" />
-      <span aria-hidden className="label pointer-events-none absolute bottom-2 right-2 rounded-full border border-white/15 bg-black/50 px-2 py-1 text-[9px] text-white/80 backdrop-blur sm:hidden">swipe →</span>
+    <div className="relative overflow-hidden rounded-2xl">
+      <ScaledFrame width={1000} height={440} className="rounded-2xl" label={label}>
+        {children}
+      </ScaledFrame>
     </div>
   );
 }

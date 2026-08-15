@@ -1,11 +1,14 @@
 import { ImageResponse } from "next/og";
 import { profile } from "@/data/profile";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 export const alt = `${profile.name} — Software Engineer`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default function Image() {
+export default async function Image() {
+  const dragon = `data:image/png;base64,${(await readFile(join(process.cwd(), "public/brand/dragon-512.png"))).toString("base64")}`;
   return new ImageResponse(
     (
       <div
@@ -24,8 +27,8 @@ export default function Image() {
           backgroundSize: "96px 96px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 22, letterSpacing: 3, color: "#a4a29b" }}>
-          <div style={{ width: 12, height: 12, borderRadius: 999, background: "#e9a23b" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 18, fontSize: 22, letterSpacing: 3, color: "#a4a29b" }}>
+          <img src={dragon} width={64} height={64} alt="" />
           <span>{profile.name.toUpperCase()}</span>
           <span style={{ color: "#66655f" }}>/</span>
           <span>SOFTWARE ENGINEER</span>

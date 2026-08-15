@@ -154,7 +154,7 @@ export function AboutSection() {
             <Reveal amount={0.2}>
               <p className="label mb-4 flex items-center justify-between text-fg-3 lg:justify-end">
                 <span className="hidden lg:inline">Hover to fan · click to flip forward</span>
-                <span className="lg:hidden">Swipe · tap a card to expand</span>
+                <span className="lg:hidden">Tap a card to expand</span>
               </p>
               <CardFan cards={cards} />
             </Reveal>

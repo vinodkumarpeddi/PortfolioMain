@@ -220,7 +220,7 @@ export function IntroScene() {
           </div>
 
           <div className="proj-visual pointer-events-auto relative mt-5 w-full lg:absolute lg:right-[var(--spacing-gutter)] lg:top-[6.5rem] lg:mt-0 lg:w-[min(46vw,40rem)] motion-reduce:relative motion-reduce:right-auto motion-reduce:top-auto motion-reduce:my-10 motion-reduce:w-full">
-            <ProductVisual project={project} priority variant="fit" />
+            <ProductVisual project={project} priority bleed={false} />
           </div>
 
           <ul className="proj-chips-m mt-4 flex flex-wrap gap-2 lg:hidden [@media(max-height:720px)]:hidden" aria-label="Technologies">
