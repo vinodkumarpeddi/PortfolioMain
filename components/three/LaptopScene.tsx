@@ -125,19 +125,8 @@ function Laptop({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
     if (screenLight.current) screenLight.current.intensity = THREE.MathUtils.damp(screenLight.current.intensity, 2.2 * (1 - s.spread) * entrance, 4, dt);
   });
 
-  return (
-    <group ref={root}>
-      <PresentationControls
-        global={false}
-        cursor
-        snap
-        speed={1.4}
-        zoom={1}
-        rotation={[0, -0.32, 0]}
-        polar={[-0.15, 0.25]}
-        azimuth={[-0.8, 0.8]}
-        damping={0.25}
-      >
+  const desktop = size.width >= 900;
+  const body = (
         <Float speed={1} rotationIntensity={0.06} floatIntensity={0.25}>
           {/* base */}
           <RoundedBox args={[W, 0.14, D]} radius={0.05} smoothness={4}>
@@ -182,7 +171,16 @@ function Laptop({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
             </group>
           </group>
         </Float>
-      </PresentationControls>
+  );
+  return (
+    <group ref={root}>
+      {desktop ? (
+        <PresentationControls global={false} cursor snap speed={1.4} zoom={1} rotation={[0, -0.32, 0]} polar={[-0.15, 0.25]} azimuth={[-0.8, 0.8]} damping={0.25}>
+          {body}
+        </PresentationControls>
+      ) : (
+        <group rotation={[0, -0.32, 0]}>{body}</group>
+      )}
       <ContactShadows position={[0, -0.12, 0]} opacity={0.55} scale={9} blur={2.6} far={3} color="#000000" />
     </group>
   );
