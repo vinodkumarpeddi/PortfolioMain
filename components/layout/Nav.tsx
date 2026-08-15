@@ -166,7 +166,8 @@ export function Nav() {
             role="dialog"
             aria-modal="true"
             aria-label="Menu"
-            className="fixed inset-0 z-[70] flex flex-col overflow-y-auto bg-bg-0/95 px-[var(--spacing-gutter)] pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[calc(7rem+env(safe-area-inset-top))] backdrop-blur-2xl lg:hidden"
+            data-lenis-prevent
+            className="fixed inset-0 z-[70] flex flex-col overflow-y-auto overscroll-contain bg-bg-0/95 px-[var(--spacing-gutter)] pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[calc(7rem+env(safe-area-inset-top))] backdrop-blur-2xl lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.25 } }}

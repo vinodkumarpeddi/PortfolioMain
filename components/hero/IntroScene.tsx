@@ -71,10 +71,11 @@ export function IntroScene() {
           scrollTrigger: {
             trigger: pin,
             start: "top top",
-            end: desktop ? "+=470%" : "+=210%",
+            end: () => "+=" + pin.offsetHeight * (desktop ? 4.7 : 2.1),
             pin: true,
-            scrub: 0.7,
+            scrub: desktop ? 0.7 : true,
             anticipatePin: 1,
+            fastScrollEnd: true,
             invalidateOnRefresh: true,
             onUpdate: (self) => setSectionOverride(self.isActive ? (self.progress > 0.4 ? "work" : "intro") : null),
             onRefresh: (self) => setSectionOverride(self.isActive ? (self.progress > 0.4 ? "work" : "intro") : null),

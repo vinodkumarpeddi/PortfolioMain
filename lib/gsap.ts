@@ -6,7 +6,7 @@ import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { useGSAP } from "@gsap/react";
 
 gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin, MotionPathPlugin, useGSAP);
-ScrollTrigger.config({ ignoreMobileResize: true });
+ScrollTrigger.config({ limitCallbacks: true });
 
 gsap.defaults({ ease: "expo.out", duration: 1 });
 

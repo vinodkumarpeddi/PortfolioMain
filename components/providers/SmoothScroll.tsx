@@ -32,8 +32,9 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
         autoRaf: false,
         lerp: 0.1,
         wheelMultiplier: 1,
-        touchMultiplier: 1.4,
         anchors: true,
+        autoToggle: true,
+        stopInertiaOnNavigate: true,
       }}
     >
       {children}
