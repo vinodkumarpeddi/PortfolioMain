@@ -5,9 +5,15 @@ import { Avatar, Bars, Donut, Kpi, LineChart, Pill, Tabs, Window, themes } from 
 
 function Cover({ children, label }: { children: React.ReactNode; label: string }) {
   return (
-    <ScaledFrame width={1000} height={440} className="rounded-2xl" label={label}>
-      {children}
-    </ScaledFrame>
+    <div className="relative max-h-[200px] overflow-hidden rounded-2xl sm:max-h-none">
+      <div className="w-[165%] sm:w-full">
+        <ScaledFrame width={1000} height={440} className="rounded-2xl" label={label}>
+          {children}
+        </ScaledFrame>
+      </div>
+      <span aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-r from-transparent to-[#101013] sm:hidden" />
+      <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-b from-transparent to-[#101013]/90 sm:hidden" />
+    </div>
   );
 }
 

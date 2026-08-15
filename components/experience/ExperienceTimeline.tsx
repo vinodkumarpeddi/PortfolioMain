@@ -12,6 +12,7 @@ import { HeroCanvas } from "@/components/three/HeroCanvas";
 import type { HeroState } from "@/components/three/HeroObject";
 import { CoverFor } from "./Covers";
 import { ease } from "@/lib/motion";
+import { useIsDesktop } from "@/lib/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 
 const kindLabel: Record<Milestone["kind"], string> = { work: "Experience", education: "Education", build: "Systems work" };
@@ -25,6 +26,7 @@ const ordered = [...milestones].reverse(); // now → 2022
 export function ExperienceTimeline() {
   const [active, setActive] = useState(0);
   const activeRef = useRef(0);
+  const desktop = useIsDesktop();
   const state = useRef<HeroState>({ spread: 0.05, opacity: 1, energy: 0.2 });
   const panelsRef = useRef<HTMLOListElement>(null);
   const jump = (i: number) => {
@@ -69,7 +71,7 @@ export function ExperienceTimeline() {
           </Reveal>
         </div>
 
-        <div className="mt-10 grid grid-cols-12 gap-x-8">
+        <div className="mt-10 grid grid-cols-12 gap-x-4 lg:gap-x-8">
           {/* planet + orbit (sticky) */}
           <div className="col-span-12 lg:col-span-6">
             <div className="sticky top-16 z-10 h-[40vh] lg:top-24 lg:h-[calc(100svh-7rem)]">
@@ -90,9 +92,9 @@ export function ExperienceTimeline() {
                     <p className="label tabular-nums text-fg-3">
                       <span className="text-fg-1">{String(active + 1).padStart(2, "0")}</span> / {String(ordered.length).padStart(2, "0")}
                     </p>
-                    <div className="hidden gap-1.5 sm:flex" role="tablist" aria-label="Jump to milestone">
+                    <div className="flex gap-1.5" role="tablist" aria-label="Jump to milestone">
                       {ordered.map((m, i) => (
-                        <button key={m.id} type="button" role="tab" aria-selected={active === i} aria-label={m.org} onClick={() => jump(i)} className={cn("h-2 rounded-full transition-all duration-[var(--duration-slow)]", active === i ? "w-6 bg-accent" : "w-2 bg-fg-3/60 hover:bg-fg-2")} />
+                        <button key={m.id} type="button" role="tab" aria-selected={active === i} aria-label={m.org} onClick={() => jump(i)} className="grid h-6 place-items-center px-0.5"><span className={cn("block h-2 rounded-full transition-all duration-[var(--duration-slow)]", active === i ? "w-6 bg-accent" : "w-2 bg-fg-3/60 hover:bg-fg-2")} /></button>
                       ))}
                     </div>
                   </div>
@@ -105,10 +107,10 @@ export function ExperienceTimeline() {
           {/* story panels */}
           <ol ref={panelsRef} className="col-span-12 lg:col-span-6">
             {ordered.map((m, i) => (
-              <li key={m.id} data-panel={i} className="flex min-h-[70vh] items-center py-8 lg:min-h-[100svh]">
+              <li key={m.id} data-panel={i} className="flex items-center py-5 sm:min-h-[70vh] sm:py-8 lg:min-h-[100svh]">
                 <motion.article
                   className="w-full"
-                  animate={{ opacity: active === i ? 1 : 0.45, scale: active === i ? 1 : 0.985 }}
+                  animate={{ opacity: active === i ? 1 : desktop ? 0.45 : 0.75, scale: active === i ? 1 : 0.985 }}
                   transition={{ duration: 0.6, ease: ease.outExpo }}
                 >
                   <div className={cn("relative overflow-hidden rounded-[28px] border bg-[#101013]/90 p-6 backdrop-blur-xl transition-[border-color,box-shadow] duration-[var(--duration-cinematic)] sm:p-8", active === i ? "border-accent/25 [box-shadow:0_1px_0_rgba(255,255,255,0.07)_inset,0_40px_100px_-30px_rgba(233,162,59,0.22),0_30px_80px_-30px_rgba(0,0,0,0.9)]" : "border-line-1 [box-shadow:var(--shadow-soft)]")}>

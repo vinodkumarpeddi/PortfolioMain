@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, SplitText, useGSAP, MOTION_OK } from "@/lib/gsap";
+import { gsap, SplitText, useGSAP, MOTION_OK, DESKTOP } from "@/lib/gsap";
 import { principles } from "@/data/principles";
 import { SectionLabel } from "@/components/ui/Section";
 import { cn } from "@/lib/utils";
@@ -19,7 +19,9 @@ export function Principles() {
       if (!el) return;
       const q = gsap.utils.selector(el);
       const mm = gsap.matchMedia();
-      mm.add(MOTION_OK, () => {
+      mm.add({ motionOk: MOTION_OK, desktop: DESKTOP }, (ctx) => {
+        if (!ctx.conditions?.motionOk) return;
+        const desktop = Boolean(ctx.conditions?.desktop);
         const items = q(".pr-item");
         const counter = q(".pr-index")[0];
         const splits = items.map((item) => SplitText.create(item.querySelector(".pr-word")!, { type: "chars", aria: "auto" }));
@@ -33,7 +35,7 @@ export function Principles() {
           scrollTrigger: {
             trigger: q(".pr-stage")[0],
             start: "top top",
-            end: `+=${principles.length * 90}%`,
+            end: `+=${principles.length * (desktop ? 90 : 70)}%`,
             pin: true,
             scrub: 0.8,
             anticipatePin: 1,
@@ -53,7 +55,7 @@ export function Principles() {
           tl.set(item, { autoAlpha: 1 }, t)
             .fromTo(
               chars,
-              { x: (idx: number) => (mid - idx) * 22, opacity: 0, filter: "blur(10px)" },
+              { x: (idx: number) => (mid - idx) * (desktop ? 22 : 10), opacity: 0, filter: "blur(10px)" },
               { x: 0, opacity: 1, filter: "blur(0px)", duration: 1.1, ease: "power2.out", stagger: { each: 0.02, from: "center" } },
               t,
             )
@@ -97,10 +99,10 @@ export function Principles() {
                     "pr-item absolute inset-0 flex flex-col justify-center motion-reduce:relative motion-reduce:mb-20",
                   )}
                 >
-                  <p className="pr-word whitespace-nowrap text-[clamp(2.4rem,9.5vw,12rem)] font-semibold uppercase leading-[0.9] tracking-[-0.045em] text-fg-1" aria-label={p.word}>
+                  <p className="pr-word whitespace-nowrap text-[clamp(2.1rem,9.5vw,12rem)] font-semibold uppercase leading-[0.9] tracking-[-0.045em] text-fg-1" aria-label={p.word}>
                     {p.word}
                   </p>
-                  <div className="pr-meta mt-8 grid grid-cols-12 gap-x-6 gap-y-3">
+                  <div className="pr-meta mt-6 grid grid-cols-12 gap-x-6 gap-y-3 sm:mt-8">
                     <p className="col-span-12 text-lead text-fg-1 lg:col-span-6">{p.line}</p>
                     <p className="col-span-12 flex gap-3 text-[15px] leading-relaxed text-fg-2 lg:col-span-5 lg:col-start-8">
                       <span className="label mt-1.5 shrink-0 text-accent">{p.index}</span>

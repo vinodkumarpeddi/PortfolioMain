@@ -97,6 +97,65 @@ export function TechnologyMap() {
     fn();
   };
 
+  const consoleBox = (
+    <div className="relative overflow-hidden rounded-2xl border border-line-1 bg-bg-2/60 p-4 sm:p-5 [box-shadow:var(--shadow-soft)]" aria-live="polite">
+      <span aria-hidden className={cn("pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-accent/[0.12] blur-3xl transition-opacity duration-[var(--duration-slow)]", tech ? "opacity-100" : "opacity-0")} />
+      <div className="label flex items-center justify-between text-fg-3">
+        <span>Where it was used</span>
+        <span className="flex items-center gap-1.5">
+          <span className={cn("h-1.5 w-1.5 rounded-full", tech ? "bg-success" : "bg-fg-3")} />
+          {tech ? "live" : "idle"}
+        </span>
+      </div>
+      <div className="mt-3 min-h-[4.5rem] sm:mt-4 sm:min-h-[6.5rem]">
+        <AnimatePresence mode="wait" initial={false}>
+          {tech ? (
+            <motion.div key={tech.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.3, ease: ease.outExpo }}>
+              <p className="text-h3 text-fg-1">{tech.name}</p>
+              <p className="mt-2 text-sm leading-relaxed text-fg-2">
+                <span className="vis-reveal">{tech.usage}</span>
+              </p>
+              <p className="label mt-3 text-fg-3">{tech.projects.length} system{tech.projects.length === 1 ? "" : "s"} · {tech.branch}</p>
+            </motion.div>
+          ) : (
+            <motion.p key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-sm leading-relaxed text-fg-3">
+              Tap or hover a technology to see where it was used and which systems it connects to. Pick a system to see its stack.
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+  const chips = (compact: boolean) => (
+    <ul className={cn("flex gap-2", compact ? "flex-nowrap overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : "mt-5 flex-wrap")} aria-label="Systems">
+      {projectRefs.map((p) => {
+        const on = connectedProjects.has(p.key);
+        const selected = activeProject === p.key;
+        const dim = (tech && !on) || (activeProject && !selected);
+        return (
+          <li key={p.key} className={cn(compact && "shrink-0")}>
+            <button
+              type="button"
+              data-project={compact ? undefined : p.key}
+              onMouseEnter={() => interact(() => { setActiveTech(null); setActiveProject(p.key); })}
+              onFocus={() => interact(() => { setActiveTech(null); setActiveProject(p.key); })}
+              onClick={() => interact(() => { setActiveTech(null); setActiveProject(p.key); })}
+              aria-pressed={selected}
+              className={cn(
+                "label whitespace-nowrap rounded-full border px-3 py-2 transition-[opacity,border-color,color,background-color,box-shadow] duration-[var(--duration-base)]",
+                on || selected ? "border-accent/70 bg-accent-soft text-fg-1 [box-shadow:0_8px_24px_-10px_rgba(233,162,59,0.5)]" : "border-line-1 text-fg-2 hover:border-line-2 hover:text-fg-1",
+                p.kind === "featured" && "font-semibold",
+                dim && "opacity-35",
+              )}
+            >
+              {p.title}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+
   return (
     <div ref={rootRef} className="relative mt-14">
       {/* connection overlay */}
@@ -149,14 +208,19 @@ export function TechnologyMap() {
             <div aria-hidden className="ml-5 mt-2 h-8 w-px bg-line-2" />
           </div>
 
-          <div className="grid gap-x-6 gap-y-8 sm:grid-cols-2 xl:grid-cols-5" role="list" aria-label="Technology map">
+          <div className="sticky top-[4.25rem] z-20 -mx-2 mb-6 rounded-[20px] bg-bg-1/85 p-2 backdrop-blur-xl lg:hidden">
+            {consoleBox}
+            <div className="mt-3">{chips(true)}</div>
+          </div>
+
+          <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 sm:gap-y-8 xl:grid-cols-5" role="list" aria-label="Technology map">
             {branches.map((b) => (
               <div key={b.id} role="listitem" className="relative rounded-2xl border border-line-1 bg-bg-2/40 p-3 transition-colors duration-[var(--duration-slow)] hover:border-line-2">
                 <div className="label flex items-center gap-2 border-b border-line-1 px-2 pb-3 text-fg-2">
                   <span className="text-accent">{b.index}</span>
                   {b.label}
                 </div>
-                <ul className="mt-2 space-y-0.5">
+                <ul className="mt-2 flex flex-wrap gap-1.5 sm:block sm:space-y-0.5">
                   {technologies
                     .filter((t) => t.branch === b.id)
                     .map((t) => {
@@ -173,7 +237,7 @@ export function TechnologyMap() {
                             onClick={() => interact(() => { setActiveProject(null); setActiveTech(t.id); })}
                             aria-pressed={on}
                             className={cn(
-                              "group relative flex w-full items-center gap-2.5 rounded-xl border px-2.5 py-2 text-left text-[14.5px] leading-snug transition-[opacity,color,background-color,border-color,box-shadow] duration-[var(--duration-base)]",
+                              "group relative flex w-auto items-center gap-2.5 rounded-full border px-2.5 py-2 text-left text-[14px] leading-snug transition-[opacity,color,background-color,border-color,box-shadow] duration-[var(--duration-base)] sm:w-full sm:rounded-xl sm:text-[14.5px]",
                               on ? "border-accent/50 bg-accent-soft text-fg-1 [box-shadow:0_0_0_1px_rgba(233,162,59,0.15),0_10px_30px_-12px_rgba(233,162,59,0.45)]" : inProject ? "border-accent/30 bg-fg-1/[0.05] text-fg-1" : "border-transparent text-fg-2 hover:border-line-1 hover:bg-fg-1/[0.03] hover:text-fg-1",
                               dim && "opacity-35",
                             )}
@@ -193,63 +257,10 @@ export function TechnologyMap() {
         </div>
 
         {/* console */}
-        <div className="col-span-12 lg:col-span-4">
+        <div className="hidden lg:col-span-4 lg:block">
           <div className="lg:sticky lg:top-28">
-            <div className="relative overflow-hidden rounded-2xl border border-line-1 bg-bg-2/60 p-5 [box-shadow:var(--shadow-soft)]" aria-live="polite">
-              <span aria-hidden className={cn("pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-accent/[0.12] blur-3xl transition-opacity duration-[var(--duration-slow)]", tech ? "opacity-100" : "opacity-0")} />
-              <div className="label flex items-center justify-between text-fg-3">
-                <span>Where it was used</span>
-                <span className="flex items-center gap-1.5">
-                  <span className={cn("h-1.5 w-1.5 rounded-full", tech ? "bg-success" : "bg-fg-3")} />
-                  {tech ? "live" : "idle"}
-                </span>
-              </div>
-              <div className="mt-4 min-h-[6.5rem]">
-                <AnimatePresence mode="wait" initial={false}>
-                  {tech ? (
-                    <motion.div key={tech.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.3, ease: ease.outExpo }}>
-                      <p className="text-h3 text-fg-1">{tech.name}</p>
-                      <p className="mt-2 text-sm leading-relaxed text-fg-2">
-                        <span className="vis-reveal">{tech.usage}</span>
-                      </p>
-                      <p className="label mt-3 text-fg-3">{tech.projects.length} system{tech.projects.length === 1 ? "" : "s"} · {tech.branch}</p>
-                    </motion.div>
-                  ) : (
-                    <motion.p key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-sm leading-relaxed text-fg-3">
-                      Hover a technology to see where it was used and which systems it connects to. Hover a system to see its stack.
-                    </motion.p>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-
-            <ul className="mt-5 flex flex-wrap gap-2" aria-label="Systems">
-              {projectRefs.map((p) => {
-                const on = connectedProjects.has(p.key);
-                const selected = activeProject === p.key;
-                const dim = (tech && !on) || (activeProject && !selected);
-                return (
-                  <li key={p.key}>
-                    <button
-                      type="button"
-                      data-project={p.key}
-                      onMouseEnter={() => interact(() => { setActiveTech(null); setActiveProject(p.key); })}
-                      onFocus={() => interact(() => { setActiveTech(null); setActiveProject(p.key); })}
-                      onClick={() => interact(() => { setActiveTech(null); setActiveProject(p.key); })}
-                      aria-pressed={selected}
-                      className={cn(
-                        "label rounded-full border px-3 py-2 transition-[opacity,border-color,color,background-color,box-shadow] duration-[var(--duration-base)]",
-                        on || selected ? "border-accent/70 bg-accent-soft text-fg-1 [box-shadow:0_8px_24px_-10px_rgba(233,162,59,0.5)]" : "border-line-1 text-fg-2 hover:border-line-2 hover:text-fg-1",
-                        p.kind === "featured" && "font-semibold",
-                        dim && "opacity-35",
-                      )}
-                    >
-                      {p.title}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            {consoleBox}
+            {chips(false)}
           </div>
         </div>
       </div>

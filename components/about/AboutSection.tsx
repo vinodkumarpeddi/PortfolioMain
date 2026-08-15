@@ -108,7 +108,7 @@ export function AboutSection() {
           <SectionLabel index="06">About</SectionLabel>
         </Reveal>
 
-        <div className="mt-6 grid grid-cols-12 gap-x-8 gap-y-12">
+        <div className="mt-6 grid grid-cols-12 gap-x-4 gap-y-12 lg:gap-x-8">
           {/* statement + readouts */}
           <div className="col-span-12 lg:col-span-6">
             <h2 id="about-title" className="text-h1 max-w-[14ch] text-balance text-fg-1">
@@ -168,7 +168,7 @@ export function AboutSection() {
         </Reveal>
 
         {/* manifest + github */}
-        <div className="mt-16 grid grid-cols-12 gap-x-8 gap-y-8">
+        <div className="mt-16 grid grid-cols-12 gap-x-4 gap-y-8 lg:gap-x-8">
           <Reveal className="col-span-12 lg:col-span-6" amount={0.2}>
             <div className="h-full overflow-hidden rounded-3xl border border-line-1 bg-bg-2/40 [box-shadow:var(--shadow-soft)]">
               <Manifest />
@@ -195,8 +195,8 @@ export function AboutSection() {
             {services.map((s, i) => (
               <li key={s.title} className="group border-b border-line-1 transition-colors duration-[var(--duration-base)] hover:bg-fg-1/[0.02]">
                 <div className="grid grid-cols-12 items-baseline gap-x-6 py-7 sm:py-9">
-                  <span className="label col-span-2 text-accent sm:col-span-1">0{i + 1}</span>
-                  <h4 className="text-h2 col-span-10 text-fg-1 transition-transform duration-[var(--duration-slow)] ease-[var(--ease-out-expo)] group-hover:translate-x-2 sm:col-span-6">{s.title}</h4>
+                  <span className="label col-span-12 text-accent sm:col-span-1">0{i + 1}</span>
+                  <h4 className="text-h2 col-span-12 mt-2 text-fg-1 transition-transform duration-[var(--duration-slow)] ease-[var(--ease-out-expo)] group-hover:translate-x-2 sm:col-span-6 sm:mt-0">{s.title}</h4>
                   <p className="col-span-12 mt-3 max-w-[48ch] text-[15px] leading-relaxed text-fg-2 sm:col-span-5 sm:col-start-8 sm:mt-0">{s.body}</p>
                 </div>
               </li>

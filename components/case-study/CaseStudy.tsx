@@ -49,7 +49,7 @@ export function CaseStudy({ project }: { project: Project }) {
                 <span className="h-px w-6 bg-line-2" aria-hidden />
                 <span>{project.year}</span>
               </Reveal>
-              <h1 className="text-display mt-6 text-fg-1">
+              <h1 className="mt-6 text-[length:clamp(2.4rem,11.5vw,12rem)] font-semibold leading-[0.9] tracking-[-0.045em] text-balance text-fg-1 sm:text-[length:clamp(3.25rem,11vw,12rem)]">
                 <SplitText immediate by="words">{project.title}</SplitText>
               </h1>
               <Reveal delay={0.2}>

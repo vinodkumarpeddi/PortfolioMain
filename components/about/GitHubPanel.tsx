@@ -18,7 +18,7 @@ export async function GitHubPanel() {
 
       <dl className="mt-6 grid grid-cols-3 gap-4">
         <div>
-          <dt className="label text-fg-3">Public repos</dt>
+          <dt className="label text-fg-3"><span className="sm:hidden">Repos</span><span className="hidden sm:inline">Public repos</span></dt>
           <dd className="mt-2 text-h2 tabular-nums text-fg-1">{gh.publicRepos}</dd>
         </div>
         <div>

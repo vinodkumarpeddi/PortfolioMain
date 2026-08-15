@@ -15,9 +15,9 @@ export function Footer() {
       <div className="mx-auto flex max-w-[100rem] flex-col gap-8 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-[15px] font-semibold text-fg-1">{profile.name}</p>
-          <p className="label mt-2 flex flex-wrap items-center gap-x-3 text-fg-3">
+          <p className="label mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-fg-3">
             <span>Software Engineer · {profile.location}</span>
-            <span className="h-3 w-px bg-line-2" aria-hidden />
+            <span className="hidden h-3 w-px bg-line-2 sm:block" aria-hidden />
             <span>Local time <LocalTime className="tabular-nums text-fg-2" /> IST</span>
           </p>
         </div>

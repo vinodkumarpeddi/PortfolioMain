@@ -74,14 +74,15 @@ export function CardFan({ cards }: { cards: FanCard[] }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.6, ease: ease.outExpo, delay: i * 0.05 }}
-            className="relative w-[78vw] max-w-[22rem] shrink-0 snap-center rounded-[26px] border border-line-1 bg-[#101013]/95 p-6"
+            className="relative w-[78vw] max-w-[22rem] shrink-0 snap-center overflow-hidden rounded-[26px] border border-line-1 bg-[#101013]/95 p-6"
           >
-            <span className="label flex items-center justify-between text-fg-3">
+            <span aria-hidden className="pointer-events-none absolute -left-16 -top-16 h-44 w-44 rounded-full bg-accent/[0.10] blur-3xl" />
+            <span className="label relative flex items-center justify-between text-fg-3">
               <span>{c.label}</span>
               <span className="text-accent">{String(i + 1).padStart(2, "0")}</span>
             </span>
-            <span className="mt-4 block text-h3 text-fg-1">{c.title}</span>
-            <span className="mt-4 block text-sm leading-relaxed text-fg-2">{c.body}</span>
+            <span className="relative mt-4 block text-h3 text-fg-1">{c.title}</span>
+            <span className="relative mt-4 block text-sm leading-relaxed text-fg-2">{c.body}</span>
           </motion.div>
         ))}
       </div>
