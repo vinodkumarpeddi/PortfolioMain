@@ -139,7 +139,7 @@ export function IntroScene() {
 
         {/* 3D OBJECT (hero state) */}
         <div ref={coreWrapRef} className="core-wrap absolute inset-0 z-0 motion-reduce:hidden">
-          <HeroCanvas stateRef={heroState} scene="gallery" className="absolute inset-0" />
+          <HeroCanvas stateRef={heroState} scene="voxel" className="absolute inset-0" />
         </div>
 
         {/* HERO LAYER */}
