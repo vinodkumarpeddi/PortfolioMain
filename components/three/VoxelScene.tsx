@@ -54,7 +54,7 @@ function noise2(x: number, y: number) {
 
 const dummy = new THREE.Object3D();
 const color = new THREE.Color();
-const dark = new THREE.Color("#15151a");
+const dark = new THREE.Color("#121216");
 const amber = new THREE.Color("#e9a23b");
 const warm = new THREE.Color("#ffd18a");
 
@@ -62,15 +62,15 @@ function City({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
   const mesh = useRef<THREE.InstancedMesh>(null);
   const { pointer, camera } = useThree();
   const cells = useMemo(() => {
-    const arr: { x: number; z: number; base: number; seed: number; sx: number; sz: number; ry: number }[] = [];
+    const arr: { x: number; z: number; i: number; j: number; d: number; base: number; seed: number; sx: number; sz: number; ry: number }[] = [];
     for (let i = 0; i < N; i++) {
       for (let j = 0; j < N; j++) {
         const x = (i - (N - 1) / 2) * (CELL + GAP);
         const z = (j - (N - 1) / 2) * (CELL + GAP);
         const d = Math.hypot(i - (N - 1) / 2, j - (N - 1) / 2) / (N / 2);
         const n = noise2(i * 0.18 + 3, j * 0.18 + 7);
-        const base = Math.max(0.08, (0.35 + n * 2.6) * (1 - d * d * 0.85));
-        arr.push({ x, z, base, seed: hash2(i, j), sx: (hash2(i + 9, j) - 0.5) * 12, sz: (hash2(i, j + 9) - 0.5) * 12, ry: (hash2(i + 3, j + 5) - 0.5) * 6 });
+        const base = Math.max(0.08, (0.3 + n * 2.4) * (1 - d * d * 0.85));
+        arr.push({ x, z, i, j, d, base, seed: hash2(i, j), sx: (hash2(i + 9, j) - 0.5) * 12, sz: (hash2(i, j + 9) - 0.5) * 12, ry: (hash2(i + 3, j + 5) - 0.5) * 6 });
       }
     }
     return arr;
@@ -78,27 +78,58 @@ function City({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
   const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), []);
   const ray = useMemo(() => new THREE.Raycaster(), []);
   const hit = useMemo(() => new THREE.Vector3(99, 0, 99), []);
+  const tmpHit = useMemo(() => new THREE.Vector3(), []);
   const groupRef = useRef<THREE.Group>(null);
+  const born = useRef<number | null>(null);
+  // blinking "city lights": a few cells flash briefly at random
+  const flashesRef = useRef<Float32Array>(new Float32Array(COUNT));
+  const nextFlash = useRef(0);
 
   useFrame((state, dt) => {
     const m = mesh.current;
     if (!m) return;
     const t = state.clock.elapsedTime;
+    if (born.current === null) born.current = t;
+    const age = t - born.current;
     const s = stateRef.current;
     const spread = s.spread;
-    // pointer → point on the city plane (in local space)
+
+    // pointer → point on the city plane (local space)
     ray.setFromCamera(pointer, camera);
-    const p = new THREE.Vector3();
-    if (ray.ray.intersectPlane(plane, p) && groupRef.current) {
-      groupRef.current.worldToLocal(p);
-      hit.lerp(p, 1 - Math.exp(-6 * dt));
+    if (ray.ray.intersectPlane(plane, tmpHit) && groupRef.current) {
+      groupRef.current.worldToLocal(tmpHit);
+      hit.lerp(tmpHit, 1 - Math.exp(-6 * dt));
     }
+    // random flashes
+    if (t > nextFlash.current) {
+      nextFlash.current = t + 0.05 + Math.random() * 0.12;
+      flashesRef.current[Math.floor(Math.random() * COUNT)] = 1;
+    }
+    // travelling streams along a few rows/columns
+    const streamRow = Math.floor((t * 0.35) % N);
+    const streamCol = Math.floor((t * 0.27 + 11) % N);
+    const streamPos = (t * 9) % (N + 8) - 4;
+
     for (let k = 0; k < COUNT; k++) {
       const c = cells[k];
-      const wave = Math.sin(t * 0.9 + c.x * 0.9) * 0.18 + Math.cos(t * 0.7 + c.z * 1.1) * 0.14;
+      // build-in: radial wave from the centre
+      const build = THREE.MathUtils.clamp((age - 0.2 - c.d * 1.4) / 0.9, 0, 1);
+      const eb = 1 - Math.pow(1 - build, 3);
+      // ambient breathing + radar pulse rings
+      const wave = Math.sin(t * 0.9 + c.x * 0.9) * 0.16 + Math.cos(t * 0.7 + c.z * 1.1) * 0.12;
+      const ring = Math.max(0, Math.sin(c.d * 9 - t * 2.2));
+      const pulse = Math.pow(ring, 6) * 0.9;
+      // streams: a bright packet running along one row and one column
+      let stream = 0;
+      if (c.i === streamRow) stream = Math.max(0, 1 - Math.abs(c.j - streamPos) / 3);
+      if (c.j === streamCol) stream = Math.max(stream, Math.max(0, 1 - Math.abs(c.i - ((streamPos * 0.8 + 6) % (N + 8) - 4)) / 3));
+      // cursor lift
       const dm = Math.hypot(c.x - hit.x, c.z - hit.z);
       const lift = Math.max(0, 1 - dm / 2.2);
-      const h = Math.max(0.05, c.base + wave + lift * lift * 1.6);
+      flashesRef.current[k] = Math.max(0, flashesRef.current[k] - dt * 1.6);
+      const flash = flashesRef.current[k];
+
+      const h = Math.max(0.05, (c.base + wave + pulse * 0.6 + lift * lift * 1.6 + stream * 0.9) * eb);
       const ex = spread * c.sx;
       const ez = spread * c.sz;
       const ey = spread * (c.seed * 5 + 1);
@@ -107,9 +138,11 @@ function City({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
       dummy.scale.set(CELL, h, CELL);
       dummy.updateMatrix();
       m.setMatrixAt(k, dummy.matrix);
-      const heat = THREE.MathUtils.clamp((h - 0.6) / 2.4, 0, 1) + lift * 0.8;
-      color.copy(dark).lerp(amber, THREE.MathUtils.clamp(heat, 0, 1) * 0.85);
-      if (heat > 0.9) color.lerp(warm, (heat - 0.9) * 2);
+
+      // colour: mostly dark; peaks, pulses, streams and flashes light up
+      const heat = THREE.MathUtils.clamp((h - 1.5) / 2.2, 0, 1) * 0.55 + pulse * 0.6 + lift * 0.9 + stream * 1.1 + flash * 1.2;
+      color.copy(dark).lerp(amber, THREE.MathUtils.clamp(heat, 0, 1));
+      if (heat > 1) color.lerp(warm, THREE.MathUtils.clamp((heat - 1) * 0.8, 0, 1));
       m.setColorAt(k, color);
     }
     m.instanceMatrix.needsUpdate = true;
@@ -120,9 +153,8 @@ function City({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
     <group ref={groupRef}>
       <instancedMesh ref={mesh} args={[undefined, undefined, COUNT]} frustumCulled={false} castShadow receiveShadow>
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="#ffffff" roughness={0.35} metalness={0.55} />
+        <meshStandardMaterial color="#ffffff" roughness={0.4} metalness={0.5} />
       </instancedMesh>
-      {/* base plate */}
       <mesh position={[0, -0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[N * (CELL + GAP) + 1.5, N * (CELL + GAP) + 1.5]} />
         <meshStandardMaterial color="#0c0c10" roughness={0.9} metalness={0.2} />
@@ -139,11 +171,11 @@ function Rig({ children, stateRef }: { children: React.ReactNode; stateRef: Muta
     const s = stateRef.current;
     const desktop = size.width >= 900;
     const t = state.clock.elapsedTime;
-    group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, -0.75 + t * 0.03 + pointer.x * 0.08, 3, dt);
-    const sc = desktop ? Math.min(1, viewport.width / 12) : Math.min(0.75, viewport.width / 6);
+    group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, -0.72 + Math.sin(t * 0.08) * 0.12 + pointer.x * 0.08, 3, dt);
+    const sc = desktop ? Math.min(0.78, viewport.width / 19) : Math.min(0.62, viewport.width / 7.5);
     group.current.scale.setScalar(THREE.MathUtils.damp(group.current.scale.x || 0.001, sc, 4, dt));
-    group.current.position.x = desktop ? viewport.width * 0.17 : 0.2;
-    group.current.position.y = (desktop ? -1.7 : -viewport.height * 0.34) - s.spread * 1.5;
+    group.current.position.x = desktop ? viewport.width * 0.22 : 0.3;
+    group.current.position.y = (desktop ? -1.5 + Math.sin(t * 0.5) * 0.06 : -viewport.height * 0.34) - s.spread * 1.5;
   });
   return <group ref={group}>{children}</group>;
 }
