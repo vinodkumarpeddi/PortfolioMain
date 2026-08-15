@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import nodemailer from "nodemailer";
 import { profile } from "@/data/profile";
 
 export const runtime = "nodejs";
@@ -22,25 +23,32 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Please fill in your name, a valid email and a message." }, { status: 422 });
   }
 
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return NextResponse.json({ ok: false, configured: false }, { status: 501 });
+  const host = process.env.SMTP_HOST;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  // 501 tells the client to fall back to opening a pre-filled Gmail compose window
+  if (!host || !user || !pass) return NextResponse.json({ ok: false, configured: false }, { status: 501 });
 
+  const port = Number(process.env.SMTP_PORT ?? 587);
   const to = process.env.CONTACT_TO ?? profile.email;
-  const from = process.env.CONTACT_FROM ?? "Portfolio <onboarding@resend.dev>";
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from,
-      to: [to],
-      reply_to: email,
+  const from = process.env.CONTACT_FROM ?? user;
+
+  try {
+    const transport = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465,
+      auth: { user, pass },
+    });
+    await transport.sendMail({
+      from: `${profile.shortName} portfolio <${from}>`,
+      to,
+      replyTo: `${name} <${email}>`,
       subject: `Portfolio · message from ${name}`,
       text: `From: ${name} <${email}>\n\n${message}`,
-    }),
-  });
-  if (!res.ok) {
-    const detail = await res.text().catch(() => "");
-    console.error("resend failed", res.status, detail);
+    });
+  } catch (err) {
+    console.error("smtp send failed", err);
     return NextResponse.json({ ok: false, error: "Could not send right now." }, { status: 502 });
   }
   return NextResponse.json({ ok: true });
