@@ -36,7 +36,7 @@ export function ProductVisual({ project, className, variant = "pan" }: { project
       {variant === "pan" ? (
         <>
           <div
-            className="no-scrollbar relative overflow-x-auto overflow-y-hidden rounded-[22px] sm:overflow-visible"
+            className="no-scrollbar relative overflow-x-auto overscroll-x-contain overflow-y-hidden rounded-[22px] sm:overflow-visible"
             style={{ WebkitOverflowScrolling: "touch" }}
           >
             <div className="w-[170%] sm:w-full">{frame}</div>

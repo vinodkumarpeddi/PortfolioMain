@@ -151,7 +151,7 @@ function RoleRow() {
       <div
         ref={scroller}
         onScroll={onScroll}
-        className="no-scrollbar mt-6 -mx-[var(--spacing-gutter)] flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto px-[var(--spacing-gutter)] pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0"
+        className="no-scrollbar mt-6 -mx-[var(--spacing-gutter)] flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto overscroll-x-contain px-[var(--spacing-gutter)] pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0"
       >
         {roles.map((r, i) => (
           <div
@@ -188,7 +188,7 @@ function RoleRow() {
             onClick={() => goTo(i)}
             aria-label={`Show ${r.role}`}
             aria-current={current === i}
-            className="grid h-6 w-6 place-items-center"
+            className="-m-2.5 grid h-11 w-11 place-items-center"
           >
             <span className={cn("h-1.5 rounded-full transition-[width,background-color] duration-[var(--duration-base)]", current === i ? "w-5 bg-accent" : "w-1.5 bg-fg-3/40")} />
           </button>

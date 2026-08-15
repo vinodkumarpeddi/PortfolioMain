@@ -42,7 +42,7 @@ export function Nav() {
     <>
       <a
         href={home ? "#work" : "#main"}
-        className="label fixed left-4 top-4 z-[90] -translate-y-24 rounded-full bg-fg-1 px-4 py-3 text-accent-ink focus:translate-y-0"
+        className="label fixed left-4 top-[max(1rem,env(safe-area-inset-top))] z-[90] inline-flex min-h-11 -translate-y-24 items-center rounded-full bg-fg-1 px-4 text-accent-ink focus:translate-y-0"
       >
         Skip to content
       </a>
@@ -58,7 +58,7 @@ export function Nav() {
         >
           <Link
             href="/"
-            className="pointer-events-auto flex min-w-0 items-center gap-3 text-fg-1"
+            className="pointer-events-auto flex min-w-0 items-center gap-3 text-fg-1 max-lg:min-h-11"
             aria-label={`${profile.name} — home`}
           >
             <span className="relative grid h-7 w-7 place-items-center">

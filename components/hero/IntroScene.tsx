@@ -206,7 +206,7 @@ export function IntroScene() {
                 </li>
               ))}
             </ul>
-            <a href="#work" className="label ml-auto inline-flex items-center gap-2 text-fg-3 transition-colors hover:text-fg-1 sm:ml-0">
+            <a href="#work" className="label ml-auto inline-flex min-h-11 items-center gap-2 text-fg-3 transition-colors hover:text-fg-1 sm:ml-0">
               Scroll
               <ArrowDown className="animate-[bob_1.6s_ease-in-out_infinite] motion-reduce:animate-none" />
             </a>

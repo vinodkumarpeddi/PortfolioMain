@@ -17,7 +17,7 @@ export function Notes() {
         </p>
         <p className="label w-full text-fg-3 sm:hidden">Swipe →</p>
       </Reveal>
-      <RevealGroup className="-mx-[var(--spacing-gutter)] mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-[var(--spacing-gutter)] pb-2 no-scrollbar sm:mx-0 sm:mt-10 sm:grid sm:gap-px sm:overflow-hidden sm:rounded-2xl sm:border sm:border-line-1 sm:bg-line-1 sm:px-0 sm:pb-0 sm:grid-cols-2 xl:grid-cols-3">
+      <RevealGroup className="-mx-[var(--spacing-gutter)] mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-[var(--spacing-gutter)] pb-2 no-scrollbar sm:mx-0 sm:mt-10 sm:grid sm:gap-px sm:overflow-hidden sm:rounded-2xl sm:border sm:border-line-1 sm:bg-line-1 sm:px-0 sm:pb-0 sm:grid-cols-2 xl:grid-cols-3">
         {notes.map((n, i) => (
           <RevealItem key={n.id} className="group relative flex w-[80vw] max-w-[22rem] shrink-0 snap-center flex-col rounded-2xl border border-line-1 bg-bg-1 p-6 transition-colors duration-[var(--duration-slow)] hover:bg-bg-2 sm:w-auto sm:max-w-none sm:rounded-none sm:border-0">
             <div className="label flex items-center justify-between text-fg-3">
@@ -30,7 +30,7 @@ export function Notes() {
               href={n.source.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-5 inline-flex items-center gap-1.5 text-sm text-fg-2 transition-colors hover:text-fg-1"
+              className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-sm text-fg-2 transition-colors hover:text-fg-1"
               data-cursor="GitHub ↗"
             >
               <span className="link-underline">{n.source.label}</span>

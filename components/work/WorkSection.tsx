@@ -23,7 +23,7 @@ export function WorkSection() {
         </h2>
         <Reveal delay={0.15} className="relative mt-8">
           <ol
-            className="label no-scrollbar -mx-[var(--spacing-gutter)] flex snap-x snap-mandatory gap-2 overflow-x-auto px-[var(--spacing-gutter)] text-fg-3 sm:mx-0 sm:flex-wrap sm:gap-x-6 sm:gap-y-2 sm:overflow-visible sm:px-0"
+            className="label no-scrollbar -mx-[var(--spacing-gutter)] flex snap-x snap-mandatory gap-2 overflow-x-auto overscroll-x-contain px-[var(--spacing-gutter)] text-fg-3 sm:mx-0 sm:flex-wrap sm:gap-x-6 sm:gap-y-2 sm:overflow-visible sm:px-0"
             aria-label="Projects in this section"
           >
             {projects.map((p) => (

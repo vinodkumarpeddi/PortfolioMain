@@ -126,7 +126,7 @@ export function Principles() {
                   onClick={() => jump(i)}
                   aria-current={i === index ? "true" : undefined}
                   className={cn(
-                    "label inline-flex h-10 items-center rounded-full border px-3 transition-[color,background-color,border-color,transform] duration-[var(--duration-base)] active:scale-95",
+                    "label inline-flex h-11 items-center rounded-full border px-3.5 transition-[color,background-color,border-color,transform] duration-[var(--duration-base)] active:scale-95",
                     i === index ? "border-accent/60 bg-accent-soft text-fg-1" : i < index ? "border-line-1 text-fg-3" : "border-line-1/60 text-fg-3/70",
                   )}
                 >

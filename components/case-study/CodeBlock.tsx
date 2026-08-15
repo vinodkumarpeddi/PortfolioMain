@@ -35,7 +35,7 @@ export function CodeBlock({ source, language, caption }: { source: string; langu
         </div>
       </div>
       <div className="relative">
-        <pre className="no-scrollbar overflow-x-auto p-4 font-mono text-[12.5px] leading-[1.75] text-fg-1 sm:p-5 sm:text-[13px]">
+        <pre className="no-scrollbar overflow-x-auto overscroll-x-contain p-4 font-mono text-[12.5px] leading-[1.75] text-fg-1 sm:p-5 sm:text-[13px]">
           <code>
             {lines.map((l, i) => (
               <span key={i} className="flex gap-4">

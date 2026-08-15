@@ -27,7 +27,7 @@ export function CaseStudyToc({ items, variant = "list" }: { items: { id: string;
   if (variant === "rail") {
     return (
       <nav className="sticky top-[4.25rem] z-30 -mx-[var(--spacing-gutter)] mb-6 lg:hidden" aria-label="On this page">
-        <ol ref={rail} className="no-scrollbar flex gap-2 overflow-x-auto bg-bg-0/85 px-[var(--spacing-gutter)] py-2 backdrop-blur-md">
+        <ol ref={rail} className="no-scrollbar flex gap-2 overflow-x-auto overscroll-x-contain bg-bg-0/85 px-[var(--spacing-gutter)] py-2 backdrop-blur-md">
           {items.map((i) => {
             const on = active === i.id;
             return (

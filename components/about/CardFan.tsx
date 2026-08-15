@@ -87,7 +87,7 @@ export function CardFan({ cards }: { cards: FanCard[] }) {
       <div
         ref={row}
         onScroll={onRowScroll}
-        className="-mx-[var(--spacing-gutter)] flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto scroll-smooth px-[var(--spacing-gutter)] pb-2 no-scrollbar lg:hidden"
+        className="-mx-[var(--spacing-gutter)] flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto overscroll-x-contain scroll-smooth px-[var(--spacing-gutter)] pb-2 no-scrollbar lg:hidden"
         role="group"
         aria-label="Profile cards"
       >
@@ -128,7 +128,7 @@ export function CardFan({ cards }: { cards: FanCard[] }) {
             onClick={() => goTo(i)}
             aria-label={`Show ${c.label}`}
             aria-current={current === i ? "true" : undefined}
-            className="grid h-6 w-6 place-items-center"
+            className="-m-2.5 grid h-11 w-11 place-items-center"
           >
             <span className={cn("block h-1.5 rounded-full transition-all duration-[var(--duration-base)]", current === i ? "w-5 bg-accent" : "w-1.5 bg-fg-3/40")} />
           </button>

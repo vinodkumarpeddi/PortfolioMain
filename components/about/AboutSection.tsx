@@ -37,7 +37,7 @@ const cards: FanCard[] = [
     body: (
       <>
         Reliability and observability, day to day. Before that: full-stack and ServiceNow internships, and a run of production-shaped systems on GitHub.
-        <a href={profile.companyUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-1 text-fg-1"><span className="link-underline">About the company</span> <ArrowUpRight /></a>
+        <a href={profile.companyUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex min-h-11 items-center gap-1 text-fg-1"><span className="link-underline">About the company</span> <ArrowUpRight /></a>
       </>
     ),
   },
@@ -77,7 +77,7 @@ const cards: FanCard[] = [
     body: (
       <span className="flex flex-wrap gap-2">
         {profile.codingProfiles.map((c) => (
-          <a key={c.label} href={c.href} target="_blank" rel="noopener noreferrer" className="label inline-flex items-center gap-1 rounded-full border border-line-1 px-3 py-2 text-fg-2 transition-colors hover:border-line-2 hover:text-fg-1">{c.label} <ArrowUpRight /></a>
+          <a key={c.label} href={c.href} target="_blank" rel="noopener noreferrer" className="label inline-flex min-h-11 items-center gap-1 rounded-full border border-line-1 px-3.5 text-fg-2 transition-colors hover:border-line-2 hover:text-fg-1">{c.label} <ArrowUpRight /></a>
         ))}
       </span>
     ),

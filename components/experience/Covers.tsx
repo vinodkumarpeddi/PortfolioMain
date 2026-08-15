@@ -6,7 +6,7 @@ import { Avatar, Bars, Donut, Kpi, LineChart, Pill, Tabs, Window, themes } from 
 function Cover({ children, label }: { children: React.ReactNode; label: string }) {
   return (
     <div className="relative rounded-2xl">
-      <div className="no-scrollbar max-h-[220px] overflow-x-auto overflow-y-hidden rounded-2xl [scrollbar-width:none] sm:max-h-none sm:overflow-hidden" style={{ WebkitOverflowScrolling: "touch" }}>
+      <div className="no-scrollbar max-h-[220px] overflow-x-auto overscroll-x-contain overflow-y-hidden rounded-2xl [scrollbar-width:none] sm:max-h-none sm:overflow-hidden" style={{ WebkitOverflowScrolling: "touch" }}>
         <div className="w-[165%] sm:w-full">
           <ScaledFrame width={1000} height={440} className="rounded-2xl" label={label}>
             {children}

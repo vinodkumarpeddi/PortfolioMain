@@ -123,7 +123,7 @@ export function ExperienceTimeline() {
                       aria-selected={active === i}
                       aria-label={`${m.start.slice(0, 4)} · ${m.org}`}
                       onClick={() => jump(i)}
-                      className="grid h-11 w-7 place-items-center transition-transform duration-150 active:scale-90"
+                      className="grid h-11 w-11 place-items-center transition-transform duration-150 active:scale-90"
                     >
                       <span className={cn("block h-1.5 rounded-full transition-all duration-[var(--duration-slow)]", active === i ? "w-5 bg-accent" : "w-1.5 bg-fg-3/60")} />
                     </button>
@@ -183,7 +183,7 @@ export function ExperienceTimeline() {
                           </ul>
                         )}
                         {m.link && (
-                          <a href={m.link} target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex items-center gap-1 text-sm text-fg-2 transition-colors hover:text-fg-1">
+                          <a href={m.link} target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex min-h-11 items-center gap-1 text-sm text-fg-2 transition-colors hover:text-fg-1">
                             <span className="link-underline">{m.kind === "build" ? "On GitHub" : "About the company"}</span> <ArrowUpRight />
                           </a>
                         )}
@@ -221,7 +221,7 @@ function Points({ points }: { points: string[] }) {
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          className="label mt-3 inline-flex h-10 items-center rounded-full border border-line-1 px-3.5 text-fg-3 transition-transform duration-150 active:scale-95 sm:hidden"
+          className="label mt-3 inline-flex h-11 items-center rounded-full border border-line-1 px-4 text-fg-3 transition-transform duration-150 active:scale-95 sm:hidden"
         >
           {open ? "Show less" : `+${extra} more`}
         </button>

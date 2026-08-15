@@ -69,7 +69,7 @@ export function ScreenLightbox({ title, trigger = "floating", children }: { titl
                 <motion.div
                   initial={{ scale: 0.96, y: 12 }}
                   animate={{ scale: 1, y: 0, transition: { duration: 0.6, ease: ease.outExpo } }}
-                  className="no-scrollbar flex-1 overflow-x-auto overflow-y-hidden px-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+                  className="no-scrollbar flex-1 overflow-x-auto overscroll-x-contain overflow-y-hidden px-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
                 >
                   <div style={{ width: "max(100%, calc((100svh - 7rem) * 1.6))" }}>{children}</div>
                 </motion.div>
