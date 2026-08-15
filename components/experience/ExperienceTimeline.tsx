@@ -27,6 +27,10 @@ export function ExperienceTimeline() {
   const activeRef = useRef(0);
   const state = useRef<HeroState>({ spread: 0.05, opacity: 1, energy: 0.2 });
   const panelsRef = useRef<HTMLOListElement>(null);
+  const jump = (i: number) => {
+    const el = panelsRef.current?.querySelector<HTMLElement>(`[data-panel="${i}"]`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
 
   useEffect(() => {
     const els = Array.from(panelsRef.current?.querySelectorAll<HTMLElement>("[data-panel]") ?? []);
@@ -71,7 +75,7 @@ export function ExperienceTimeline() {
             <div className="sticky top-16 z-10 h-[40vh] lg:top-24 lg:h-[calc(100svh-7rem)]">
               <div className="absolute inset-0 rounded-[28px] border border-line-1 bg-bg-1/40 [box-shadow:var(--shadow-soft)]">
                 <div aria-hidden className="grid-bg absolute inset-0 rounded-[28px] opacity-60 [mask-image:radial-gradient(70%_70%_at_50%_50%,black,transparent)]" />
-                <HeroCanvas stateRef={state} variant="orbit" orbit={{ count: ordered.length, activeRef }} className="absolute inset-0" />
+                <HeroCanvas stateRef={state} variant="orbit" orbit={{ count: ordered.length, activeRef, labels: ordered.map((m) => `${m.start.slice(0, 4)} · ${m.org}`), onSelect: jump }} className="absolute inset-0 [&_canvas]:pointer-events-auto" />
                 {/* readout */}
                 <div className="pointer-events-none absolute inset-x-5 bottom-5 flex items-end justify-between gap-4 lg:inset-x-7 lg:bottom-7">
                   <div>
@@ -82,10 +86,18 @@ export function ExperienceTimeline() {
                     </AnimatePresence>
                     <p className="label mt-2 text-fg-3">{current.org}</p>
                   </div>
-                  <p className="label tabular-nums text-fg-3">
-                    <span className="text-fg-1">{String(active + 1).padStart(2, "0")}</span> / {String(ordered.length).padStart(2, "0")}
-                  </p>
+                  <div className="pointer-events-auto flex flex-col items-end gap-3">
+                    <p className="label tabular-nums text-fg-3">
+                      <span className="text-fg-1">{String(active + 1).padStart(2, "0")}</span> / {String(ordered.length).padStart(2, "0")}
+                    </p>
+                    <div className="hidden gap-1.5 sm:flex" role="tablist" aria-label="Jump to milestone">
+                      {ordered.map((m, i) => (
+                        <button key={m.id} type="button" role="tab" aria-selected={active === i} aria-label={m.org} onClick={() => jump(i)} className={cn("h-2 rounded-full transition-all duration-[var(--duration-slow)]", active === i ? "w-6 bg-accent" : "w-2 bg-fg-3/60 hover:bg-fg-2")} />
+                      ))}
+                    </div>
+                  </div>
                 </div>
+                <p className="label pointer-events-none absolute left-5 top-5 text-fg-3 lg:left-7 lg:top-7">Orbit · click a marker to jump</p>
               </div>
             </div>
           </div>
@@ -118,6 +130,15 @@ export function ExperienceTimeline() {
                         )}
                       </div>
                       <h3 className="text-h2 mt-5 break-words text-fg-1">{m.org}</h3>
+                      {m.highlights && (
+                        <ul className="mt-4 flex flex-wrap gap-2" aria-label="Highlights">
+                          {m.highlights.map((h, k) => (
+                            <motion.li key={h} initial={false} animate={{ opacity: active === i ? 1 : 0.5, y: active === i ? 0 : 4 }} transition={{ duration: 0.5, delay: active === i ? 0.08 + k * 0.06 : 0, ease: ease.outExpo }} className="rounded-full border border-accent/30 bg-accent-soft px-3 py-1.5 text-[12.5px] text-fg-1">
+                              {h}
+                            </motion.li>
+                          ))}
+                        </ul>
+                      )}
                       <p className="mt-2 text-lead text-fg-2">
                         {m.role}
                         {m.location && <span className="block text-[15px] text-fg-3">{m.location}</span>}

@@ -315,3 +315,5 @@ video {
 @media (prefers-reduced-motion: reduce) {
   .marquee-track { animation: none; }
 }
+.vis-reveal { display: inline-block; animation: vis-type 900ms steps(36) both; }
+@media (prefers-reduced-motion: reduce) { .vis-reveal { animation: none !important; clip-path: none !important; } }

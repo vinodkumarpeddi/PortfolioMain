@@ -83,12 +83,13 @@ export function CaseStudy({ project }: { project: Project }) {
       {/* hero visual */}
       <div className="gutter mx-auto max-w-[100rem]">
         <Reveal amount={0.2} className="overflow-hidden rounded-3xl border border-line-1 bg-bg-2/40 [box-shadow:var(--shadow-soft)]">
-          {project.image ? (
-            <Image src={project.image.src} alt={project.image.alt} width={project.image.width} height={project.image.height} priority sizes="100vw" className="h-auto w-full object-cover" />
-          ) : (
-            <ProductVisual project={project} className="rounded-none border-0" />
-          )}
+          <ProductVisual project={project} />
         </Reveal>
+        {project.image && (
+          <Reveal className="mt-6 overflow-hidden rounded-3xl border border-line-1" amount={0.2}>
+            <Image src={project.image.src} alt={project.image.alt} width={project.image.width} height={project.image.height} sizes="100vw" className="h-auto w-full object-cover" />
+          </Reveal>
+        )}
         <dl className="mt-8 grid gap-6 border-t border-line-1 pt-6 sm:grid-cols-3">
           {project.facts.map((f) => (
             <div key={f.label}>

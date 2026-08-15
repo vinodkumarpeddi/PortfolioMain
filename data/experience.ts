@@ -12,6 +12,7 @@ export type Milestone = {
   systems?: string[];
   technologies: string[];
   link?: string;
+  highlights?: string[];
 };
 
 export const milestones: Milestone[] = [
@@ -30,6 +31,7 @@ export const milestones: Milestone[] = [
       "Certifications across ServiceNow, Cisco networking and JavaScript, Pearson IT Specialist, NPTEL cloud and IoT",
     ],
     technologies: ["C", "C++", "Java", "SQL", "DBMS", "OS", "Networks"],
+    highlights: ["CGPA 8.4", "300+ LeetCode", "100+ GfG", "12 certifications"],
   },
   {
     id: "technical-hub",
@@ -48,6 +50,7 @@ export const milestones: Milestone[] = [
     ],
     systems: ["Auth", "REST APIs", "Data modelling"],
     technologies: ["HTML", "CSS", "JavaScript", "React", "Node.js", "MongoDB", "MySQL", "JWT", "OAuth"],
+    highlights: ["JWT + OAuth auth", "REST integration", "MongoDB · MySQL"],
   },
   {
     id: "servicenow",
@@ -68,6 +71,7 @@ export const milestones: Milestone[] = [
     ],
     systems: ["Workflow automation", "RBAC · ACLs", "Data modelling"],
     technologies: ["ServiceNow", "App Engine Studio", "Flow Designer", "Script Includes", "ACLs", "JavaScript"],
+    highlights: ["CSA · CAD certified", "Scoped apps", "Flow automation", "ACLs · RBAC"],
   },
   {
     id: "systems",
@@ -87,6 +91,7 @@ export const milestones: Milestone[] = [
     systems: ["Queues", "Idempotency", "Outbox", "RBAC", "Observability"],
     technologies: ["Node.js", "PostgreSQL", "Redis", "RabbitMQ", "Docker", "Next.js", "TypeScript"],
     link: "https://github.com/vinodkumarpeddi",
+    highlights: ["6+ systems", "All containerised", "Documented READMEs", "70+ public repos"],
   },
   {
     id: "everuptime",
@@ -101,6 +106,7 @@ export const milestones: Milestone[] = [
     systems: ["Reliability", "Observability", "Incident management"],
     technologies: [],
     link: "https://www.linkedin.com/company/everuptime",
+    highlights: ["Incident management", "Uptime monitoring", "On-call"],
   },
 ];
 

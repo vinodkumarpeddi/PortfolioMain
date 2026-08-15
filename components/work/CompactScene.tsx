@@ -1,7 +1,7 @@
 import type { Project } from "@/data/types";
 import { Reveal } from "@/components/ui/Reveal";
 import { SplitText } from "@/components/ui/SplitText";
-import { ProjectImage } from "./ProjectImage";
+import { ProductVisual } from "@/components/visuals/ProductVisual";
 import { Tilt } from "@/components/visuals/Tilt";
 import { FactList, ProjectHeader, ProjectLinks, TechList } from "./ProjectMeta";
 
@@ -25,13 +25,11 @@ export function CompactScene({ project }: { project: Project }) {
           </Reveal>
         </div>
         <div className="col-span-12 lg:col-span-6 lg:order-1">
-          {project.image && (
-            <div className="group/tilt">
-              <Tilt max={5}>
-                <ProjectImage image={project.image} href={project.live ?? project.github} className="aspect-[4/3]" sizes="(min-width: 1024px) 48vw, 100vw" />
-              </Tilt>
-            </div>
-          )}
+          <div className="group/tilt">
+            <Tilt max={5}>
+              <ProductVisual project={project} />
+            </Tilt>
+          </div>
           <Reveal className="mt-6" amount={0.5}>
             <FactList facts={project.facts} className="sm:grid-cols-2" />
           </Reveal>

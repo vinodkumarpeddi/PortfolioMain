@@ -1,12 +1,13 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, type MutableRefObject } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
+import { Html } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 export type HeroState = { spread: number; opacity: number; energy?: number };
 export type HeroVariant = "hero" | "ambient" | "orbit" | "backdrop";
-export type OrbitConfig = { count: number; activeRef: MutableRefObject<number> };
+export type OrbitConfig = { count: number; activeRef: MutableRefObject<number>; labels?: string[]; onSelect?: (i: number) => void };
 
 function makeRng(seed: number) {
   let state = seed;
@@ -143,6 +144,7 @@ function AutoSize() {
 /** Milestone markers on a tilted orbit ring; the active one rotates to the front and pulses. */
 function OrbitMarkers({ orbit, stateRef }: { orbit: OrbitConfig; stateRef: MutableRefObject<HeroState> }) {
   const ring = useRef<THREE.Group>(null);
+  const [hover, setHover] = useState<number | null>(null);
   const pulses = useRef<THREE.Mesh[]>([]);
   const cores = useRef<THREE.Mesh[]>([]);
   const R = 2.55;
@@ -166,7 +168,7 @@ function OrbitMarkers({ orbit, stateRef }: { orbit: OrbitConfig; stateRef: Mutab
       const core = cores.current[i];
       const pulse = pulses.current[i];
       if (core) {
-        const target = isActive ? 0.075 : 0.04;
+        const target = isActive ? 0.075 : hover === i ? 0.06 : 0.04;
         core.scale.setScalar(THREE.MathUtils.damp(core.scale.x || 0.001, target, 6, dt));
         (core.material as THREE.MeshBasicMaterial).opacity = THREE.MathUtils.damp((core.material as THREE.MeshBasicMaterial).opacity, (isActive ? 1 : 0.55) * stateRef.current.opacity, 6, dt);
       }
@@ -188,10 +190,27 @@ function OrbitMarkers({ orbit, stateRef }: { orbit: OrbitConfig; stateRef: Mutab
           const pos: [number, number, number] = [Math.cos(a) * R, 0, Math.sin(a) * R];
           return (
             <group key={i} position={pos}>
-              <mesh ref={(el) => { if (el) cores.current[i] = el; }}>
+              <mesh
+                ref={(el) => { if (el) cores.current[i] = el; }}
+                onClick={(e) => { e.stopPropagation(); orbit.onSelect?.(i); }}
+                onPointerOver={(e) => { e.stopPropagation(); setHover(i); document.body.style.cursor = "pointer"; }}
+                onPointerOut={() => { setHover(null); document.body.style.cursor = ""; }}
+              >
                 <sphereGeometry args={[1, 16, 16]} />
                 <meshBasicMaterial color="#ffd18a" transparent opacity={0.6} toneMapped={false} depthWrite={false} />
               </mesh>
+              {/* generous hit area */}
+              <mesh onClick={(e) => { e.stopPropagation(); orbit.onSelect?.(i); }} onPointerOver={(e) => { e.stopPropagation(); setHover(i); }} onPointerOut={() => setHover(null)} visible={false}>
+                <sphereGeometry args={[0.22, 8, 8]} />
+                <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+              </mesh>
+              {orbit.labels && (hover === i || orbit.activeRef.current === i) && (
+                <Html position={[0, 0.16, 0]} center zIndexRange={[6, 0]} style={{ pointerEvents: "none" }}>
+                  <div style={{ whiteSpace: "nowrap", padding: "6px 10px", borderRadius: 999, border: "1px solid rgba(233,162,59,0.45)", background: "rgba(10,10,12,0.8)", backdropFilter: "blur(8px)", fontFamily: "var(--font-mono)", fontSize: 10.5, letterSpacing: "0.12em", textTransform: "uppercase", color: "#f1efe9" }}>
+                    {orbit.labels[i]}
+                  </div>
+                </Html>
+              )}
               <mesh ref={(el) => { if (el) pulses.current[i] = el; }} rotation={[Math.PI / 2, 0, 0]}>
                 <ringGeometry args={[0.85, 1, 48]} />
                 <meshBasicMaterial color="#e9a23b" transparent opacity={0} side={THREE.DoubleSide} toneMapped={false} depthWrite={false} />

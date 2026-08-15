@@ -2,6 +2,7 @@ import type { Project } from "@/data/types";
 import { Reveal, RevealGroup, RevealItem } from "@/components/ui/Reveal";
 import { SplitText } from "@/components/ui/SplitText";
 import { ProjectImage } from "./ProjectImage";
+import { ProductVisual } from "@/components/visuals/ProductVisual";
 import { FactList, ProjectHeader, ProjectLinks, TechList } from "./ProjectMeta";
 import { Tilt } from "@/components/visuals/Tilt";
 
@@ -33,12 +34,16 @@ export function SplitScene({ project }: { project: Project }) {
           </div>
         </div>
         <div className="col-span-12 lg:col-span-7">
+          <div className="group/tilt">
+            <Tilt max={5}>
+              <ProductVisual project={project} />
+            </Tilt>
+          </div>
           {project.image && (
-            <div className="group/tilt">
-              <Tilt max={5}>
-                <ProjectImage image={project.image} href={project.live ?? project.github} priority={false} className="aspect-[4/3] lg:aspect-[1/1]" sizes="(min-width: 1024px) 56vw, 100vw" />
-              </Tilt>
-            </div>
+            <Reveal className="mt-6" amount={0.3}>
+              <p className="label mb-3 text-fg-3">From the live product</p>
+              <ProjectImage image={project.image} href={project.live ?? project.github} className="aspect-[16/9]" sizes="(min-width: 1024px) 56vw, 100vw" reveal={false} />
+            </Reveal>
           )}
           <Reveal className="mt-8" amount={0.4}>
             <FactList facts={project.facts} />

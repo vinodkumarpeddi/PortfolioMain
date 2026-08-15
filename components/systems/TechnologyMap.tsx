@@ -101,20 +101,34 @@ export function TechnologyMap() {
     <div ref={rootRef} className="relative mt-14">
       {/* connection overlay */}
       <svg aria-hidden className="pointer-events-none absolute inset-0 hidden h-full w-full overflow-visible lg:block">
+        <defs>
+          <filter id="tm-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
         <AnimatePresence>
-          {lines.map((l) => (
-            <motion.path
-              key={`${tech?.id}-${l.key}`}
-              d={l.d}
-              fill="none"
-              stroke="var(--color-accent)"
-              strokeWidth="1"
-              strokeOpacity="0.7"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.15 } }}
-              transition={{ duration: 0.7, ease: ease.outExpo }}
-            />
+          {lines.map((l, i) => (
+            <g key={`${tech?.id}-${l.key}`}>
+              <motion.path
+                d={l.d}
+                fill="none"
+                stroke="var(--color-accent)"
+                strokeWidth="1.5"
+                strokeOpacity="0.85"
+                filter="url(#tm-glow)"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                exit={{ opacity: 0, transition: { duration: 0.15 } }}
+                transition={{ duration: 0.7, ease: ease.outExpo, delay: i * 0.04 }}
+              />
+              <motion.circle r="3.5" fill="#ffd18a" filter="url(#tm-glow)" initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 1, 0] }} exit={{ opacity: 0 }} transition={{ duration: 1.6, repeat: Infinity, delay: 0.3 + i * 0.12, ease: "linear" }}>
+                <animateMotion dur="1.6s" repeatCount="indefinite" begin={`${0.3 + i * 0.12}s`} path={l.d} />
+              </motion.circle>
+            </g>
           ))}
         </AnimatePresence>
       </svg>
@@ -159,13 +173,15 @@ export function TechnologyMap() {
                             onClick={() => interact(() => { setActiveProject(null); setActiveTech(t.id); })}
                             aria-pressed={on}
                             className={cn(
-                              "group flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-[15px] transition-[opacity,color,background-color] duration-[var(--duration-base)]",
-                              on || inProject ? "bg-fg-1/[0.05] text-fg-1" : "text-fg-2 hover:text-fg-1",
-                              dim && "opacity-40",
+                              "group relative flex w-full items-center gap-2.5 rounded-xl border px-2.5 py-2 text-left text-[14.5px] leading-snug transition-[opacity,color,background-color,border-color,box-shadow] duration-[var(--duration-base)]",
+                              on ? "border-accent/50 bg-accent-soft text-fg-1 [box-shadow:0_0_0_1px_rgba(233,162,59,0.15),0_10px_30px_-12px_rgba(233,162,59,0.45)]" : inProject ? "border-accent/30 bg-fg-1/[0.05] text-fg-1" : "border-transparent text-fg-2 hover:border-line-1 hover:bg-fg-1/[0.03] hover:text-fg-1",
+                              dim && "opacity-35",
                             )}
                           >
-                            <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full transition-colors", on || inProject ? "bg-accent" : "bg-fg-3")} />
-                            <span className="truncate">{t.name}</span>
+                            <span className={cn("relative h-1.5 w-1.5 shrink-0 rounded-full transition-colors", on || inProject ? "bg-accent" : "bg-fg-3")}>
+                              {on && <span className="absolute inset-0 animate-ping rounded-full bg-accent opacity-70 motion-reduce:animate-none" />}
+                            </span>
+                            <span>{t.name}</span>
                           </button>
                         </li>
                       );
@@ -179,7 +195,8 @@ export function TechnologyMap() {
         {/* console */}
         <div className="col-span-12 lg:col-span-4">
           <div className="lg:sticky lg:top-28">
-            <div className="rounded-2xl border border-line-1 bg-bg-2/60 p-5 [box-shadow:var(--shadow-soft)]" aria-live="polite">
+            <div className="relative overflow-hidden rounded-2xl border border-line-1 bg-bg-2/60 p-5 [box-shadow:var(--shadow-soft)]" aria-live="polite">
+              <span aria-hidden className={cn("pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-accent/[0.12] blur-3xl transition-opacity duration-[var(--duration-slow)]", tech ? "opacity-100" : "opacity-0")} />
               <div className="label flex items-center justify-between text-fg-3">
                 <span>Where it was used</span>
                 <span className="flex items-center gap-1.5">
@@ -192,7 +209,10 @@ export function TechnologyMap() {
                   {tech ? (
                     <motion.div key={tech.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.3, ease: ease.outExpo }}>
                       <p className="text-h3 text-fg-1">{tech.name}</p>
-                      <p className="mt-2 text-sm leading-relaxed text-fg-2">{tech.usage}</p>
+                      <p className="mt-2 text-sm leading-relaxed text-fg-2">
+                        <span className="vis-reveal">{tech.usage}</span>
+                      </p>
+                      <p className="label mt-3 text-fg-3">{tech.projects.length} system{tech.projects.length === 1 ? "" : "s"} · {tech.branch}</p>
                     </motion.div>
                   ) : (
                     <motion.p key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-sm leading-relaxed text-fg-3">
@@ -218,8 +238,8 @@ export function TechnologyMap() {
                       onClick={() => interact(() => { setActiveTech(null); setActiveProject(p.key); })}
                       aria-pressed={selected}
                       className={cn(
-                        "label rounded-full border px-3 py-2 transition-[opacity,border-color,color,background-color] duration-[var(--duration-base)]",
-                        on || selected ? "border-accent/70 bg-accent-soft text-fg-1" : "border-line-1 text-fg-2 hover:border-line-2 hover:text-fg-1",
+                        "label rounded-full border px-3 py-2 transition-[opacity,border-color,color,background-color,box-shadow] duration-[var(--duration-base)]",
+                        on || selected ? "border-accent/70 bg-accent-soft text-fg-1 [box-shadow:0_8px_24px_-10px_rgba(233,162,59,0.5)]" : "border-line-1 text-fg-2 hover:border-line-2 hover:text-fg-1",
                         p.kind === "featured" && "font-semibold",
                         dim && "opacity-35",
                       )}
