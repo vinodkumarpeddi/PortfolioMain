@@ -1,25 +1,29 @@
 import Image from "next/image";
 import type { Project } from "@/data/types";
-import type { GlassShape } from "@/components/three/HeroObject";
-import { GlassVisual } from "./GlassVisual";
+import { ScaledFrame } from "./ScaledFrame";
+import { PaymentScreen } from "./screens/PaymentScreen";
+import { AnalyticsScreen } from "./screens/AnalyticsScreen";
+import { SaasScreen } from "./screens/SaasScreen";
 import { cn } from "@/lib/utils";
 
-const shapes: Record<string, GlassShape> = {
-  "payment-orchestrator": "torus",
-  "event-driven-analytics": "gem",
-  "multi-tenant-saas": "cubes",
-};
-
-/** Picks the visual for a project: a real screenshot, or a 3D glass object. */
-export function ProductVisual({ project, className, priority }: { project: Project; className?: string; compact?: boolean; priority?: boolean }) {
+/** Picks the visual for a project: a real screenshot, or a designed product screen. */
+export function ProductVisual({ project, className, priority }: { project: Project; className?: string; priority?: boolean }) {
   if (project.image) {
     return (
-      <div className={cn("relative aspect-[16/10] overflow-hidden rounded-[22px] border border-line-1 bg-bg-2", className)}>
+      <div className={cn("relative aspect-[16/10] overflow-hidden rounded-[22px] border border-line-1 bg-bg-2 [box-shadow:var(--shadow-soft)]", className)}>
         <Image src={project.image.src} alt={project.image.alt} width={project.image.width} height={project.image.height} priority={priority} sizes="(min-width: 1024px) 60vw, 100vw" className="h-full w-full object-cover object-top" />
       </div>
     );
   }
-  const shape = shapes[project.slug];
-  if (!shape) return null;
-  return <GlassVisual shape={shape} className={className} label={`${project.title} — abstract 3D visual`} />;
+  const screen =
+    project.slug === "payment-orchestrator" ? <PaymentScreen /> : project.slug === "event-driven-analytics" ? <AnalyticsScreen /> : project.slug === "multi-tenant-saas" ? <SaasScreen /> : null;
+  if (!screen) return null;
+  return (
+    <div className={cn("relative", className)}>
+      <div aria-hidden className="pointer-events-none absolute -inset-6 rounded-[32px] bg-accent/[0.07] blur-3xl" />
+      <ScaledFrame className="relative rounded-[22px]" label={`${project.title} — product screen (demo data)`}>
+        {screen}
+      </ScaledFrame>
+    </div>
+  );
 }

@@ -1,134 +1,101 @@
 "use client";
 
-import { Suspense, useMemo, useRef, type ComponentRef, type MutableRefObject } from "react";
+import { Suspense, useMemo, useRef, type MutableRefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, Float, Lightformer, MeshTransmissionMaterial, RoundedBox, Sparkles } from "@react-three/drei";
 import * as THREE from "three";
 
 export type HeroState = { spread: number; opacity: number };
-export type GlassShape = "knot" | "torus" | "gem" | "cubes";
 
-const ACCENT = "#e9a23b";
+const COUNT_DESKTOP = 9000;
+const COUNT_MOBILE = 4500;
 
-function GlassMaterial({ matRef, ambient }: { matRef: React.RefObject<ComponentRef<typeof MeshTransmissionMaterial> | null>; ambient: boolean }) {
-  return (
-    <MeshTransmissionMaterial
-      ref={matRef}
-      transmission={1}
-      thickness={0.9}
-      roughness={0.05}
-      ior={1.4}
-      chromaticAberration={0.1}
-      anisotropicBlur={0.2}
-      distortion={0.2}
-      distortionScale={0.3}
-      temporalDistortion={0.06}
-      iridescence={1}
-      iridescenceIOR={1.3}
-      iridescenceThicknessRange={[100, 500]}
-      clearcoat={1}
-      envMapIntensity={1.8}
-      attenuationColor="#ffe9c9"
-      attenuationDistance={2.4}
-      background={new THREE.Color("#141210")}
-      color="#ffffff"
-      samples={ambient ? 4 : 6}
-      resolution={ambient ? 384 : 640}
-      backside={false}
-      transparent
-      toneMapped
-    />
+const vertexShader = /* glsl */ `
+  uniform float uTime;
+  uniform float uMorph;
+  uniform float uScatter;
+  uniform float uSize;
+  uniform float uPixelRatio;
+  uniform vec2 uMouse;
+  uniform float uMouseForce;
+  attribute vec3 aKnot;
+  attribute vec3 aSphere;
+  attribute float aRand;
+  varying float vAlpha;
+  varying float vRand;
+
+  void main() {
+    vec3 p = mix(aKnot, aSphere, uMorph);
+    float breathe = sin(uTime * 0.9 + aRand * 6.2831) * 0.035;
+    p += normalize(p + 0.0001) * breathe;
+    p += normalize(p + 0.0001) * uScatter * (0.5 + aRand * 2.2);
+    vec4 mv = modelViewMatrix * vec4(p, 1.0);
+    vec2 d = mv.xy - uMouse;
+    float dist = length(d);
+    float force = smoothstep(1.6, 0.0, dist) * uMouseForce;
+    mv.xy += normalize(d + 0.0001) * force;
+    gl_Position = projectionMatrix * mv;
+    gl_PointSize = uSize * uPixelRatio * (0.55 + aRand * 0.9) * (7.0 / -mv.z);
+    vAlpha = 0.2 + 0.8 * aRand * aRand;
+    vRand = aRand;
+  }
+`;
+
+const fragmentShader = /* glsl */ `
+  uniform float uOpacity;
+  varying float vAlpha;
+  varying float vRand;
+  void main() {
+    float d = length(gl_PointCoord - 0.5);
+    float a = smoothstep(0.5, 0.12, d);
+    vec3 amber = vec3(0.914, 0.635, 0.231);
+    vec3 warm = vec3(1.0, 0.93, 0.80);
+    vec3 col = mix(amber, warm, smoothstep(0.8, 1.0, vRand));
+    gl_FragColor = vec4(col * (0.75 + vRand * 0.45), a * vAlpha * uOpacity);
+  }
+`;
+
+function ParticleSculpture({ stateRef, ambient, geometry, halo }: { stateRef: MutableRefObject<HeroState>; ambient: boolean; geometry: THREE.BufferGeometry; halo?: boolean }) {
+  const points = useRef<THREE.Points>(null);
+  const mat = useRef<THREE.ShaderMaterial>(null);
+  const { pointer, viewport, gl } = useThree();
+
+
+  const uniforms = useMemo(
+    () => ({
+      uTime: { value: 0 },
+      uMorph: { value: 0 },
+      uScatter: { value: 0 },
+      uSize: { value: (ambient ? 2.6 : 3.1) * (halo ? 2.8 : 1) },
+      uPixelRatio: { value: 1 },
+      uMouse: { value: new THREE.Vector2(99, 99) },
+      uMouseForce: { value: 0 },
+      uOpacity: { value: halo ? 0.05 : 0.6 },
+    }),
+    [ambient, halo],
   );
-}
 
-/** Refractive glass sculpture — one of several forms. */
-function GlassForm({ stateRef, ambient, shape }: { stateRef: MutableRefObject<HeroState>; ambient: boolean; shape: GlassShape }) {
-  const group = useRef<THREE.Group>(null);
-  const mat = useRef<ComponentRef<typeof MeshTransmissionMaterial>>(null);
-  const cubeMats = useRef<ComponentRef<typeof MeshTransmissionMaterial>[]>([]);
   useFrame((state, dt) => {
     const s = stateRef.current;
-    const t = state.clock.elapsedTime;
-    if (group.current) {
-      const target = (ambient ? 0.85 : 1) * (1 - s.spread * 0.4);
-      group.current.scale.setScalar(THREE.MathUtils.damp(group.current.scale.x || 0.001, target, 5, dt));
-      group.current.rotation.y += dt * (shape === "cubes" ? 0.1 : 0.18 + s.spread * 0.6);
-      group.current.rotation.x = Math.sin(t * 0.2) * (shape === "torus" ? 0.6 : 0.35) + s.spread * 1.2 + (shape === "torus" ? 0.9 : 0);
+    const u = mat.current?.uniforms as typeof uniforms | undefined;
+    if (!u) return;
+    u.uTime.value = state.clock.elapsedTime;
+    u.uPixelRatio.value = gl.getPixelRatio();
+    u.uMorph.value = THREE.MathUtils.damp(u.uMorph.value, Math.min(1, s.spread * 1.6), 4, dt);
+    u.uScatter.value = THREE.MathUtils.damp(u.uScatter.value, Math.max(0, s.spread - 0.45) * 2.4, 4, dt);
+    u.uOpacity.value = THREE.MathUtils.damp(u.uOpacity.value, s.opacity * (halo ? 0.05 : 0.6), 5, dt);
+    // pointer in view space (approximation at the sculpture's depth)
+    const target = new THREE.Vector2((pointer.x * viewport.width) / 2, (pointer.y * viewport.height) / 2);
+    u.uMouse.value.lerp(target, 1 - Math.exp(-6 * dt));
+    u.uMouseForce.value = THREE.MathUtils.damp(u.uMouseForce.value, ambient ? 0.25 : 0.55, 3, dt);
+    if (points.current) {
+      points.current.rotation.y += dt * (ambient ? 0.08 : 0.14);
+      points.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.18) * 0.28 + s.spread * 0.6;
     }
-    if (mat.current) mat.current.opacity = THREE.MathUtils.damp(mat.current.opacity ?? 1, s.opacity, 6, dt);
-    cubeMats.current.forEach((m) => {
-      if (m) m.opacity = THREE.MathUtils.damp(m.opacity ?? 1, s.opacity, 6, dt);
-    });
   });
-  if (shape === "cubes") {
-    const positions: [number, number, number][] = [];
-    for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) positions.push([x * 1.05, y * 1.05, 0]);
-    return (
-      <group ref={group}>
-        {positions.map((p, i) => (
-          <Float key={i} speed={1 + (i % 3) * 0.3} rotationIntensity={0.15} floatIntensity={0.4}>
-            <RoundedBox args={[0.8, 0.8, 0.8]} radius={0.12} smoothness={4} position={p}>
-              <GlassMaterial matRef={{ current: null } as never} ambient={ambient} />
-            </RoundedBox>
-          </Float>
-        ))}
-      </group>
-    );
-  }
-  return (
-    <group ref={group}>
-      <mesh>
-        {shape === "knot" && <torusKnotGeometry args={[1.05, 0.34, 260, 48, 2, 3]} />}
-        {shape === "torus" && <torusGeometry args={[1.35, 0.46, 64, 200]} />}
-        {shape === "gem" && <icosahedronGeometry args={[1.6, 0]} />}
-        <GlassMaterial matRef={mat} ambient={ambient} />
-      </mesh>
-      {shape === "torus" && (
-        <mesh position={[1.35, 0, 0]}>
-          <sphereGeometry args={[0.16, 24, 24]} />
-          <meshBasicMaterial color={ACCENT} toneMapped={false} />
-        </mesh>
-      )}
-    </group>
-  );
-}
 
-/** Undulating field of luminous points — a quiet "data terrain" behind the sculpture. */
-function Terrain({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
-  const cols = 72;
-  const rows = 40;
-  const geom = useMemo(() => {
-    const g = new THREE.BufferGeometry();
-    const pos = new Float32Array(cols * rows * 3);
-    let i = 0;
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
-        pos[i++] = (x / (cols - 1) - 0.5) * 22;
-        pos[i++] = 0;
-        pos[i++] = (y / (rows - 1) - 0.5) * 12;
-      }
-    }
-    g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-    return g;
-  }, []);
-  const mat = useRef<THREE.PointsMaterial>(null);
-  useFrame((state) => {
-    const t = state.clock.elapsedTime;
-    const s = stateRef.current;
-    const attr = geom.getAttribute("position") as THREE.BufferAttribute;
-    const arr = attr.array as Float32Array;
-    const amp = 0.35 + s.spread * 0.6;
-    for (let i = 0; i < cols * rows; i++) {
-      const x = arr[i * 3];
-      const z = arr[i * 3 + 2];
-      arr[i * 3 + 1] = Math.sin(x * 0.55 + t * 0.7) * Math.cos(z * 0.6 + t * 0.5) * amp + Math.sin((x + z) * 0.25 + t * 0.3) * amp * 0.6;
-    }
-    attr.needsUpdate = true;
-    if (mat.current) mat.current.opacity = 0.42 * s.opacity;
-  });
   return (
-    <points geometry={geom} position={[0, -2.2, -2.5]} rotation={[0.28, 0, 0]}>
-      <pointsMaterial ref={mat} color={ACCENT} size={0.035} sizeAttenuation transparent opacity={0.42} depthWrite={false} blending={THREE.AdditiveBlending} />
+    <points ref={points} geometry={geometry} frustumCulled={false}>
+      <shaderMaterial ref={mat} vertexShader={vertexShader} fragmentShader={fragmentShader} uniforms={uniforms} transparent depthWrite={false} blending={THREE.AdditiveBlending} />
     </points>
   );
 }
@@ -139,59 +106,78 @@ function Rig({ children, ambient }: { children: React.ReactNode; ambient: boolea
   useFrame((_, dt) => {
     if (!group.current) return;
     const desktop = size.width >= 900;
-    group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, pointer.x * 0.3, 4, dt);
-    group.current.rotation.x = THREE.MathUtils.damp(group.current.rotation.x, -pointer.y * 0.2, 4, dt);
-    const s = ambient ? Math.min(1.35, viewport.width / 5.2) : desktop ? Math.min(1.25, viewport.width / 6.2) : Math.min(0.9, viewport.width / 5.5);
-    group.current.scale.setScalar(THREE.MathUtils.damp(group.current.scale.x || 0.001, s, 4, dt));
-    group.current.position.x = ambient ? 0 : desktop ? 0.15 : 0.9;
-    group.current.position.y = ambient ? 0 : desktop ? -0.15 : 1.5;
+    group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, pointer.x * 0.25, 4, dt);
+    group.current.rotation.x = THREE.MathUtils.damp(group.current.rotation.x, -pointer.y * 0.18, 4, dt);
+    const s = ambient ? Math.min(1.1, viewport.width / 7) : desktop ? Math.min(1.35, viewport.width / 6) : Math.min(0.95, viewport.width / 5.2);
+    group.current.scale.setScalar(THREE.MathUtils.damp(group.current.scale.x, s, 4, dt));
+    group.current.position.x = ambient ? 0.2 : desktop ? 0.2 : 0.8;
+    group.current.position.y = ambient ? 0 : desktop ? -0.1 : 1.5;
   });
   return <group ref={group}>{children}</group>;
 }
 
-function Scene({ stateRef, ambient, shape, terrain }: { stateRef: MutableRefObject<HeroState>; ambient: boolean; shape: GlassShape; terrain: boolean }) {
+function useSculptureGeometry(count: number) {
+  return useMemo(() => {
+    const knotGeo = new THREE.TorusKnotGeometry(1.05, 0.36, 420, 72, 2, 3);
+    const src = knotGeo.getAttribute("position") as THREE.BufferAttribute;
+    const total = src.count;
+    const knot = new Float32Array(count * 3);
+    const sphere = new Float32Array(count * 3);
+    const rand = new Float32Array(count);
+    let seed = 1337;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const golden = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < count; i++) {
+      const j = Math.floor(rnd() * total);
+      knot[i * 3] = src.getX(j);
+      knot[i * 3 + 1] = src.getY(j);
+      knot[i * 3 + 2] = src.getZ(j);
+      const y = 1 - (i / (count - 1)) * 2;
+      const r = Math.sqrt(1 - y * y);
+      const th = golden * i;
+      const R = 1.55 + rnd() * 0.08;
+      sphere[i * 3] = Math.cos(th) * r * R;
+      sphere[i * 3 + 1] = y * R;
+      sphere[i * 3 + 2] = Math.sin(th) * r * R;
+      rand[i] = rnd();
+    }
+    knotGeo.dispose();
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(knot, 3));
+    g.setAttribute("aKnot", new THREE.BufferAttribute(knot, 3));
+    g.setAttribute("aSphere", new THREE.BufferAttribute(sphere, 3));
+    g.setAttribute("aRand", new THREE.BufferAttribute(rand, 1));
+    return g;
+  }, [count]);
+}
+
+function Scene({ stateRef, ambient }: { stateRef: MutableRefObject<HeroState>; ambient: boolean }) {
+  const { size } = useThree();
+  const geometry = useSculptureGeometry(size.width >= 900 ? COUNT_DESKTOP : COUNT_MOBILE);
   return (
-    <>
-      <ambientLight intensity={0.15} />
-      <directionalLight position={[5, 6, 4]} intensity={1.2} />
-      <pointLight position={[-4, -2, 3]} intensity={5} color={ACCENT} distance={12} decay={2} />
-      <Environment resolution={256} frames={1}>
-        <Lightformer form="rect" intensity={3} color="#ffffff" position={[0, 5, -3]} rotation={[-Math.PI / 2.2, 0, 0]} scale={[10, 3, 1]} />
-        <Lightformer form="ring" intensity={0.5} color="#fff5e6" position={[0, 0, -8]} scale={14} />
-        <Lightformer form="rect" intensity={2.4} color={ACCENT} position={[-6, 0, 2]} rotation={[0, Math.PI / 2, 0]} scale={[4, 6, 1]} />
-        <Lightformer form="rect" intensity={1.6} color="#a9b6ff" position={[6, -1, -1]} rotation={[0, -Math.PI / 2, 0]} scale={[3, 5, 1]} />
-        <Lightformer form="ring" intensity={2} color="#ffffff" position={[2, 4, 6]} scale={3} />
-        <Lightformer form="rect" intensity={1} color="#ffd9a3" position={[0, -5, 2]} rotation={[Math.PI / 2, 0, 0]} scale={[8, 3, 1]} />
-      </Environment>
-      <Rig ambient={ambient}>
-        <Float speed={ambient ? 0.8 : 1.1} rotationIntensity={0.25} floatIntensity={0.6}>
-          <GlassForm stateRef={stateRef} ambient={ambient} shape={shape} />
-        </Float>
-        {terrain && <Terrain stateRef={stateRef} />}
-        <Sparkles count={ambient ? 50 : 120} scale={[9, 6, 6]} size={2.4} speed={0.25} opacity={0.5} color={ACCENT} />
-        <Sparkles count={ambient ? 30 : 80} scale={[10, 7, 7]} size={1.2} speed={0.15} opacity={0.35} color="#f1efe9" />
-      </Rig>
-    </>
+    <Rig ambient={ambient}>
+      <ParticleSculpture stateRef={stateRef} ambient={ambient} geometry={geometry} halo />
+      <ParticleSculpture stateRef={stateRef} ambient={ambient} geometry={geometry} />
+    </Rig>
   );
 }
 
-export default function HeroObject({ stateRef, active, ambient = false, shape = "knot", terrain = !ambient }: { stateRef: MutableRefObject<HeroState>; active: boolean; ambient?: boolean; shape?: GlassShape; terrain?: boolean }) {
+export default function HeroObject({ stateRef, active, ambient = false }: { stateRef: MutableRefObject<HeroState>; active: boolean; ambient?: boolean }) {
   return (
     <Canvas
-      dpr={[1, 1.6]}
+      dpr={[1, 1.75]}
       camera={{ position: [0, 0, 8.5], fov: 34, near: 0.1, far: 60 }}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       frameloop={active ? "always" : "never"}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.1;
         gl.setClearColor(new THREE.Color("#000000"), 0);
       }}
       style={{ position: "absolute", inset: 0 }}
       aria-hidden
     >
       <Suspense fallback={null}>
-        <Scene stateRef={stateRef} ambient={ambient} shape={shape} terrain={terrain} />
+        <Scene stateRef={stateRef} ambient={ambient} />
       </Suspense>
     </Canvas>
   );

@@ -250,3 +250,41 @@ video {
   to { opacity: 1; transform: translateY(0); }
 }
 
+
+/* ---- code visual animations ---- */
+@keyframes vis-type {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes vis-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+@keyframes vis-fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.vis-line { display: block; white-space: pre; animation: vis-type 700ms steps(30) both; }
+.vis-fade { animation: vis-fade-up 600ms var(--ease-out-expo) both; }
+.vis-cursor { display: inline-block; width: 0.55em; height: 1em; vertical-align: -0.15em; background: var(--color-accent); animation: vis-blink 1s steps(1) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .vis-line, .vis-fade, .vis-cursor { animation: none !important; clip-path: none !important; }
+}
+
+@keyframes vis-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes vis-grow-y {
+  from { transform: scaleY(0.04); }
+  to { transform: scaleY(1); }
+}
+@keyframes vis-status-a { 0%, 40% { opacity: 1; } 48%, 100% { opacity: 0; } }
+@keyframes vis-status-b { 0%, 40% { opacity: 0; } 48%, 100% { opacity: 1; } }
+@keyframes vis-scroll-y { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+@keyframes vis-pulse-ring { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(2.2); opacity: 0; } }
+.vis-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: vis-draw 1.6s var(--ease-out-quart) both; }
+.vis-bar { transform-origin: bottom; animation: vis-grow-y 1.1s var(--ease-out-expo) both; }
+@media (prefers-reduced-motion: reduce) {
+  .vis-draw, .vis-bar { animation: none !important; stroke-dashoffset: 0 !important; }
+}

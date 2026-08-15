@@ -216,12 +216,12 @@ export function IntroScene() {
             <span className="label hidden text-fg-3 sm:block">{project.category}</span>
           </div>
 
-          <div className="proj-visual pointer-events-auto absolute left-1/2 top-[7.5rem] w-[92vw] -translate-x-1/2 lg:top-[7rem] lg:w-auto lg:h-[min(50vh,560px)] motion-reduce:relative motion-reduce:left-auto motion-reduce:top-auto motion-reduce:my-10 motion-reduce:w-full motion-reduce:translate-x-0">
-            <ProductVisual project={project} className="h-full w-full lg:aspect-[16/10] lg:w-auto" priority />
+          <div className="proj-visual pointer-events-auto absolute right-[var(--spacing-gutter)] top-[6.5rem] hidden w-[min(46vw,40rem)] sm:block lg:top-[6.5rem] motion-reduce:relative motion-reduce:right-auto motion-reduce:top-auto motion-reduce:my-10 motion-reduce:w-full">
+            <ProductVisual project={project} priority />
           </div>
 
           <div className="pointer-events-auto grid grid-cols-12 items-end gap-x-6 gap-y-6">
-            <div className="col-span-12 lg:col-span-7">
+            <div className="col-span-12 lg:col-span-6">
               <h2 className="proj-title text-h1 text-fg-1">{project.title}</h2>
               <p className="proj-tagline text-lead mt-4 max-w-[50ch] text-balance text-fg-2">{project.tagline}</p>
               <div className="proj-links mt-6 flex flex-wrap items-center gap-3">
@@ -236,7 +236,7 @@ export function IntroScene() {
               </div>
             </div>
 
-            <div className="col-span-12 lg:col-span-5">
+            <div className="col-span-12 lg:col-span-6">
               <div className="relative min-h-[8.5rem] lg:min-h-[9.5rem]">
                 <ul className="stage-tech absolute inset-x-0 bottom-0 hidden flex-wrap justify-end gap-2 lg:flex" aria-label="Technologies">
                   {project.technologies.map((t) => (

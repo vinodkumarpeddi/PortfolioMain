@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, type MutableRefObject } from "react";
-import type { GlassShape, HeroState } from "./HeroObject";
+import type { HeroState } from "./HeroObject";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +18,7 @@ function hasWebGL() {
 }
 
 /** Lazily mounts the WebGL scene, renders only while on screen, fades in when ready. */
-export function HeroCanvas({ stateRef, className, ambient, shape, terrain }: { stateRef: MutableRefObject<HeroState>; className?: string; ambient?: boolean; shape?: GlassShape; terrain?: boolean }) {
+export function HeroCanvas({ stateRef, className, ambient }: { stateRef: MutableRefObject<HeroState>; className?: string; ambient?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = usePrefersReducedMotion();
   const [ok, setOk] = useState(false);
@@ -49,7 +49,7 @@ export function HeroCanvas({ stateRef, className, ambient, shape, terrain }: { s
 
   return (
     <div ref={ref} className={cn("transition-opacity duration-[1600ms] ease-[var(--ease-standard)]", ready ? "opacity-100" : "opacity-0", className)}>
-      <HeroObject stateRef={stateRef} active={visible} ambient={ambient} shape={shape} terrain={terrain} />
+      <HeroObject stateRef={stateRef} active={visible} ambient={ambient} />
     </div>
   );
 }
