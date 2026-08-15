@@ -51,14 +51,24 @@ export function ContactSection() {
     { scope: ref },
   );
 
+  const mailHref = `mailto:${profile.email}?subject=${encodeURIComponent("Hello Vinod")}`;
+  const gmailHref = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(profile.email)}&su=${encodeURIComponent("Hello Vinod")}`;
+
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(profile.email);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
-      window.location.href = `mailto:${profile.email}`;
+      window.location.href = mailHref;
     }
+  };
+  // the mailto still fires; copying first means the address is in hand even when no mail app is set up
+  const onCta = () => {
+    void navigator.clipboard?.writeText(profile.email).then(() => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    }).catch(() => {});
   };
 
   return (
@@ -84,7 +94,7 @@ export function ContactSection() {
             onPointerEnter={() => { coreState.current.energy = 1; }}
             onPointerLeave={() => { coreState.current.energy = 0; }}
           >
-            <RotatingCta href={`mailto:${profile.email}`} label="Email Vinod" ring="Email me — Let's talk" cursor="Contact" />
+            <RotatingCta href={mailHref} onClick={onCta} badge={copied ? "Copied" : undefined} label="Email Vinod" ring="Email me — Let's talk" cursor="Contact" />
           </div>
         </div>
 
@@ -106,8 +116,13 @@ export function ContactSection() {
               </button>
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Magnetic strength={7}>
-                  <a href={`mailto:${profile.email}`} className="group inline-flex h-11 items-center gap-2 rounded-full bg-fg-1 pl-5 pr-4 text-sm font-medium text-accent-ink transition-colors hover:bg-white" data-cursor="Contact">
+                  <a href={mailHref} className="group inline-flex h-11 items-center gap-2 rounded-full bg-fg-1 pl-5 pr-4 text-sm font-medium text-accent-ink transition-colors hover:bg-white" data-cursor="Contact">
                     Write an email <Mail width={16} height={16} />
+                  </a>
+                </Magnetic>
+                <Magnetic strength={7}>
+                  <a href={gmailHref} target="_blank" rel="noopener noreferrer" className="group inline-flex h-11 items-center gap-2 rounded-full border border-line-2 px-5 text-sm font-medium text-fg-1 transition-colors hover:border-fg-1/60" data-cursor="Gmail ↗">
+                    Open in Gmail <ArrowUpRight className="transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-expo)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                   </a>
                 </Magnetic>
                 <Magnetic strength={7}>
