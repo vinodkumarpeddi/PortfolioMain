@@ -29,11 +29,12 @@ export function Preloader() {
       setShow(true);
       document.documentElement.classList.add("intro-lock");
     }, 0);
-    const t1 = window.setTimeout(() => setDone(true), 1500);
+    const brief = window.matchMedia("(max-width: 1023px)").matches;
+    const t1 = window.setTimeout(() => setDone(true), brief ? 500 : 1500);
     const t2 = window.setTimeout(() => {
       setShow(false);
       document.documentElement.classList.remove("intro-lock");
-    }, 2200);
+    }, brief ? 900 : 2200);
     return () => {
       window.clearTimeout(t0);
       window.clearTimeout(t1);

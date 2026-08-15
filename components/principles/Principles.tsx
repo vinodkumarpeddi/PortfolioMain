@@ -106,7 +106,7 @@ export function Principles() {
   return (
     <section id="mindset" ref={ref} data-section="mindset" className="relative" aria-labelledby="mind-title">
       <div className="pr-stage relative flex min-h-[100svh] flex-col overflow-hidden motion-reduce:min-h-0">
-        <div aria-hidden className="pr-glow pointer-events-none absolute left-1/2 top-1/2 h-[70vh] w-[70vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/[0.05] blur-[140px]" />
+        <div aria-hidden className="pr-glow pointer-events-none absolute left-1/2 top-1/2 hidden h-[70svh] w-[70vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/[0.05] blur-[140px] lg:block" />
         <div className="gutter mx-auto flex w-full max-w-[100rem] items-center justify-between pt-24">
           <SectionLabel index="05">How I think</SectionLabel>
           <p className="label text-fg-3 tabular-nums" aria-hidden>
@@ -139,7 +139,7 @@ export function Principles() {
 
         <div className="relative flex flex-1 flex-col justify-center">
           <div className="gutter mx-auto w-full max-w-[100rem]">
-            <div className="relative min-h-[50vh] motion-reduce:min-h-0">
+            <div className="relative min-h-[50svh] motion-reduce:min-h-0">
               {principles.map((p) => (
                 <div
                   key={p.id}

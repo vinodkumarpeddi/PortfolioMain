@@ -134,12 +134,15 @@ export function Nav() {
 
           <button
             type="button"
-            className="pointer-events-auto relative grid h-11 w-11 shrink-0 place-items-center rounded-full border border-line-1 bg-bg-2/60 backdrop-blur transition-transform active:scale-95 lg:hidden"
+            className="pointer-events-auto relative -mr-1 inline-flex h-14 shrink-0 items-center gap-2 rounded-full border border-line-1 bg-bg-2/60 pl-3.5 pr-3.5 backdrop-blur transition-transform active:scale-95 lg:hidden"
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             aria-controls="mobile-menu"
             onClick={() => setOpen((v) => !v)}
           >
+            <span className="label text-[10px] text-fg-2" aria-hidden>
+              {open ? "Close" : "Menu"}
+            </span>
             <span className="relative block h-3 w-4">
               <motion.span
                 className="absolute left-0 top-0 block h-px w-4 bg-fg-1"

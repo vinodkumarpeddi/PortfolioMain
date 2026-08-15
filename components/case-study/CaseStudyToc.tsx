@@ -19,10 +19,14 @@ export function CaseStudyToc({ items, variant = "list" }: { items: { id: string;
     return () => io.disconnect();
   }, [items]);
 
-  useEffect(() => {
-    const el = rail.current?.querySelector<HTMLElement>('[data-on="true"]');
-    el?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-  }, [active]);
+  const recentre = () => {
+    const r = rail.current;
+    if (!r) return;
+    requestAnimationFrame(() => {
+      const el = r.querySelector<HTMLElement>('[data-on="true"]');
+      if (el) r.scrollTo({ left: el.offsetLeft - (r.clientWidth - el.clientWidth) / 2, behavior: "smooth" });
+    });
+  };
 
   if (variant === "rail") {
     return (
@@ -32,7 +36,7 @@ export function CaseStudyToc({ items, variant = "list" }: { items: { id: string;
             const on = active === i.id;
             return (
               <li key={i.id} className="shrink-0" data-on={on ? "true" : "false"}>
-                <a href={`#${i.id}`} className={cn("label inline-flex h-10 items-center gap-2 rounded-full border px-3.5 transition-[colors,transform] active:scale-95", on ? "border-accent/60 bg-accent-soft text-fg-1" : "border-line-1 text-fg-3")}>
+                <a href={`#${i.id}`} onClick={recentre} className={cn("label inline-flex h-11 items-center gap-2 rounded-full border px-3.5 transition-[colors,transform] active:scale-95", on ? "border-accent/60 bg-accent-soft text-fg-1" : "border-line-1 text-fg-3")}>
                   <span className="text-accent">{i.index}</span>
                   {i.label}
                 </a>

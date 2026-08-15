@@ -1,0 +1,11 @@
+<!doctype html><html><head><meta charset="utf-8"><title>mobile verify</title>
+<style>html,body{margin:0;background:#222;height:100%;overflow:hidden}#wrap{display:flex;padding:10px}
+iframe{border:0;background:#000;box-shadow:0 0 0 1px #444;transform-origin:top left}</style></head>
+<body><div id="wrap"></div>
+<script>
+const q=new URLSearchParams(location.search);const w=+(q.get('w')||390),h=+(q.get('h')||844),p=q.get('p')||'/';const s=+(q.get('s')||0.92);
+const f=document.createElement('iframe');f.width=w;f.height=h;f.style.width=w+'px';f.style.height=h+'px';f.style.transform=`scale(${s})`;f.src=p;document.getElementById('wrap').appendChild(f);
+window.f=f;
+window.go = async (sel, extra=0) => { const d=f.contentWindow.document; const el=sel?d.querySelector(sel):null; if(el) el.scrollIntoView(); if(extra) f.contentWindow.scrollBy(0,extra); await new Promise(r=>setTimeout(r,900)); return f.contentWindow.scrollY; };
+window.reveal = () => { const d=f.contentWindow.document; const st=d.createElement('style'); st.textContent='*{opacity:1!important;visibility:visible!important;transform:none!important}'; d.head.appendChild(st); return 'revealed'; };
+</script></body></html>

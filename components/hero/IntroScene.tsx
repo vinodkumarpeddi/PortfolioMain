@@ -130,14 +130,14 @@ export function IntroScene() {
     <section id="intro" ref={sectionRef} data-section="intro" className="relative" aria-labelledby="hero-title">
       <div
         ref={pinRef}
-        className="relative h-[100svh] min-h-[640px] overflow-hidden pb-[env(safe-area-inset-bottom)] motion-reduce:h-auto motion-reduce:min-h-0 motion-reduce:overflow-visible"
+        className="relative h-[100svh] min-h-[34rem] overflow-hidden pb-[env(safe-area-inset-bottom)] motion-reduce:h-auto motion-reduce:min-h-0 motion-reduce:overflow-visible"
       >
         <div
           data-grid
           aria-hidden
           className="grid-bg pointer-events-none absolute inset-0 [mask-image:radial-gradient(70%_60%_at_60%_40%,black,transparent)]"
         />
-        <div aria-hidden className="pointer-events-none absolute -right-[10%] top-[5%] h-[70vh] w-[60vw] rounded-full bg-accent/[0.07] blur-[140px]" />
+        <div aria-hidden className="pointer-events-none absolute -right-[10%] top-[5%] hidden h-[70svh] w-[60vw] rounded-full bg-accent/[0.07] blur-[140px] lg:block" />
 
         {/* 3D OBJECT (hero state) */}
         <div ref={coreWrapRef} className="core-wrap absolute inset-0 z-0 motion-reduce:hidden">

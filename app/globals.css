@@ -126,48 +126,48 @@ video {
 }
 
 @utility text-display {
-  font-size: clamp(4rem, 17.5vw, 12rem);
+  font-size: clamp(3.5rem, 1.5rem + 10.5vw, 12rem);
   line-height: 0.88;
   letter-spacing: -0.045em;
   font-weight: 600;
   @media (min-width: 40rem) {
-    font-size: clamp(3.25rem, 11.5vw, 12rem);
+    font-size: clamp(3.25rem, 1rem + 7.5vw, 12rem);
   }
 }
 
 @utility text-display-safe {
-  font-size: clamp(2.75rem, 14.5vw, 12rem);
+  font-size: clamp(2.75rem, 1rem + 9vw, 12rem);
   line-height: 0.9;
   letter-spacing: -0.045em;
   font-weight: 600;
   @media (min-width: 40rem) {
-    font-size: clamp(3.25rem, 11vw, 12rem);
+    font-size: clamp(3.25rem, 1rem + 7.25vw, 12rem);
   }
 }
 
 @utility text-h1 {
-  font-size: clamp(2.5rem, 6vw, 5.75rem);
+  font-size: clamp(2.5rem, 1.5rem + 3.4vw, 5.75rem);
   line-height: 0.95;
   letter-spacing: -0.035em;
   font-weight: 600;
 }
 
 @utility text-h2 {
-  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-size: clamp(2rem, 1.25rem + 2.5vw, 3.5rem);
   line-height: 1;
   letter-spacing: -0.03em;
   font-weight: 600;
 }
 
 @utility text-h3 {
-  font-size: clamp(1.375rem, 2vw, 1.75rem);
+  font-size: clamp(1.375rem, 1rem + 1.2vw, 1.75rem);
   line-height: 1.15;
   letter-spacing: -0.02em;
   font-weight: 500;
 }
 
 @utility text-lead {
-  font-size: clamp(1.0625rem, 1.4vw, 1.375rem);
+  font-size: clamp(1.0625rem, 0.85rem + 0.8vw, 1.375rem);
   line-height: 1.45;
   letter-spacing: -0.012em;
 }

@@ -74,7 +74,7 @@ export function ExperienceTimeline() {
         <div className="mt-10 grid grid-cols-12 gap-x-4 lg:gap-x-8">
           {/* planet + orbit (sticky) */}
           <div className="col-span-12 lg:col-span-6">
-            <div className="relative z-10 h-[40vh] lg:sticky lg:top-24 lg:h-[calc(100svh-7rem)]">
+            <div className="relative z-10 h-[40svh] lg:sticky lg:top-24 lg:h-[calc(100svh-7rem)]">
               <div className="absolute inset-0 rounded-[28px] border border-line-1 bg-bg-1/40 [box-shadow:var(--shadow-soft)]">
                 <div aria-hidden className="grid-bg absolute inset-0 rounded-[28px] opacity-60 [mask-image:radial-gradient(70%_70%_at_50%_50%,black,transparent)]" />
                 <HeroCanvas stateRef={state} variant="orbit" orbit={{ count: ordered.length, activeRef, labels: ordered.map((m) => `${m.start.slice(0, 4)} · ${m.org}`), onSelect: jump }} className="absolute inset-0 [&_canvas]:pointer-events-auto" />
@@ -133,7 +133,7 @@ export function ExperienceTimeline() {
             </div>
             <ol ref={panelsRef}>
             {ordered.map((m, i) => (
-              <li key={m.id} data-panel={i} className="flex items-center py-5 sm:min-h-[70vh] sm:py-8 lg:min-h-[100svh]">
+              <li key={m.id} data-panel={i} className="flex items-center py-5 sm:min-h-[70svh] sm:py-8 lg:min-h-[100svh]">
                 <motion.article
                   className="w-full"
                   animate={{ opacity: active === i ? 1 : desktop ? 0.45 : 0.75, scale: active === i ? 1 : 0.985 }}
