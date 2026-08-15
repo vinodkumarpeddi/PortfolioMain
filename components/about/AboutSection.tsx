@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import { SectionLabel } from "@/components/ui/Section";
 import { SplitText } from "@/components/ui/SplitText";
-import { Reveal, RevealGroup } from "@/components/ui/Reveal";
-import { BentoTile as Tile } from "./BentoTile";
+import { Reveal } from "@/components/ui/Reveal";
 import { Manifest } from "./Manifest";
 import { GitHubPanel } from "./GitHubPanel";
 import { Notes } from "./Notes";
+import { CardFan, type FanCard } from "./CardFan";
 import { certifications, education } from "@/data/experience";
 import { profile } from "@/data/profile";
 import { technologies } from "@/data/technology";
@@ -20,6 +20,73 @@ const services = [
   { title: "Platform & reliability", body: "Containerised, documented, observable: health checks, structured logs, one command from clone to running, and workflows that keep incidents short." },
 ];
 
+const cards: FanCard[] = [
+  {
+    id: "now",
+    label: "Now",
+    title: `${profile.role} at ${profile.company}`,
+    body: (
+      <>
+        Reliability and observability, day to day. Before that: full-stack and ServiceNow internships, and a run of production-shaped systems on GitHub.
+        <a href={profile.companyUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-1 text-fg-1"><span className="link-underline">About the company</span> <ArrowUpRight /></a>
+      </>
+    ),
+  },
+  {
+    id: "education",
+    label: "Education",
+    title: education[0].org,
+    body: (
+      <ul className="space-y-3">
+        {education.map((e) => (
+          <li key={e.org}>
+            <span className="block text-fg-1">{e.program}</span>
+            <span className="label mt-1 block text-fg-3">{e.org.split(",")[0]} · {e.period} · {e.note}</span>
+          </li>
+        ))}
+      </ul>
+    ),
+  },
+  {
+    id: "certs",
+    label: "Certifications",
+    title: "ServiceNow CSA · CAD · Micro",
+    body: (
+      <ul className="space-y-1.5">
+        {certifications.slice(1).map((c) => (
+          <li key={c.issuer}>
+            <span className="text-fg-1">{c.issuer}</span> <span className="text-fg-3">· {c.items.join(" · ")}</span>
+          </li>
+        ))}
+      </ul>
+    ),
+  },
+  {
+    id: "dsa",
+    label: "Problem solving",
+    title: "300+ LeetCode · 100+ GfG",
+    body: (
+      <span className="flex flex-wrap gap-2">
+        {profile.codingProfiles.map((c) => (
+          <a key={c.label} href={c.href} target="_blank" rel="noopener noreferrer" className="label inline-flex items-center gap-1 rounded-full border border-line-1 px-3 py-2 text-fg-2 transition-colors hover:border-line-2 hover:text-fg-1">{c.label} <ArrowUpRight /></a>
+        ))}
+      </span>
+    ),
+  },
+  {
+    id: "principles",
+    label: "How I work",
+    title: "Design the failure path first.",
+    body: (
+      <ul className="space-y-1.5">
+        <li>One command from clone to running.</li>
+        <li>The README is part of the system.</li>
+        <li>Make it boring underneath, effortless on top.</li>
+      </ul>
+    ),
+  },
+];
+
 const stackA = technologies.filter((t) => ["frontend", "backend"].includes(t.branch)).map((t) => t.name);
 const stackB = technologies.filter((t) => ["data", "infrastructure", "systems"].includes(t.branch)).map((t) => t.name);
 
@@ -31,127 +98,74 @@ export function AboutSection() {
         <Reveal>
           <SectionLabel index="06">About</SectionLabel>
         </Reveal>
-        <h2 id="about-title" className="text-h1 relative mt-6 max-w-[22ch] text-balance text-fg-1">
-          <SplitText by="words">I care about the parts of software you only notice when they break.</SplitText>
-        </h2>
 
-        <RevealGroup className="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" gap={0.06}>
-          {/* statement */}
-          <Tile span="sm:col-span-2 lg:col-span-2 lg:row-span-2" className="flex flex-col justify-between">
-            <p className="text-lead text-fg-1">
-              Queues, ledgers, permissions, retries. I like making them boring — and then making the product on top of them feel
-              effortless. Full-stack by habit, backend by preference, systems by curiosity.
-            </p>
-            <div className="mt-8 grid grid-cols-2 gap-6 border-t border-line-1 pt-6">
+        <div className="mt-6 grid grid-cols-12 gap-x-8 gap-y-12">
+          {/* statement + readouts */}
+          <div className="col-span-12 lg:col-span-6">
+            <h2 id="about-title" className="text-h1 max-w-[16ch] text-balance text-fg-1">
+              <SplitText by="words">I care about the parts of software you only notice when they break.</SplitText>
+            </h2>
+            <Reveal delay={0.15} className="mt-8 max-w-[52ch]">
+              <p className="text-lead text-fg-2">
+                Queues, ledgers, permissions, retries. I like making them boring — and then making the product on top of them feel effortless.
+                Full-stack by habit, backend by preference, systems by curiosity.
+              </p>
+            </Reveal>
+            <Reveal delay={0.25} className="mt-10 grid grid-cols-2 gap-6 border-t border-line-1 pt-6 sm:grid-cols-3">
               <div>
-                <p className="label text-fg-3">Interests</p>
-                <ul className="mt-3 space-y-1.5 text-[15px] text-fg-1">
-                  <li>Distributed systems</li>
-                  <li>Payments infrastructure</li>
-                  <li>Event-driven architecture</li>
-                  <li>Real-time products</li>
-                </ul>
+                <p className="label text-fg-3">Local time</p>
+                <p className="mt-2 flex items-baseline gap-2"><LocalTime className="text-h3 tabular-nums text-fg-1" /><span className="label text-fg-3">IST</span></p>
               </div>
               <div>
-                <p className="label text-fg-3">How I work</p>
-                <ul className="mt-3 space-y-1.5 text-[15px] text-fg-1">
-                  <li>Design the failure path first</li>
-                  <li>One command from clone to running</li>
-                  <li>The README is part of the system</li>
-                </ul>
+                <p className="label text-fg-3">Based in</p>
+                <p className="mt-2 text-h3 text-fg-1">{profile.location}</p>
               </div>
+              <div>
+                <p className="label text-fg-3">Now</p>
+                <p className="mt-2 flex items-center gap-2 text-h3 text-fg-1">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60 motion-reduce:animate-none" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+                  </span>
+                  {profile.company}
+                </p>
+              </div>
+            </Reveal>
+          </div>
+
+          {/* card fan */}
+          <div className="col-span-12 lg:col-span-6">
+            <Reveal amount={0.2}>
+              <p className="label mb-4 flex items-center justify-between text-fg-3 lg:justify-end">
+                <span className="hidden lg:inline">Hover to fan · click to flip forward</span>
+                <span className="lg:hidden">Swipe</span>
+              </p>
+              <CardFan cards={cards} />
+            </Reveal>
+          </div>
+        </div>
+
+        {/* stack marquee */}
+        <Reveal className="mt-20 border-y border-line-1 py-5" amount={0.3}>
+          <Marquee items={stackA.map((s) => <span key={s} className="text-h3 whitespace-nowrap text-fg-1">{s}</span>)} />
+          <Marquee className="mt-3 [&_.marquee-track]:[animation-direction:reverse]" items={stackB.map((s) => <span key={s} className="text-h3 whitespace-nowrap text-fg-2">{s}</span>)} />
+        </Reveal>
+
+        {/* manifest + github */}
+        <div className="mt-16 grid grid-cols-12 gap-x-8 gap-y-8">
+          <Reveal className="col-span-12 lg:col-span-6" amount={0.2}>
+            <div className="h-full overflow-hidden rounded-3xl border border-line-1 bg-bg-2/40 [box-shadow:var(--shadow-soft)]">
+              <Manifest />
             </div>
-          </Tile>
-
-          {/* local time */}
-          <Tile label="Local time">
-            <p className="mt-3 flex items-baseline gap-2">
-              <LocalTime className="text-h2 tabular-nums text-fg-1" />
-            </p>
-            <p className="label mt-2 text-fg-3">IST · UTC+5:30</p>
-            <p className="mt-4 text-[15px] text-fg-2">{profile.location}</p>
-            <span aria-hidden className="absolute -bottom-10 -right-10 h-32 w-32 rounded-full border border-line-2 opacity-60" />
-            <span aria-hidden className="absolute -bottom-6 -right-6 h-24 w-24 rounded-full border border-dashed border-accent/40 [animation:spin-slow_20s_linear_infinite] motion-reduce:animate-none" />
-          </Tile>
-
-          {/* now */}
-          <Tile label="Now">
-            <p className="mt-3 text-h3 text-fg-1">{profile.role}</p>
-            <p className="mt-1 text-[15px] text-fg-2">at {profile.company}</p>
-            <p className="mt-4 flex items-center gap-2 text-sm text-fg-2">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60 motion-reduce:animate-none" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
-              </span>
-              Reliability &amp; observability
-            </p>
-            <a href={profile.companyUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-1 text-sm text-fg-2 transition-colors hover:text-fg-1">
-              <span className="link-underline">About the company</span> <ArrowUpRight />
-            </a>
-          </Tile>
-
-          {/* stack marquee */}
-          <Tile span="sm:col-span-2 lg:col-span-2" className="!px-0">
-            <p className="label px-6 text-fg-3">Stack</p>
-            <div className="mt-4 space-y-3 px-0">
-              <Marquee className="px-6" items={stackA.map((s) => <span key={s} className="text-h3 whitespace-nowrap text-fg-1">{s}</span>)} />
-              <Marquee className="px-6 [&_.marquee-track]:[animation-direction:reverse]" items={stackB.map((s) => <span key={s} className="text-h3 whitespace-nowrap text-fg-2">{s}</span>)} />
+          </Reveal>
+          <Reveal className="col-span-12 lg:col-span-6" amount={0.2}>
+            <div className="h-full overflow-hidden rounded-3xl border border-line-1 bg-bg-2/40 [box-shadow:var(--shadow-soft)]">
+              <Suspense fallback={<div className="h-[26rem]" />}>
+                <GitHubPanel />
+              </Suspense>
             </div>
-            <p className="label mt-4 px-6 text-fg-3">{technologies.length} technologies · tied to real systems in the map above</p>
-          </Tile>
-
-          {/* manifest */}
-          <Tile span="sm:col-span-2 lg:col-span-2 lg:row-span-2" className="!p-0">
-            <Manifest />
-          </Tile>
-
-          {/* github */}
-          <Tile span="sm:col-span-2 lg:col-span-2 lg:row-span-2" className="!p-0">
-            <Suspense fallback={<div className="h-[26rem]" />}>
-              <GitHubPanel />
-            </Suspense>
-          </Tile>
-
-          {/* credentials */}
-          <Tile label="Credentials" span="sm:col-span-2 lg:col-span-4">
-            <div className="mt-4 grid gap-8 lg:grid-cols-3">
-              <div>
-                <p className="label text-fg-3">Education</p>
-                <ul className="mt-3 divide-y divide-line-1">
-                  {education.map((e) => (
-                    <li key={e.org} className="py-3 first:pt-0 last:pb-0">
-                      <span className="block text-[15px] text-fg-1">{e.org}</span>
-                      <span className="text-sm text-fg-2">{e.program}</span>
-                      <span className="label mt-1 block text-fg-3">{e.period} · {e.note}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <p className="label text-fg-3">Certifications</p>
-                <ul className="mt-3 divide-y divide-line-1">
-                  {certifications.map((c) => (
-                    <li key={c.issuer} className="py-2.5 first:pt-0 last:pb-0">
-                      <span className="block text-sm font-medium text-fg-1">{c.issuer}</span>
-                      <span className="block text-[13px] leading-relaxed text-fg-2">{c.items.join(" · ")}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <p className="label text-fg-3">Problem solving</p>
-                <p className="mt-3 text-[15px] text-fg-1">300+ problems on LeetCode, 100+ on GeeksforGeeks.</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {profile.codingProfiles.map((c) => (
-                    <a key={c.label} href={c.href} target="_blank" rel="noopener noreferrer" className="label inline-flex items-center gap-1.5 rounded-full border border-line-1 px-3 py-2 text-fg-2 transition-colors hover:border-line-2 hover:text-fg-1">
-                      {c.label} <ArrowUpRight />
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Tile>
-        </RevealGroup>
+          </Reveal>
+        </div>
 
         {/* what I do — numbered rows */}
         <div className="mt-24" aria-labelledby="services-title">

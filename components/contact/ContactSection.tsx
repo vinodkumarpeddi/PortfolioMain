@@ -27,7 +27,7 @@ const ticker = ["Distributed systems", "Payments infrastructure", "Event-driven 
 export function ContactSection() {
   const ref = useRef<HTMLElement>(null);
   const [copied, setCopied] = useState(false);
-  const coreState = useRef<HeroState>({ spread: 0.3, opacity: 1 });
+  const coreState = useRef<HeroState>({ spread: 0.3, opacity: 1, energy: 0 });
 
   useGSAP(
     () => {
@@ -65,8 +65,8 @@ export function ContactSection() {
   return (
     <section id="contact" ref={ref} data-section="contact" className="relative overflow-hidden" aria-labelledby="contact-title">
       <div aria-hidden className="ct-glow pointer-events-none absolute left-1/2 top-[30%] h-[60vh] w-[60vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/[0.07] blur-[140px]" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[56vw] opacity-90 [mask-image:linear-gradient(to_right,transparent,black_38%,black)] lg:block motion-reduce:hidden" aria-hidden>
-        <HeroCanvas stateRef={coreState} ambient className="absolute inset-0" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[120vh] opacity-70 [mask-image:radial-gradient(60%_60%_at_50%_45%,black,transparent_85%)] motion-reduce:hidden" aria-hidden>
+        <HeroCanvas stateRef={coreState} variant="backdrop" className="absolute inset-0" />
       </div>
 
       <CurvedDivider className="relative h-24 w-full" />
@@ -79,7 +79,11 @@ export function ContactSection() {
             <span className="ct-line block text-fg-2"><KineticText text="something" /></span>
             <span className="ct-line block"><KineticText text="that lasts." accentLast /></span>
           </h2>
-          <div className="ct-cta col-span-12 flex lg:col-span-3 lg:justify-end">
+          <div
+            className="ct-cta col-span-12 flex lg:col-span-3 lg:justify-end"
+            onPointerEnter={() => { coreState.current.energy = 1; }}
+            onPointerLeave={() => { coreState.current.energy = 0; }}
+          >
             <RotatingCta href={`mailto:${profile.email}`} label="Email Vinod" ring="Email me — Let's talk" cursor="Contact" />
           </div>
         </div>
