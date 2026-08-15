@@ -50,7 +50,7 @@ export function Manifest() {
           <span className="h-2 w-2 rounded-full bg-accent/70" />
         </span>
       </div>
-      <pre className="overflow-x-auto p-4 font-mono text-[12.5px] leading-[1.7] text-fg-2 sm:p-5 sm:text-[13px]">
+      <pre className="whitespace-pre-wrap break-words p-4 font-mono text-[12.5px] leading-[1.7] text-fg-2 sm:p-5 sm:text-[13px]">
         {lines.map(([k, v]) => (
           <div key={k} className="mf-row flex gap-3">
             <span className="w-6 shrink-0 select-none text-right text-fg-3/60">{String(lines.findIndex(([kk]) => kk === k) + 1).padStart(2, "0")}</span>

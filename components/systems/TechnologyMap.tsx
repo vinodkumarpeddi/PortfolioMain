@@ -137,12 +137,12 @@ export function TechnologyMap() {
 
           <div className="grid gap-x-6 gap-y-8 sm:grid-cols-2 xl:grid-cols-5" role="list" aria-label="Technology map">
             {branches.map((b) => (
-              <div key={b.id} role="listitem" className="relative">
-                <div className="label flex items-center gap-2 border-t border-line-2 pt-4 text-fg-2">
+              <div key={b.id} role="listitem" className="relative rounded-2xl border border-line-1 bg-bg-2/40 p-3 transition-colors duration-[var(--duration-slow)] hover:border-line-2">
+                <div className="label flex items-center gap-2 border-b border-line-1 px-2 pb-3 text-fg-2">
                   <span className="text-accent">{b.index}</span>
                   {b.label}
                 </div>
-                <ul className="mt-4 space-y-1">
+                <ul className="mt-2 space-y-0.5">
                   {technologies
                     .filter((t) => t.branch === b.id)
                     .map((t) => {

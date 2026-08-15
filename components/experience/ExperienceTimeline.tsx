@@ -9,6 +9,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { SectionNumeral } from "@/components/ui/SectionNumeral";
 import { ArrowUpRight } from "@/components/ui/Icons";
 import { cn } from "@/lib/utils";
+import { Tilt } from "@/components/visuals/Tilt";
 
 const kindLabel: Record<Milestone["kind"], string> = { work: "Experience", education: "Education", build: "Systems work" };
 const ordered = [...milestones].reverse(); // now → 2022
@@ -107,6 +108,7 @@ function MilestoneCard({ m, index, total }: { m: Milestone; index: number; total
           {String(index + 1).padStart(2, "0")}
         </span>
 
+        <Tilt max={2} className="group/tilt">
         <div className="relative grid grid-cols-12 gap-x-6 gap-y-8 p-6 sm:p-8 lg:p-10">
           {/* identity */}
           <div className="col-span-12 lg:col-span-5">
@@ -176,6 +178,7 @@ function MilestoneCard({ m, index, total }: { m: Milestone; index: number; total
             </div>
           </div>
         </div>
+        </Tilt>
       </div>
     </article>
   );

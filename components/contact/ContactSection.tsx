@@ -78,9 +78,8 @@ export function ContactSection() {
   return (
     <section id="contact" ref={ref} data-section="contact" className="relative overflow-hidden" aria-labelledby="contact-title">
       <div aria-hidden className="ct-glow pointer-events-none absolute left-1/2 top-[30%] h-[60vh] w-[60vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/[0.07] blur-[140px]" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[52vw] opacity-80 lg:block motion-reduce:hidden" aria-hidden>
+      <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[56vw] opacity-90 [mask-image:linear-gradient(to_right,transparent,black_38%,black)] lg:block motion-reduce:hidden" aria-hidden>
         <HeroCanvas stateRef={coreState} ambient className="absolute inset-0" />
-        <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[var(--bg-current)] to-transparent" />
       </div>
       <div className="gutter relative mx-auto max-w-[100rem] pb-24 pt-[var(--spacing-section)]">
         <SectionLabel index="07">Connect</SectionLabel>
