@@ -277,15 +277,27 @@ const sm = (x: number) => THREE.MathUtils.smoothstep(x, 0, 1);
 // b: beats elapsed · inBar: 0..8 within the current bar
 function billieJean(b: number, inBar: number): Pose {
   const sB = Math.sin(b * Math.PI), half = Math.sin(b * Math.PI * 0.5), bounce = Math.abs(sB);
-  const hat = inBar < 4 ? 1 : 0;
+  // hat swept low over the eyes to open, as documented for Billie Jean rather than Smooth Criminal
+  const brim = inBar < 2 ? 1 - sm(inBar / 1.6) : 0;
+  // legs jump together, then the right leg kicks forward on the downbeat with a thigh slap,
+  // and the half turn takes his back to the audience
+  const gather = sm((inBar - 4.6) / 0.3) * (1 - sm((inBar - 5) / 0.2));
+  const kick = sm((inBar - 5) / 0.22) * (1 - sm((inBar - 6.1) / 0.5));
+  const turn = sm((inBar - 6.2) / 0.8);
   return {
-    ...REST, hipsY: 0.88 + bounce * 0.1, hips: [0, half * 0.3, sB * 0.16], torso: [-0.06, -half * 0.25, -sB * 0.14],
-    head: [sB * 0.1, half * 0.45, sB * 0.1],
-    lArm: [half * 0.5, 0, -0.35 - Math.max(0, sB) * 0.5], lFore: [-0.5 - Math.max(0, sB) * 0.6, 0, -0.2],
-    rArm: hat ? [-1.3, 0, 0.9] : [-half * 0.5, 0, 0.35 + Math.max(0, -sB) * 0.5],
-    rFore: hat ? [-1.7, 0, 0.9] : [-0.5 - Math.max(0, -sB) * 0.6, 0, 0.2],
-    lLeg: [0, 0, 0.12 + Math.max(0, sB) * 0.4], rLeg: [0, 0, -0.12 - Math.max(0, -sB) * 0.4],
-    lShin: Math.max(0, sB) * 0.5, rShin: Math.max(0, -sB) * 0.5,
+    ...REST, spin: turn * Math.PI, hatTilt: brim * 0.9,
+    hipsY: 0.88 + bounce * 0.1 - gather * 0.05,
+    hips: [-kick * 0.2, half * 0.3, sB * 0.16 * (1 - kick)],
+    torso: [-0.06 + kick * 0.18, -half * 0.25, -sB * 0.14 * (1 - kick)],
+    head: [sB * 0.1 - brim * 0.35, half * 0.45, sB * 0.1],
+    lArm: [half * 0.5, 0, -0.35 - Math.max(0, sB) * 0.5 - turn * 1.3],
+    lFore: [-0.5 - Math.max(0, sB) * 0.6 - brim * 1.4, 0, -0.2 - brim * 0.5],
+    // the slap: the hand drops to the top of the kicking leg exactly on the kick
+    rArm: [-kick * 1.15, 0, 0.35 + Math.max(0, -sB) * 0.5 + turn * 1.3],
+    rFore: [-0.5 - Math.max(0, -sB) * 0.6 - brim * 1.6, 0, 0.2 + brim * 0.5],
+    lLeg: [0, 0, 0.12 + Math.max(0, sB) * 0.4 * (1 - gather - kick)],
+    rLeg: [-kick * 1.75, 0, -0.12 - Math.max(0, -sB) * 0.4 * (1 - gather - kick)],
+    lShin: Math.max(0, sB) * 0.5 * (1 - kick), rShin: Math.max(0, -sB) * 0.5 * (1 - kick),
   };
 }
 function moonwalk(b: number): Pose {
@@ -304,30 +316,40 @@ function moonwalk(b: number): Pose {
   const sw = leftSlides ? 1 : -1;
   const bob = Math.sin(b * Math.PI * 2) * 0.1;
   return {
-    ...REST, hipsY: 0.85, hips: [0.08, sw * 0.05 * swap, 0], torso: [0.22, -sw * 0.08, 0], head: [-0.08 + bob, 0, 0],
+    // the head is left behind by the slide and snaps back on the swap — the pop lands on the beat
+    ...REST, hipsY: 0.85, hips: [0.08, sw * 0.05 * swap, 0], torso: [0.22, -sw * 0.08, 0],
+    head: [-0.08 + bob - (1 - swap) * 0.26, 0, 0],
     lArm: [-sw * 0.35, 0, -0.22], rArm: [sw * 0.35, 0, 0.22], lFore: [-0.35, 0, -0.1], rFore: [-0.35, 0, 0.1],
     lLeg: [lX, 0, 0.05], rLeg: [rX, 0, -0.05], lShin: lS, rShin: rS,
   };
 }
 function theLean(inBar: number): Pose {
-  const a = sm(inBar / 2) * (1 - sm((inBar - 5) / 2.5));
+  // 45 degrees, pivoting at the ankles, back straight, feet flat — and every other channel still,
+  // held for a beat or two, because the stillness is the effect
+  const a = sm(inBar / 1.6) * (1 - sm((inBar - 5.4) / 1.4));
   return {
-    ...REST, lean: a * 0.7, hipsY: 0.9, torso: [-a * 0.1, 0, 0], head: [-a * 0.55, 0, 0],
+    ...REST, lean: a * 0.79, hipsY: 0.9, torso: [0, 0, 0], head: [0, 0, 0],
     lArm: [a * 0.35, 0, -0.14], rArm: [a * 0.35, 0, 0.14], lFore: [0, 0, 0], rFore: [0, 0, 0],
     lLeg: [0, 0, 0.05], rLeg: [0, 0, -0.05], lShin: 0, rShin: 0,
   };
 }
 function spinToes(inBar: number): Pose {
   const wind = Math.sin(THREE.MathUtils.clamp(inBar / 0.9, 0, 1) * Math.PI);
-  const sp = sm((inBar - 0.6) / 2.6);
-  const spin = (1 - Math.pow(1 - sp, 3)) * Math.PI * 4;
-  const toes = sm((inBar - 3) / 0.7) * (1 - sm((inBar - 6.4) / 1.2));
+  const sp = sm((inBar - 0.6) / 2.2);
+  // spotting: the turn stops in a single frame rather than easing out
+  const spin = (inBar < 2.8 ? sp : 1) * Math.PI * 4;
+  const toes = sm((inBar - 2.9) / 0.25) * (1 - sm((inBar - 6.4) / 1.2));
   const tuck = 1 - toes;
   return {
-    ...REST, spin, rise: toes * 0.17, hipsY: 0.9 - wind * 0.22 + toes * 0.02, hips: [wind * 0.25, 0, 0], torso: [wind * 0.3 - toes * 0.08, wind * 0.6, 0], head: [-toes * 0.25, 0, toes * 0.15],
+    ...REST, spin, rise: toes * 0.17,
+    hipsY: 0.9 - wind * 0.22 - toes * 0.1,
+    hips: [wind * 0.25 - toes * 0.28, 0, 0],
+    torso: [wind * 0.3 + toes * 0.24, wind * 0.6, 0],
+    head: [-toes * 0.2, 0, toes * 0.12],
     lArm: [-wind * 0.6, 0, -0.18 - toes * 1.1 - wind * 0.9], lFore: [-wind * 0.6, 0, -toes * 0.4],
     rArm: [-toes * 1.35 - wind * 0.6, 0, 0.18 + toes * 0.75 + wind * 0.9], rFore: [-toes * 1.7 - wind * 0.6, 0, toes * 0.9],
-    lLeg: [-wind * 0.7, 0, 0.03 * tuck], rLeg: [-wind * 0.7, 0, -0.03 * tuck], lShin: toes * 0.1 + wind * 1.3, rShin: toes * 0.1 + wind * 1.3,
+    lLeg: [-wind * 0.7 - toes * 0.5, 0, 0.03 * tuck + toes * 0.12], rLeg: [-wind * 0.7 - toes * 0.5, 0, -0.03 * tuck - toes * 0.12],
+    lShin: toes * 0.9 + wind * 1.3, rShin: toes * 0.9 + wind * 1.3,
   };
 }
 function thriller(b: number): Pose {
@@ -386,18 +408,21 @@ function spinGlide(b: number, inBar: number): Pose {
   return { ...base, spin: Math.PI * 2 * sm(inBar / 8), torso: [0.15, 0, 0], head: [-0.05, 0, 0] };
 }
 function kneeDrop(inBar: number): Pose {
-  // 0–1 drop · 1–4 hold on knees · 4–5 rise · 5–6 crouch · 6–7 split jump · 7–8 land
-  const down = sm(inBar / 0.6) * (1 - sm((inBar - 4) / 0.8));
-  const crouch = sm((inBar - 5) / 0.8) * (1 - sm((inBar - 6) / 0.35));
-  const air = inBar >= 6 && inBar < 7.2 ? Math.sin(((inBar - 6) / 1.2) * Math.PI) : 0;
-  const split = air;
+  // Thriller's scripted level change: three punches, down to both knees, the low section, then
+  // "rise 2-3-4". No split — Jackson was not a splits dancer; that belongs to James Brown.
+  const punch = inBar < 1.4 ? Math.sin(inBar / 1.4 * Math.PI * 3) : 0;
+  const down = sm((inBar - 1.4) / 0.5) * (1 - sm((inBar - 5.6) / 0.9));
+  const rise = sm((inBar - 5.9) / 1.1);
+  const low = Math.sin(THREE.MathUtils.clamp((inBar - 2) / 3.4, 0, 1) * Math.PI * 2) * 0.5;
   return {
-    ...REST, rise: air * 1.3, hipsY: 0.9 - down * 0.42 - crouch * 0.3, hips: [down * 0.15 + crouch * 0.3, 0, 0], torso: [-down * 0.25 + crouch * 0.4 - air * 0.15, 0, 0],
-    head: [-down * 0.5 - air * 0.3 + crouch * 0.2, 0, 0],
-    lArm: [-down * 0.5 - crouch * 0.6, 0, -0.2 - down * 1.5 - air * 2.4], rArm: [-down * 0.5 - crouch * 0.6, 0, 0.2 + down * 1.5 + air * 2.4],
-    lFore: [-crouch * 0.8, 0, -air * 0.3], rFore: [-crouch * 0.8, 0, air * 0.3],
-    lLeg: [-crouch * 0.9, 0, 0.05 + split * 1.1], rLeg: [-crouch * 0.9, 0, -0.05 - split * 1.1],
-    lShin: down * 1.55 + crouch * 1.5, rShin: down * 1.55 + crouch * 1.5,
+    ...REST, hipsY: 0.9 - down * 0.45 + rise * 0.02,
+    hips: [down * 0.18, low * 0.2, 0], torso: [-down * 0.12 + low * 0.25, -low * 0.25, 0],
+    head: [-down * 0.3 + low * 0.3, low * 0.3, 0],
+    lArm: [-Math.max(0, punch) * 1.5 - down * 0.4 + rise * 0.2, 0, -0.2 - down * 0.9],
+    rArm: [-Math.max(0, -punch) * 1.5 - down * 0.4 + rise * 0.2, 0, 0.2 + down * 0.9],
+    lFore: [-0.35 - down * 0.5, 0, -0.15], rFore: [-0.35 - down * 0.5, 0, 0.15],
+    lLeg: [-down * 0.15, 0, 0.1 + down * 0.28], rLeg: [-down * 0.15, 0, -0.1 - down * 0.28],
+    lShin: down * 2.15, rShin: down * 2.15,
   };
 }
 function sideGlide(b: number): Pose {
@@ -439,7 +464,8 @@ function spinKick(inBar: number): Pose {
 function hatShow(b: number, inBar: number): Pose {
   // 0–2 brim down, head bowed (the opening) · 2–3 hat to hand, arm sweeps out · 3–5.4 toss, spin and catch · 5.4–8 tilt and point
   const sB = Math.sin(b * Math.PI);
-  const bow = 1 - sm((inBar - 1.6) / 0.6);
+  // brim flicked back to reveal the eyes — the brim-down open belongs to Billie Jean
+  const bow = -(1 - sm((inBar - 1.6) / 0.6)) * 0.55;
   const toHand = sm((inBar - 2) / 0.4) * (1 - sm((inBar - 5.4) / 0.3));
   const sweep = sm((inBar - 2.3) / 0.7) * (1 - sm((inBar - 3) / 0.4));
   const up = sm((inBar - 3) / 0.4) * (1 - sm((inBar - 5.2) / 0.5));
@@ -456,18 +482,28 @@ function hatShow(b: number, inBar: number): Pose {
   };
 }
 function naatu(b: number): Pose {
-  // the hook step: elbows hooked at the chest, hopping, legs flicking out to the side on every beat
-  const hb = b * 2, hs = Math.sin(hb * Math.PI), hop = Math.abs(hs);
-  const even = Math.floor(b) % 2 === 0;
+  // RRR "Naatu Naatu" (Prem Rakshith): hop on one leg while the free leg takes four positions —
+  // across the front, out to the side, back, front — with a head-and-foot swivel on the same curve,
+  // arms pumping downward, shoulders rolling, travelling toward camera. Documented as single-level.
+  const hop = Math.abs(Math.sin(b * Math.PI * 2));
+  const step = Math.floor(b) % 4;
   const u = b - Math.floor(b);
-  const flick = Math.sin(u * Math.PI);
-  const lOut = even ? flick : 0, rOut = even ? 0 : flick;
+  const e = sm(u);
+  // free-leg abduction target per count: cross · side · back · front
+  const zTo = [-0.55, 1.15, -0.1, 0.1][step];
+  const zFrom = [0.1, -0.55, 1.15, -0.1][step];
+  const xTo = [0.1, 0, 0.8, -0.85][step];
+  const xFrom = [-0.85, 0.1, 0, 0.8][step];
+  const z = l1(zFrom, zTo, e), x = l1(xFrom, xTo, e);
+  const pump = Math.max(0, Math.sin(b * Math.PI)); // drives down on odd counts
+  const roll = Math.sin(b * Math.PI) * 0.3;
+  const swivel = Math.sin(b * Math.PI * 0.5);
   return {
-    ...REST, hipsY: 0.8 + hop * 0.12, hips: [0.15, (even ? 1 : -1) * flick * 0.15, (rOut - lOut) * 0.12], torso: [0.25, (even ? -1 : 1) * flick * 0.2, (lOut - rOut) * 0.12],
-    head: [-0.1, (even ? 1 : -1) * flick * 0.3, hs * 0.08],
-    lArm: [-0.55, 0, -0.85 + hop * 0.15], lFore: [-2.0 - hop * 0.2, 0, -0.5], rArm: [-0.55, 0, 0.85 - hop * 0.15], rFore: [-2.0 - hop * 0.2, 0, 0.5],
-    lLeg: [-0.2 + lOut * 0.2, 0, 0.1 + lOut * 1.0], rLeg: [-0.2 + rOut * 0.2, 0, -0.1 - rOut * 1.0],
-    lShin: 0.6 * (1 - lOut) + rOut * 0.4, rShin: 0.6 * (1 - rOut) + lOut * 0.4,
+    ...REST, hipsY: 0.86 + hop * 0.07, hips: [0.06, -swivel * 0.14, z * 0.1], torso: [0.09, swivel * 0.2, -roll],
+    head: [0.04, swivel * 0.5, roll * 0.5],
+    lArm: [pump * 0.55, 0, -0.4 - pump * 0.35], lFore: [-1.15 + pump * 0.5, 0, -0.3],
+    rArm: [pump * 0.55, 0, 0.4 + pump * 0.35], rFore: [-1.15 + pump * 0.5, 0, 0.3],
+    lLeg: [x, 0, 0.12 + z], rLeg: [-0.12, 0, -0.12], lShin: Math.max(0, -x) * 0.9, rShin: hop * 0.35,
   };
 }
 function bhangra(b: number): Pose {
@@ -530,57 +566,83 @@ function backflip(inBar: number): Pose {
   };
 }
 function srivalli(b: number): Pose {
-  // the Pushpa hook: one foot drags forward along the ground while the shoulder shrugs and the glove swipes the chin, then flicks out
+  // Pushpa "Srivalli" (Jani Master, step idealised by Sukumar): a crouched walk that drags a slipper —
+  // the foot never leaves the floor — under a left shoulder Pushpa keeps permanently hoisted. The
+  // constant shoulder is a character posture, not an animated shrug.
   const c = b / 2, u = c - Math.floor(c);
   const left = Math.floor(c) % 2 === 0;
-  const drag = sm(u / 0.7);
-  const swipe = Math.sin(THREE.MathUtils.clamp(u / 0.55, 0, 1) * Math.PI);
-  const flick = sm((u - 0.6) / 0.25) * (1 - sm((u - 0.9) / 0.1));
-  const shrug = Math.sin(u * Math.PI * 2) * 0.18;
-  const dragX = l1(0.35, -0.75, drag);
+  const drag = sm(u / 0.72);
+  const dragX = l1(0.32, -0.6, drag);
   const sw = left ? 1 : -1;
+  const swing = Math.sin(c * Math.PI) * 0.35;
   return {
-    ...REST, hipsY: 0.86 - drag * 0.04, hips: [0.05, sw * 0.2 * drag, sw * shrug * 0.4], torso: [0.12, -sw * 0.25 * drag, -sw * shrug], head: [0.05 - swipe * 0.15, sw * 0.4 * drag, sw * shrug * 0.6],
-    lArm: left ? [-0.2, 0, -0.3 - flick * 0.4] : [-swipe * 1.4, 0, -0.5 - flick * 1.2], lFore: left ? [-0.5, 0, -0.1] : [-swipe * 1.6 - 0.2, 0, -0.5 * swipe],
-    rArm: left ? [-swipe * 1.4, 0, 0.5 + flick * 1.2] : [-0.2, 0, 0.3 + flick * 0.4], rFore: left ? [-swipe * 1.6 - 0.2, 0, 0.5 * swipe] : [-0.5, 0, 0.1],
-    lLeg: left ? [dragX, 0, 0.08] : [0.1, 0, 0.1], rLeg: left ? [0.1, 0, -0.1] : [dragX, 0, -0.08],
-    lShin: left ? 0.15 * (1 - drag) : 0.35, rShin: left ? 0.35 : 0.15 * (1 - drag),
+    ...REST, hipsY: 0.8,
+    hips: [0.14, sw * 0.16 * drag, 0.14],
+    torso: [0.16, -sw * 0.18 * drag, -0.2],
+    head: [0.16, sw * 0.3 * drag, -0.1],
+    lArm: [-swing * 0.5, 0, -0.42], lFore: [-0.5, 0, -0.18],
+    rArm: [swing * 0.5, 0, 0.3], rFore: [-1.5, 0, 0.55],
+    lLeg: left ? [dragX, 0, 0.09] : [0.12, 0, 0.09], rLeg: left ? [0.12, 0, -0.09] : [dragX, 0, -0.09],
+    lShin: left ? 0.1 : 0.42, rShin: left ? 0.42 : 0.1,
   };
 }
 function buttaBomma(b: number): Pose {
-  // standing on one leg, the other crossed in front on its toe, knee twisting in and out; arms wide, wrists flicking
-  const twist = Math.sin(b * Math.PI * 2) * 0.75;
-  const bounce = Math.abs(Math.sin(b * Math.PI * 2)) * 0.03;
-  const left = Math.floor(b / 4) % 2 === 0;
-  const flick = Math.sin(b * Math.PI * 2 + 1) * 0.35;
-  const stand: V3 = [-0.12, 0, 0.05], cross: V3 = [-0.55, twist, 0.55];
+  // Ala Vaikunthapurramuloo "Butta Bomma" (Jani Master): the rolling step is a sustained wrist twirl
+  // with the head arriving on the beat — arm-led, quiet below the waist. No leg figure is documented.
+  const c = b / 2, u = c - Math.floor(c);
+  const outward = Math.floor(c) % 2 === 1;
+  const twirl = (outward ? 1 - u : u) * Math.PI * 1.9;
+  const sB = Math.sin(b * Math.PI);
+  const tilt = Math.sin(c * Math.PI);
   return {
-    ...REST, hipsY: 0.82 + bounce, hips: [0.05, -twist * 0.12, 0], torso: [0.05, twist * 0.2, 0], head: [0, twist * 0.25, twist * 0.1],
-    lArm: [0, 0, -1.55], lFore: [0, 0, -0.2 + flick], rArm: [0, 0, 1.55], rFore: [0, 0, 0.2 - flick],
-    lLeg: left ? stand : [cross[0], cross[1], -cross[2]], rLeg: left ? [cross[0], cross[1], -cross[2]] : [stand[0], 0, -stand[2]],
-    lShin: left ? 0.35 : 0.9, rShin: left ? 0.9 : 0.35,
+    ...REST, hipsY: 0.88, hips: [0, 0, -tilt * 0.12], torso: [-0.06, tilt * 0.12, tilt * 0.1],
+    head: [-0.12 - tilt * 0.1, tilt * 0.3, tilt * 0.18],
+    lArm: [-1.15, 0, -0.55], lFore: [-0.95, twirl, -0.35],
+    rArm: [-1.15, 0, 0.55], rFore: [-0.95, -twirl, 0.35],
+    lLeg: [sB * 0.16, 0, 0.1], rLeg: [-sB * 0.16, 0, -0.1], lShin: Math.max(0, sB) * 0.3, rShin: Math.max(0, -sB) * 0.3,
   };
 }
 function ramuloo(b: number): Pose {
-  // the Ramuloo Ramulaa hook: hopping kicks forward-diagonal while both arms pull down from overhead
-  const hb = b * 2, hop = Math.abs(Math.sin(hb * Math.PI));
-  const u = b - Math.floor(b), left = Math.floor(b) % 2 === 0;
-  const kick = Math.sin(u * Math.PI);
-  const pull = sm(u / 0.5) * (1 - sm((u - 0.7) / 0.3));
+  // Ala Vaikunthapurramuloo "Ramuloo Ramulaa" (Sekhar Master): the half-coat step, which Allu Arjun's
+  // daughter nicknamed the dosa step — "you rotate the whole thing round like this, as if making a
+  // dosa". So one flat horizontal circle drawn at waist height, the torso following the hand.
+  const c = b / 4, turn = (c - Math.floor(c)) * TAU;
+  const right = Math.floor(c) % 2 === 0;
+  const sw = right ? 1 : -1;
+  const reach = Math.sin(turn), side = Math.cos(turn);
+  const sway = Math.sin(b * Math.PI) * 0.06;
+  const sweepArm: V3 = [-1.15 - reach * 0.35, sw * side * 0.5, sw * (0.85 + side * 0.5)];
+  const sweepFore: V3 = [-0.25, 0, sw * 0.15];
+  const restArm: V3 = [0, 0, -sw * 0.85];
+  const restFore: V3 = [-1.5, 0, -sw * 0.7];
   return {
-    ...REST, hipsY: 0.85 + hop * 0.1, hips: [0.1, (left ? -1 : 1) * kick * 0.25, 0], torso: [0.15 + pull * 0.15, (left ? 1 : -1) * kick * 0.2, 0], head: [-0.15 + pull * 0.2, 0, 0],
-    lArm: [-l1(2.7, 0.9, pull), 0, -0.4 - pull * 0.5], lFore: [-l1(0.2, 1.4, pull), 0, -0.2], rArm: [-l1(2.7, 0.9, pull), 0, 0.4 + pull * 0.5], rFore: [-l1(0.2, 1.4, pull), 0, 0.2],
-    lLeg: left ? [-kick * 1.2, 0, 0.1 + kick * 0.5] : [-0.15, 0, 0.1], rLeg: left ? [-0.15, 0, -0.1] : [-kick * 1.2, 0, -0.1 - kick * 0.5],
-    lShin: left ? kick * 0.4 : 0.5, rShin: left ? 0.5 : kick * 0.4,
+    ...REST, hipsY: 0.86 + sway, hips: [0.08, sw * side * 0.18, 0], torso: [0.1, sw * side * 0.42, -sw * reach * 0.1],
+    head: [0.12, sw * side * 0.55, 0],
+    lArm: right ? restArm : sweepArm, lFore: right ? restFore : sweepFore,
+    rArm: right ? sweepArm : restArm, rFore: right ? sweepFore : restFore,
+    lLeg: [sway * 1.5, 0, 0.12], rLeg: [-sway * 1.5, 0, -0.12], lShin: 0.2, rShin: 0.2,
   };
 }
-function seetiMaar(b: number): Pose {
-  // fast shoulder shimmy with alternating heel taps, arms pumping low
-  const q = Math.sin(b * Math.PI * 4), hb = b * 2, tap = Math.sin(hb * Math.PI);
+function seetiMaar(bIn: number): Pose {
+  const b = bIn * 2;
+  // DJ "Seeti Maar" (Sekhar Master): the documented trick is balancing on the outer edge of one foot
+  // while the upper body keeps isolating on top of it, then pivoting on that edge.
+  const c = b / 2, u = c - Math.floor(c);
+  const right = Math.floor(c) % 2 === 0;
+  const roll = Math.sin(THREE.MathUtils.clamp(u / 0.75, 0, 1) * Math.PI);
+  const snap = sm((u - 0.8) / 0.2);
+  const iso = Math.sin(b * Math.PI * 2);
+  const sw = right ? 1 : -1;
+  const loaded: V3 = [0, sw * roll * 0.45, sw * roll * 0.55];
+  const free: V3 = [-roll * 0.45, 0, -sw * (0.15 + roll * 0.35)];
   return {
-    ...REST, hipsY: 0.86 + Math.abs(tap) * 0.03, hips: [0.05, -q * 0.12, tap * 0.06], torso: [0.1, q * 0.4, -tap * 0.06], head: [0, -q * 0.3, tap * 0.1],
-    lArm: [-0.5 + q * 0.4, 0, -0.5], lFore: [-1.6, 0, -0.4], rArm: [-0.5 - q * 0.4, 0, 0.5], rFore: [-1.6, 0, 0.4],
-    lLeg: [-Math.max(0, tap) * 0.6, 0, 0.12], rLeg: [-Math.max(0, -tap) * 0.6, 0, -0.12], lShin: Math.max(0, tap) * 0.3 + 0.2, rShin: Math.max(0, -tap) * 0.3 + 0.2,
+    ...REST, spin: sw * roll * 0.6, hipsY: 0.87 - roll * 0.04,
+    hips: [0.05, -sw * roll * 0.2, sw * roll * 0.14], torso: [0.08, sw * iso * 0.3, -sw * iso * 0.12],
+    head: [0, -sw * iso * 0.25 + sw * roll * 0.2, 0],
+    lArm: [-0.35 - Math.max(0, iso) * 0.5, 0, -0.5 - snap * 0.2], lFore: [-1.35, 0, -0.4],
+    rArm: [-0.35 - Math.max(0, -iso) * 0.5, 0, 0.5 + snap * 0.2], rFore: [-1.35, 0, 0.4],
+    lLeg: right ? loaded : free, rLeg: right ? free : loaded,
+    lShin: right ? 0.12 : 0.5 + roll * 0.4, rShin: right ? 0.5 + roll * 0.4 : 0.12,
   };
 }
 function mindBlock(b: number): Pose {
@@ -589,7 +651,7 @@ function mindBlock(b: number): Pose {
   return {
     ...REST, hipsY: 0.88, hips: [-pop, sB * 0.15, sB * 0.1], torso: [-0.15, -sB * 0.15, -sB * 0.1], head: [-0.1, sB * 0.3, 0],
     lArm: [0.3, 0, -0.35], lFore: [-0.2, 0, -0.1], rArm: [-0.55, 0, 1.5], rFore: [-2.3, 0, 1.05],
-    lLeg: [0, 0, 0.1 + Math.max(0, sB) * 0.4], rLeg: [0, 0, -0.1 - Math.max(0, -sB) * 0.4], lShin: Math.max(0, sB) * 0.4, rShin: Math.max(0, -sB) * 0.4,
+    lLeg: [0, 0, 0.06 + Math.max(0, sB) * 0.12], rLeg: [0, 0, -0.06 - Math.max(0, -sB) * 0.12], lShin: Math.max(0, sB) * 0.3, rShin: Math.max(0, -sB) * 0.3,
   };
 }
 /* "My Love Is Gone" (Arya 2) floor transition. Reviewers name the move a reverse worm, whose documented
@@ -607,9 +669,10 @@ function aryaFloor(_b: number, inBar: number): Pose {
   const pop = Math.sin(THREE.MathUtils.clamp((t8 - 7) / 1, 0, 1) * Math.PI);
   const w = THREE.MathUtils.clamp((t8 - 2) / 1.45, 0, 3) * Math.PI * 2;
   const active = prone * (t8 > 1.9 && t8 < 6.5 ? 1 : 0);
-  const chest = Math.sin(w) * active;
+  // reverse worm: the legs lead and the head is the last segment to whip up
+  const legWave = Math.sin(w) * active;
   const hipWave = Math.sin(w - 1.1) * active;
-  const legWave = Math.sin(w - 2.2) * active;
+  const chest = Math.sin(w - 2.2) * active;
   const lean = prone * 1.34 + chest * 0.12 - pop * 0.22;
   const arm = -1.5 * prone - chest * 0.3 + -reach * 2.3 * (1 - prone);
   const fore = prone * (-0.3 - Math.max(0, chest) * 0.9) + (1 - prone) * (-reach * 0.5);
@@ -632,7 +695,7 @@ function aryaFloor(_b: number, inBar: number): Pose {
   };
 }
 function jinthaak(b: number): Pose {
-  // Dasara "Jinthaak": deep wide crouch, feet stamping alternately, arms swinging low across the body,
+  // Telangana folk mass-number vocabulary, in the spirit of "Jinthaak" (Dhamaka, Ravi Teja): deep wide crouch, feet stamping alternately, arms swinging low across the body,
   // head snapping to the stamping side on every beat
   const hb = b * 2, stamp = Math.sin(hb * Math.PI);
   const left = Math.floor(b) % 2 === 0;
@@ -647,28 +710,44 @@ function jinthaak(b: number): Pose {
     lShin: 1.15 + Math.max(0, stamp) * 0.5, rShin: 1.15 + Math.max(0, -stamp) * 0.5,
   };
 }
-function kurchi(b: number): Pose {
-  // Guntur Kaaram "Kurchi Madathapetti": light two-step bounce, hands framing the face, shoulder drops
-  const hb = b * 2, bounce = Math.abs(Math.sin(hb * Math.PI));
-  const sB = Math.sin(b * Math.PI);
-  const half = Math.sin(b * Math.PI * 0.5);
+function kurchi(_b: number, inBar: number): Pose {
+  // Guntur Kaaram "Kurchi Madathapetti" (Sekhar Master): the viral move is a gravity-defying chair
+  // spin — a turn taken around a fixed contact point at low level with one leg sweeping wide.
+  const reach = sm(inBar / 1.6);
+  const spinP = THREE.MathUtils.clamp((inBar - 2) / 2.2, 0, 1);
+  const spin = (1 - Math.pow(1 - spinP, 3)) * TAU;
+  const land = sm((inBar - 4.6) / 0.6);
+  const low = reach * (1 - land);
+  const sweep = Math.sin(spinP * Math.PI);
+  const snap = sm((inBar - 5.6) / 0.5);
   return {
-    ...REST, hipsY: 0.88 + bounce * 0.07, hips: [0, half * 0.3, sB * 0.2], torso: [-0.05, -half * 0.25, -sB * 0.24],
-    head: [0.05, half * 0.35, sB * 0.16],
-    lArm: [-0.9 - Math.max(0, sB) * 0.4, 0, -1.05], lFore: [-1.85, 0, -0.55],
-    rArm: [-0.9 - Math.max(0, -sB) * 0.4, 0, 1.05], rFore: [-1.85, 0, 0.55],
-    lLeg: [sB * 0.3, 0, 0.12], rLeg: [-sB * 0.3, 0, -0.12], lShin: Math.max(0, sB) * 0.55, rShin: Math.max(0, -sB) * 0.55,
+    ...REST, spin, hipsY: l1(0.9, 0.7, low) + land * 0.14,
+    hips: [low * 0.3, 0, -low * 0.28], torso: [low * 0.22 - snap * 0.12, low * 0.3, low * 0.2],
+    head: [-low * 0.15 - snap * 0.15, low * 0.4 + snap * 0.3, 0],
+    // the contact arm stays planted while the free arm counterbalances the sweep
+    lArm: [-low * 1.3, 0, -0.2 - low * 0.5], lFore: [-low * 0.2, 0, -0.1],
+    rArm: [-low * 0.4 - snap * 1.2, 0, 0.2 + low * 1.5], rFore: [-low * 0.5, 0, low * 0.6],
+    lLeg: [-low * 0.55, 0, 0.1 + sweep * low * 1.25], rLeg: [-low * 0.9, 0, -0.1],
+    lShin: low * 0.2, rShin: low * 1.5,
   };
 }
-function megastar(b: number): Pose {
-  // the Chiranjeevi shake: hands low on the hips, very fast shoulder shimmy, heels flicking alternately
-  const fast = Math.sin(b * Math.PI * 6);
-  const hb = b * 2, flick = Math.sin(hb * Math.PI);
+function veena(b: number, inBar: number): Pose {
+  // Chiranjeevi's cult signature (Indra 2002, reprised in Tagore 2003): he copies the seated posture of
+  // a veena player, both arms locked on the imaginary instrument, and in the Tagore version the whole
+  // low shape travels across frame while he break-dances.
+  const sit = sm(inBar / 0.9);
+  const pluck = Math.sin(b * Math.PI * 2);
+  const slide = Math.sin(b * Math.PI * 0.5) * 0.35;
+  const lift = sm((inBar - 6.8) / 0.6);
+  const low = sit * (1 - lift);
   return {
-    ...REST, hipsY: 0.85, hips: [0.05, -fast * 0.08, flick * 0.08], torso: [0.05, fast * 0.42, 0], head: [0, -fast * 0.3, fast * 0.1],
-    lArm: [0, 0, -0.95], lFore: [-1.5, 0, -1.15], rArm: [0, 0, 0.95], rFore: [-1.5, 0, 1.15],
-    lLeg: [Math.max(0, flick) * 0.35, 0, 0.14], rLeg: [Math.max(0, -flick) * 0.35, 0, -0.14],
-    lShin: Math.max(0, flick) * 1.35, rShin: Math.max(0, -flick) * 1.35,
+    ...REST, hipsY: l1(0.9, 0.3, low), hips: [low * 0.18, low * 0.35, 0], torso: [-low * 0.12, low * 0.5, 0],
+    head: [-low * 0.1 - lift * 0.2, low * 0.35, 0],
+    // fretting hand high across the chest, plucking hand low across the lap
+    lArm: [-low * 1.1, 0, -0.2 - low * 1.15], lFore: [-low * (1.15 + slide), 0, -0.2 - low * 0.5],
+    rArm: [-low * 0.55, 0, 0.2 + low * 0.5], rFore: [-low * (1.6 + pluck * 0.22), 0, low * 0.75],
+    lLeg: [-low * 1.35, 0, 0.12 + low * 0.75], rLeg: [-low * 1.35, 0, -0.12 - low * 0.75],
+    lShin: low * 2.1, rShin: low * 2.1,
   };
 }
 function grinder(_b: number, inBar: number): Pose {
@@ -690,6 +769,216 @@ function grinder(_b: number, inBar: number): Pose {
     lShin: down * 0.15, rShin: down * (1.85 + Math.max(0, -sweep) * 0.3),
   };
 }
+function topLesi(_b: number, inBar: number): Pose {
+  // Iddarammayilatho "Top Lesi Poddi": a wave that carries him from standing onto his knees in one
+  // continuous curve — the level change is the move, so the silhouette shrinks smoothly.
+  const w = THREE.MathUtils.clamp(inBar / 5.4, 0, 1);
+  const seg = (lag: number) => sm((w - lag) / 0.18);
+  const head = seg(0), chest = seg(0.16), pelvis = seg(0.32), thigh = seg(0.48), shin = seg(0.62);
+  const up = sm((inBar - 6.6) / 1.2);
+  const k = 1 - up;
+  return {
+    ...REST, hipsY: l1(0.9, 0.32, pelvis * k),
+    hips: [pelvis * k * 0.3, 0, 0],
+    torso: [chest * k * 0.3 - head * k * 0.1, 0, 0],
+    head: [head * k * 0.45 - up * 0.3, 0, 0],
+    lArm: [-chest * k * 0.9, 0, -0.2 - chest * k * 0.5], rArm: [-chest * k * 0.9, 0, 0.2 + chest * k * 0.5],
+    lFore: [-head * k * 0.5, 0, -0.1], rFore: [-head * k * 0.5, 0, 0.1],
+    lLeg: [-thigh * k * 0.3, 0, 0.1 + thigh * k * 0.25], rLeg: [-thigh * k * 0.3, 0, -0.1 - thigh * k * 0.25],
+    lShin: shin * k * 2.15, rShin: shin * k * 2.15,
+  };
+}
+function blockbuster(b: number, inBar: number): Pose {
+  // Sarrainodu "Blockbuster": a deep squat HELD while the upper body keeps working — the value is
+  // the stillness of the hips against busy arms.
+  const down = sm(inBar / 0.5) * (1 - sm((inBar - 7) / 0.5));
+  const hit = Math.sin(b * Math.PI * 2);
+  const alt = Math.sin(b * Math.PI);
+  return {
+    ...REST, hipsY: l1(0.9, 0.46, down),
+    hips: [down * 0.12, alt * 0.16, 0], torso: [-down * 0.06, -alt * 0.2, hit * 0.08],
+    head: [-down * 0.1, alt * 0.35, hit * 0.12],
+    lArm: [-Math.max(0, hit) * 1.5, 0, -0.35 - Math.max(0, hit) * 0.9],
+    rArm: [-Math.max(0, -hit) * 1.5, 0, 0.35 + Math.max(0, -hit) * 0.9],
+    lFore: [-1.2 + Math.max(0, hit) * 1.0, 0, -0.25], rFore: [-1.2 + Math.max(0, -hit) * 1.0, 0, 0.25],
+    lLeg: [-down * 1.35, 0, 0.12 + down * 0.7], rLeg: [-down * 1.35, 0, -0.12 - down * 0.7],
+    lShin: down * 1.75, rShin: down * 1.75,
+  };
+}
+function ringaRinga(b: number, inBar: number): Pose {
+  // Arya 2 "Ringa Ringa": three registers in one number — standing, deep squat, then dancing while
+  // lying on the floor. The footprint flips from a vertical bar to a horizontal one.
+  const squat = sm((inBar - 3.4) / 0.5) * (1 - sm((inBar - 4.6) / 0.4));
+  const down = sm((inBar - 4.6) / 0.7) * (1 - sm((inBar - 7) / 0.7));
+  const hit = Math.sin(b * Math.PI * 2);
+  const sB = Math.sin(b * Math.PI);
+  const stand = 1 - Math.max(squat, down);
+  return {
+    ...REST, lean: down * 1.42,
+    hipsY: 0.9 - squat * 0.42 - down * 0.5,
+    hips: [squat * 0.15 + down * 0.1, sB * 0.2 * stand + down * sB * 0.25, down * hit * 0.2],
+    torso: [-squat * 0.05 - down * 0.1, -sB * 0.2 * stand, -down * hit * 0.2],
+    head: [-squat * 0.1 - down * 0.2, sB * 0.3 * stand, 0],
+    lArm: [-Math.max(0, hit) * 1.2 - down * 1.3, 0, -0.3 - stand * Math.max(0, sB) * 0.7],
+    rArm: [-Math.max(0, -hit) * 1.2 - down * 1.3, 0, 0.3 + stand * Math.max(0, -sB) * 0.7],
+    lFore: [-0.9 - down * 0.3, 0, -0.2], rFore: [-0.9 - down * 0.3, 0, 0.2],
+    lLeg: [-squat * 1.3 + down * (0.1 - Math.max(0, hit) * 0.9), 0, 0.12 + squat * 0.7],
+    rLeg: [-squat * 1.3 + down * (0.1 - Math.max(0, -hit) * 0.9), 0, -0.12 - squat * 0.7],
+    lShin: squat * 1.7 + down * Math.max(0, hit) * 1.4, rShin: squat * 1.7 + down * Math.max(0, -hit) * 1.4,
+  };
+}
+function suspenders(b: number): Pose {
+  // RRR's separate "suspender section": the tempo contrast is the whole point — they tug the
+  // suspenders in slow motion while the feet shuffle sideways at lightning speed.
+  const tug = Math.sin(b * Math.PI * 0.25); // one full tug per four counts
+  const shuffle = Math.sin(b * Math.PI * 8); // feet at 4x the beat
+  const lift = Math.abs(shuffle);
+  return {
+    ...REST, hipsY: 0.87 + lift * 0.02, hips: [0.04, 0, shuffle * 0.05], torso: [0.02, 0, 0], head: [0, 0, 0],
+    // hands gripping at the chest, pulling outward and releasing
+    lArm: [-1.05, 0, -0.5 - Math.max(0, tug) * 0.55], lFore: [-1.55, 0, -0.35 - Math.max(0, tug) * 0.3],
+    rArm: [-1.05, 0, 0.5 + Math.max(0, tug) * 0.55], rFore: [-1.55, 0, 0.35 + Math.max(0, tug) * 0.3],
+    lLeg: [0, 0, 0.1 + Math.max(0, shuffle) * 0.3], rLeg: [0, 0, -0.1 - Math.max(0, -shuffle) * 0.3],
+    lShin: Math.max(0, shuffle) * 0.55, rShin: Math.max(0, -shuffle) * 0.55,
+  };
+}
+function circleGlide(b: number, inBar: number): Pose {
+  // one of Jackson's documented signatures: sliding in circles on shifting weight so he appears
+  // to float. Almost pure glide-plus-spin, which is exactly what a blocky rig can sell.
+  const sB = Math.sin(b * Math.PI);
+  return {
+    ...REST, spin: (inBar / 8) * TAU, hipsY: 0.88 + Math.abs(sB) * 0.02,
+    hips: [0.05, 0, sB * 0.1], torso: [0.05, -sB * 0.12, -sB * 0.1], head: [0, sB * 0.2, 0],
+    lArm: [-sB * 0.3, 0, -0.42], lFore: [-0.75, 0, -0.25], rArm: [sB * 0.3, 0, 0.42], rFore: [-0.75, 0, 0.25],
+    // weight shifts foot to foot without either leaving the floor
+    lLeg: [sB * 0.3, 0, 0.08], rLeg: [-sB * 0.3, 0, -0.08],
+    lShin: Math.max(0, -sB) * 0.5, rShin: Math.max(0, sB) * 0.5,
+  };
+}
+function headRoll(b: number, inBar: number): Pose {
+  // the rhythmic punctuation mark — a head roll over a held stance, used before a big hit
+  const roll = b * Math.PI;
+  const hit = sm((inBar - 6.4) / 0.3);
+  return {
+    ...REST, hipsY: 0.88 - hit * 0.04,
+    hips: [0.04, 0, 0], torso: [Math.sin(roll) * 0.08, Math.cos(roll) * 0.12, Math.sin(roll) * 0.06],
+    head: [Math.sin(roll) * 0.42, Math.cos(roll) * 0.55, Math.sin(roll + 1) * 0.3],
+    lArm: [0, 0, -0.35 - hit * 1.2], rArm: [0, 0, 0.35 + hit * 1.2],
+    lFore: [-0.9 + hit * 0.7, 0, -0.2], rFore: [-0.9 + hit * 0.7, 0, 0.2],
+    lLeg: [0, 0, 0.14], rLeg: [0, 0, -0.14], lShin: 0.1, rShin: 0.1,
+  };
+}
+function thrillerWalk(_b: number, inBar: number): Pose {
+  // the phrase everyone recognises: "walk R/L/R/L, take-it-back R/L/R/L" — four forward, four back,
+  // in the claw hold. Given two bars, per the script's emphasis.
+  const step = Math.floor(inBar);
+  const u = inBar - step;
+  const back = step >= 4;
+  const sw = step % 2 === 0 ? 1 : -1;
+  const swing = Math.sin(u * Math.PI);
+  const dir = back ? -1 : 1;
+  return {
+    ...REST, hipsY: 0.86 + swing * 0.03,
+    hips: [0.08, sw * 0.12, 0], torso: [0.16, -sw * 0.14, 0], head: [0.22, sw * 0.2, sw * 0.08],
+    // zombie claw: forearms up and out, fingers spread — held for the whole phrase
+    lArm: [-1.35, 0, -0.4], lFore: [1.3, 0, -0.1],
+    rArm: [-1.35, 0, 0.4], rFore: [1.3, 0, 0.1],
+    lLeg: [sw > 0 ? -dir * swing * 0.6 : dir * swing * 0.25, 0, 0.1],
+    rLeg: [sw > 0 ? dir * swing * 0.25 : -dir * swing * 0.6, 0, -0.1],
+    lShin: sw > 0 ? swing * 0.5 : 0.15, rShin: sw > 0 ? 0.15 : swing * 0.5,
+  };
+}
+function golimaar(_b: number, inBar: number): Pose {
+  // Donga's "Golimaar" recreated Thriller's choreography, so its rise-from-the-grave gives a
+  // documented floor-to-standing level change: crawl, knees under, rise, then the zombie freeze.
+  const crawl = sm(inBar / 3.4);
+  const knees = sm((inBar - 3) / 1.6);
+  const up = sm((inBar - 4.6) / 1.6);
+  const claw = sm((inBar - 6.2) / 0.9);
+  const reach = Math.sin(THREE.MathUtils.clamp(inBar / 3.4, 0, 1) * Math.PI * 2);
+  const lean = (1 - up) * 1.15;
+  return {
+    ...REST, lean,
+    hipsY: l1(0.12, 0.9, Math.max(crawl * 0.35, Math.max(knees * 0.6, up))),
+    hips: [(1 - up) * 0.3, 0, 0], torso: [(1 - up) * 0.25 - claw * 0.1, 0, 0],
+    head: [-(1 - up) * 0.2 - claw * 0.15, 0, 0],
+    lArm: [-1.3 - Math.max(0, reach) * 0.4 + claw * 0.05, 0, -0.25 - claw * 0.2],
+    rArm: [-1.3 - Math.max(0, -reach) * 0.4 + claw * 0.05, 0, 0.25 + claw * 0.2],
+    lFore: [claw * 1.4, 0, -0.1], rFore: [claw * 1.4, 0, 0.1],
+    lLeg: [-knees * 0.9 + up * 0.75, 0, 0.1], rLeg: [-knees * 0.9 + up * 0.75, 0, -0.1],
+    lShin: knees * 1.9 * (1 - up), rShin: knees * 1.9 * (1 - up),
+  };
+}
+function seatedTravel(b: number, inBar: number): Pose {
+  // Race Gurram "Cinema Choopistha Mava": a whole passage held at roughly seated height while the
+  // arms and torso work at full amplitude — small and fast, which contrasts with everything else.
+  const down = sm(inBar / 0.6) * (1 - sm((inBar - 7.2) / 0.6));
+  const drive = Math.sin(b * Math.PI * 2);
+  const twist = Math.sin(b * Math.PI * 0.5);
+  const sweep = sm((inBar - 4) / 0.6) * (1 - sm((inBar - 6) / 0.5));
+  return {
+    ...REST, spin: sm((inBar - 6) / 1) * Math.PI,
+    hipsY: l1(0.9, 0.5, down),
+    hips: [down * 0.35, twist * 0.45 * down, 0], torso: [down * 0.15, -twist * 0.35 * down, drive * 0.1],
+    head: [-down * 0.2, twist * 0.4, 0],
+    lArm: [-down * 0.5 - Math.max(0, drive) * 0.6, 0, -0.3 - sweep * 1.2], lFore: [-1.1 + sweep * 0.9, 0, -0.2],
+    rArm: [-down * 0.5 - Math.max(0, -drive) * 0.6, 0, 0.3 + sweep * 1.2], rFore: [-1.1 + sweep * 0.9, 0, 0.2],
+    lLeg: [-down * (1.1 + Math.max(0, drive) * 0.35), 0, 0.12 + down * 0.5],
+    rLeg: [-down * (1.1 + Math.max(0, -drive) * 0.35), 0, -0.12 - down * 0.5],
+    lShin: down * 1.65, rShin: down * 1.65,
+  };
+}
+function wellRim(b: number): Pose {
+  // Sagara Sangamam's drunken rain dance on the rim of a well: the lean oscillates and the recovery
+  // is always a beat late, so the balance never quite settles. That lateness is the drunkenness.
+  const sway = Math.sin(b * Math.PI * 0.5);
+  const late = Math.sin((b - 1) * Math.PI * 0.5);
+  const stumble = Math.max(0, Math.sin(b * Math.PI * 0.25)) ** 4;
+  return {
+    ...REST, lean: late * 0.3 + stumble * 0.2,
+    hipsY: 0.88 - stumble * 0.14,
+    hips: [stumble * 0.3, sway * 0.25, late * 0.3],
+    torso: [-late * 0.15, -sway * 0.2, -late * 0.35],
+    head: [-late * 0.2, sway * 0.35, -late * 0.25],
+    lArm: [-sway * 0.5, 0, -0.9 - stumble * 0.9], lFore: [-0.5, 0, -0.35],
+    rArm: [sway * 0.5, 0, 0.9 + stumble * 0.9], rFore: [-0.5, 0, 0.35],
+    lLeg: [-stumble * 0.5, 0, 0.1 + Math.max(0, sway) * 0.25],
+    rLeg: [-stumble * 0.5, 0, -0.1 - Math.max(0, -sway) * 0.25],
+    lShin: stumble * 0.9 + Math.max(0, sway) * 0.3, rShin: stumble * 0.9 + Math.max(0, -sway) * 0.3,
+  };
+}
+function tarangam(b: number, inBar: number): Pose {
+  // Kuchipudi tarangam: dancing on the raised rim of a brass plate, dragging it forward, back and
+  // in a circle, with the head locked level throughout — the still head is what the eye measures
+  // every other channel against.
+  const settle = sm(inBar / 1);
+  const beat = Math.sin(b * Math.PI * 2);
+  const hop = inBar > 5.6 ? Math.max(0, Math.sin((inBar - 5.6) * Math.PI * 1.4)) : 0;
+  const turn = sm((inBar - 3.6) / 1.6) - sm((inBar - 5.4) / 1);
+  return {
+    ...REST, spin: turn * 0.8, rise: hop * 0.1,
+    hipsY: 0.9 - settle * 0.06,
+    hips: [0.04, turn * 0.3, 0], torso: [-0.02, -turn * 0.2, 0],
+    head: [0, 0, 0], // locked level: a pot of water rides here
+    lArm: [0, 0, -1.5], lFore: [-0.9, 0, -0.55],
+    rArm: [0, 0, 1.5], rFore: [-0.9, 0, 0.55],
+    // both feet balanced on the rim; one beats the rhythm while the other holds
+    lLeg: [-Math.max(0, beat) * 0.18, 0, 0.06], rLeg: [-Math.max(0, -beat) * 0.18, 0, -0.06],
+    lShin: Math.max(0, beat) * 0.3 + hop * 0.4, rShin: Math.max(0, -beat) * 0.3 + hop * 0.4,
+  };
+}
+function hipThrust(b: number): Pose {
+  // documented as synced to a snare or a heavy bass hit, so it snaps on the beat and recovers
+  const hit = Math.max(0, Math.sin(b * Math.PI)) ** 3;
+  const back = Math.max(0, -Math.sin(b * Math.PI)) ** 3;
+  return {
+    ...REST, hipsY: 0.88 - hit * 0.05,
+    hips: [-hit * 0.5 + back * 0.3, 0, 0], torso: [hit * 0.3 - back * 0.18, 0, 0], head: [-hit * 0.2, 0, 0],
+    lArm: [0, 0, -0.32 - hit * 0.3], lFore: [-0.55, 0, -0.3],
+    rArm: [0, 0, 0.32 + hit * 0.3], rFore: [-0.55, 0, 0.3],
+    lLeg: [-hit * 0.1, 0, 0.16], rLeg: [-hit * 0.1, 0, -0.16], lShin: hit * 0.25, rShin: hit * 0.25,
+  };
+}
 function hipRoll(b: number): Pose {
   const a = b * Math.PI;
   return {
@@ -704,8 +993,10 @@ const MOVES: Move[] = [
   { pose: (b, i) => aryaFloor(b, i), from: -0.6, to: -1.6, sparks: true, face: -1.25, floor: true },
   { pose: (b, i) => aryaFloor(b, i), from: -1.6, to: -2.6, sparks: true, face: -1.25, floor: true },
   { pose: (b) => naatu(b), from: -1.6, to: 0.4 },
-  { pose: (b) => naatu(b), from: 0.4, to: -1.6 },
-  { pose: (b) => srivalli(b), from: -1.6, to: 0.6 },
+  { pose: (b) => naatu(b), from: 0.4, to: 1.4 },
+  // the suspender section travels purely sideways
+  { pose: (b) => suspenders(b), from: 1.4, to: 1.4, side: [0, 1.5] },
+  { pose: (b) => srivalli(b), from: -1.6, to: 0.6, side: [1.5, 0] },
   { pose: (b) => buttaBomma(b), from: 0.6, to: 0.6 },
   { pose: (b) => ramuloo(b), from: 0.6, to: -1.6, side: [0, 1.0] },
   { pose: (b) => seetiMaar(b), from: -1.6, to: -1.6, side: [1.0, 0] },
@@ -724,15 +1015,28 @@ const MOVES: Move[] = [
   { pose: (b, i) => kickPose(b, i), from: -1.6, to: -1.6 },
   { pose: (_b, i) => spinKick(i), from: -1.6, to: -1.6, sparks: true },
   { pose: (b, i) => hatShow(b, i), from: -1.6, to: -1.6, hat: true },
+  { pose: (_b, i) => topLesi(_b, i), from: -1.6, to: -1.6 },
+  { pose: (b, i) => blockbuster(b, i), from: -1.6, to: -1.6 },
+  { pose: (b, i) => ringaRinga(b, i), from: -1.6, to: -1.6, face: -1.15, floor: true, sparks: true },
+  { pose: (_b, i) => golimaar(_b, i), from: -1.6, to: -1.6, face: -1.15, floor: true },
+  { pose: (b, i) => seatedTravel(b, i), from: -1.6, to: 0.6 },
+  { pose: (b) => wellRim(b), from: 0.6, to: -1.6, side: [0, -1.0] },
+  { pose: (b, i) => tarangam(b, i), from: -1.6, to: -1.6, side: [-1.0, 0] },
   { pose: (b, i) => shimmy(b, i), from: -1.6, to: -0.8 },
   { pose: (b) => hipRoll(b), from: -0.8, to: -0.8 },
+  { pose: (b) => hipThrust(b), from: -0.8, to: -0.8 },
   { pose: (b, i) => spinGlide(b, i), from: -0.8, to: -1.6, stepped: true, sparks: true },
   { pose: (_b, i) => kneeDrop(i), from: -1.6, to: -1.6, sparks: true },
+  { pose: (_b, i) => thrillerWalk(_b, i), from: -1.6, to: 0.4 },
+  { pose: (_b, i) => thrillerWalk(_b, i), from: 0.4, to: -1.6 },
+  { pose: (b, i) => circleGlide(b, i), from: -1.6, to: -1.6, side: [0, 1.2] },
+  { pose: (b, i) => headRoll(b, i), from: -1.6, to: -1.6, side: [1.2, 0] },
   { pose: (b) => bhangra(b), from: -1.6, to: -1.6, side: [0, 1.0] },
   { pose: (b, i) => gangnam(b, i), from: -1.6, to: -1.6, side: [1.0, -1.0] },
   { pose: (b) => classical(b), from: -1.6, to: -1.6, side: [-1.0, 0] },
-  { pose: (b) => kurchi(b), from: -1.6, to: -1.6, side: [0, 0.9] },
-  { pose: (b) => megastar(b), from: -1.6, to: -1.6, side: [0.9, 0] },
+  { pose: (b, i) => kurchi(b, i), from: -1.6, to: -1.6, side: [0, 0.9] },
+  // the Tagore version of the veena step travels sideways at floor level
+  { pose: (b, i) => veena(b, i), from: -1.6, to: -1.6, side: [0.9, -0.9] },
   { pose: (b) => mindBlock(b), from: -1.6, to: -1.6, side: [0, -0.8] },
   { pose: (b) => salsa(b), from: -1.6, to: -0.6, side: [-0.8, 0] },
   { pose: (_b, i) => backflip(i), from: -0.6, to: -1.6, sparks: true },
