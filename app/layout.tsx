@@ -11,9 +11,18 @@ import { Grain } from "@/components/ui/Grain";
 import { Nav } from "@/components/layout/Nav";
 import { ScrollProgress } from "@/components/layout/ScrollProgress";
 import { QuickBar } from "@/components/layout/QuickBar";
+import { MotionProvider } from "@/components/providers/MotionProvider";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
-const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono", display: "swap" });
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist",
+  display: "swap",
+});
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+  display: "swap",
+});
 
 const title = `${profile.name} — Software Engineer`;
 const description =
@@ -57,7 +66,11 @@ export const metadata: Metadata = {
     description,
     creator: "@vinod_kumar_200",
   },
-  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large" } },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+  },
   category: "technology",
 };
 
@@ -70,22 +83,32 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en" className={`${geist.variable} ${geistMono.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${geist.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
+    >
       <body className="min-h-svh">
-        <SmoothScroll>
-          <ScrollStateProvider>
-            <HashScroll />
-            <Preloader />
-            <Nav />
-            <ScrollProgress />
-            <QuickBar />
-            {children}
-            <Cursor />
-            <Grain />
-          </ScrollStateProvider>
-        </SmoothScroll>
+        <MotionProvider>
+          <SmoothScroll>
+            <ScrollStateProvider>
+              <HashScroll />
+              <Preloader />
+              <Nav />
+              <ScrollProgress />
+              <QuickBar />
+              {children}
+              <Cursor />
+              <Grain />
+            </ScrollStateProvider>
+          </SmoothScroll>
+        </MotionProvider>
       </body>
     </html>
   );

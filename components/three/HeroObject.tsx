@@ -483,6 +483,7 @@ export default function HeroObject({ stateRef, active, variant = "hero", orbit }
     <Canvas
       dpr={[1, 1.5]}
       camera={{ position: [0, 0, 8.5], fov: 34, near: 0.1, far: 60 }}
+      resize={{ scroll: false, debounce: 500 }}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       frameloop={active ? "always" : "never"}
       onCreated={({ gl }) => {

@@ -52,6 +52,14 @@ function noise2(x: number, y: number) {
   return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
 }
 
+/* r3f resets state.clock.elapsedTime whenever frameloop flips, which would replay the city
+   build-in and restart the routine every time the hero scrolled out of view and back. Each
+   animated part keeps its own accumulator instead; the dt clamp absorbs the resume frame. */
+function useSceneClock() {
+  const t = useRef(0);
+  return (dt: number) => (t.current += Math.min(dt, 0.1));
+}
+
 /* dev-only: ?poseGrid=0:1,3:2.5,... freezes dancers at move:count so poses can be reviewed side by side */
 function poseGridSpec() {
   if (typeof window === "undefined") return null;
@@ -100,12 +108,13 @@ function City({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
   const flashesRef = useRef<Float32Array>(new Float32Array(COUNT));
   const nextFlash = useRef(0);
   const shocksRef = useRef<{ x: number; z: number; t: number; a: number }[]>([]);
+  const clock = useSceneClock();
   const dancerRef = useRef({ x: 0, z: 0, foot: 1.2, flat: 0 });
 
   useFrame((state, dt) => {
     const m = mesh.current;
     if (!m) return;
-    const t = state.clock.elapsedTime;
+    const t = clock(dt);
     if (born.current === null) born.current = t;
     const age = t - born.current;
     const s = stateRef.current;
@@ -202,8 +211,8 @@ function City({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
         ref={mesh}
         args={[undefined, undefined, COUNT]}
         frustumCulled={false}
-        castShadow
         receiveShadow
+        raycast={() => null}
         onPointerDown={(e) => {
           e.stopPropagation();
           const p = e.point.clone();
@@ -787,10 +796,16 @@ class Burst {
       this.vel[i * 3 + 2] = Math.sin(a) * r * power;
     }
     this.age = 0;
+    this.mat.visible = true;
     this.geo.attributes.position.needsUpdate = true;
   }
   step(dt: number) {
-    if (this.age > 2.2) { this.mat.opacity = 0; return; }
+    if (this.age > 2.2) {
+      this.mat.opacity = 0;
+      this.mat.visible = false;
+      return;
+    }
+    this.mat.visible = true;
     this.age += dt;
     for (let i = 0; i < BURST_N; i++) {
       this.vel[i * 3 + 1] -= 3.2 * dt;
@@ -854,8 +869,7 @@ function Dancer({ stateRef, dancerRef, onStomp, frozen }: { stateRef: MutableRef
   const rLeg = useRef<THREE.Group>(null);
   const lShin = useRef<THREE.Group>(null);
   const rShin = useRef<THREE.Group>(null);
-  const light = useRef<THREE.PointLight>(null);
-  const spot = useRef<THREE.PointLight>(null);
+  const pool = useRef<THREE.Mesh>(null);
   const ring = useRef<THREE.Mesh>(null);
   const lastStep = useRef(-1);
   const lastBar = useRef(-1);
@@ -874,11 +888,12 @@ function Dancer({ stateRef, dancerRef, onStomp, frozen }: { stateRef: MutableRef
   const trailMesh = useRef<THREE.Object3D>(null);
   const appearedAt = useRef<number | null>(null);
   const flyState = useRef({ x: 0, y: 0, z: 0, rot: 0 });
+  const clock = useSceneClock();
 
   useFrame((state, dt) => {
-    const t = state.clock.elapsedTime;
+    const t = clock(dt);
     if (bornRef.current === null) bornRef.current = t;
-    const age = t - bornRef.current;
+    const age = t - (bornRef.current ?? t);
     const g = root.current;
     if (!g) return;
     const bpm = 62;
@@ -1023,8 +1038,11 @@ function Dancer({ stateRef, dancerRef, onStomp, frozen }: { stateRef: MutableRef
     setE(lLeg.current, P.lLeg); setE(rLeg.current, P.rLeg);
     if (lShin.current) lShin.current.rotation.x = P.lShin;
     if (rShin.current) rShin.current.rotation.x = P.rShin;
-    if (light.current) light.current.intensity = (2.5 + bounce * 1.5 + P.rise * 8) * sc;
-    if (spot.current) spot.current.intensity = (3.5 + bounce * 1.5) * sc;
+    if (pool.current) {
+      const ps = 1 + bounce * 0.08 + P.rise * 0.5;
+      pool.current.scale.set(ps, ps, 1);
+      (pool.current.material as THREE.MeshBasicMaterial).opacity = (0.1 + bounce * 0.06 + P.rise * 0.12) * sc;
+    }
     if (ring.current) {
       const rs = 1 + bounce * 0.1 + P.rise * 1.5;
       ring.current.scale.set(rs, rs, 1);
@@ -1037,7 +1055,7 @@ function Dancer({ stateRef, dancerRef, onStomp, frozen }: { stateRef: MutableRef
       <group ref={beams}>
         {(isHeavyDevice() ? BEAMS : BEAMS.slice(0, 2)).map((bm) => (
           <mesh key={bm.color + bm.phase} position={bm.pos} geometry={beamGeo}>
-            <meshBasicMaterial color={bm.color} transparent opacity={0.04} depthWrite={false} blending={THREE.AdditiveBlending} side={THREE.DoubleSide} />
+            <meshBasicMaterial color={bm.color} transparent opacity={0.04} depthWrite={false} blending={THREE.AdditiveBlending} />
           </mesh>
         ))}
       </group>
@@ -1045,8 +1063,10 @@ function Dancer({ stateRef, dancerRef, onStomp, frozen }: { stateRef: MutableRef
         <points key={i} geometry={bu.geo} material={bu.mat} frustumCulled={false} />
       ))}
     <group ref={root}>
-      <pointLight ref={light} position={[0, 1.2, 0.8]} color={GLOW} intensity={3} distance={3.2} decay={2} />
-      <pointLight ref={spot} position={[0, 2.6, 0.7]} color="#fff4e0" intensity={4} distance={3.4} decay={2} />
+      <mesh ref={pool} position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[1.15, 32]} />
+        <meshBasicMaterial color={GLOW} transparent opacity={0.16} depthWrite={false} blending={THREE.AdditiveBlending} />
+      </mesh>
       <mesh ref={ring} position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.55, 0.72, 48]} />
         <meshBasicMaterial color={GLOW} transparent opacity={0.4} depthWrite={false} />
@@ -1136,6 +1156,7 @@ function Dancer({ stateRef, dancerRef, onStomp, frozen }: { stateRef: MutableRef
 function Rig({ children, stateRef }: { children: React.ReactNode; stateRef: MutableRefObject<HeroState> }) {
   const group = useRef<THREE.Group>(null);
   const { pointer, viewport, size } = useThree();
+  const clock = useSceneClock();
   // phones: tilting the device sways the city
   const tilt = useRef({ x: 0, y: 0 });
   useEffect(() => {
@@ -1151,7 +1172,7 @@ function Rig({ children, stateRef }: { children: React.ReactNode; stateRef: Muta
     if (!group.current) return;
     const s = stateRef.current;
     const desktop = size.width >= 900;
-    const t = state.clock.elapsedTime;
+    const t = clock(dt);
     const dive = Math.min(1, s.spread * 1.6); // first part of the scroll dives into the streets
     const px = desktop ? pointer.x : tilt.current.x;
     group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, -0.72 + Math.sin(t * 0.08) * 0.12 + px * (desktop ? 0.08 : 0.22) + dive * 0.5, 3, dt);
@@ -1190,7 +1211,7 @@ function Scene({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
     <>
       <AutoSize />
       <ambientLight intensity={0.25} />
-      <directionalLight position={[6, 10, 4]} intensity={1.6} castShadow={isHeavyDevice()} shadow-mapSize={[1024, 1024]} />
+      <directionalLight position={[6, 10, 4]} intensity={1.6} castShadow={isHeavyDevice()} shadow-mapSize={[512, 512]} />
       <pointLight position={[-4, 4, 4]} intensity={4} color="#e9a23b" distance={20} decay={2} />
       <Environment resolution={128} frames={1}>
         <Lightformer form="rect" intensity={2} color="#ffffff" position={[0, 6, -3]} rotation={[-Math.PI / 2.2, 0, 0]} scale={[10, 4, 1]} />
@@ -1211,17 +1232,18 @@ function Scene({ stateRef }: { stateRef: MutableRefObject<HeroState> }) {
 
 export default function VoxelScene({ stateRef, active }: { stateRef: MutableRefObject<HeroState>; active: boolean }) {
   const heavy = isHeavyDevice();
-  const [dpr, setDpr] = useState(heavy ? 1.5 : 1.25);
+  const [dpr, setDpr] = useState(heavy ? 1.5 : 1.15);
   return (
     <Canvas
       dpr={dpr}
-      shadows={heavy}
+      shadows={heavy ? "percentage" : false}
       camera={{ position: [0, 5.5, 12], fov: 30, near: 0.1, far: 80 }}
-      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+      resize={{ scroll: false, debounce: 500 }}
+      gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
       frameloop={active ? "always" : "never"}
       onCreated={({ gl, camera }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.setClearColor(new THREE.Color("#000000"), 0);
+        gl.setClearColor(new THREE.Color("#0a0a0c"), 1);
         camera.lookAt(0, 0.5, 0);
       }}
       style={{ position: "absolute", inset: 0 }}
@@ -1231,7 +1253,7 @@ export default function VoxelScene({ stateRef, active }: { stateRef: MutableRefO
         bounds={(refresh) => [refresh * 0.55, refresh * 0.9]}
         flipflops={3}
         onDecline={() => setDpr((d) => Math.max(0.75, Math.round((d - 0.25) * 100) / 100))}
-        onIncline={() => setDpr((d) => Math.min(heavy ? 1.5 : 1.25, Math.round((d + 0.25) * 100) / 100))}
+        onIncline={() => setDpr((d) => Math.min(heavy ? 1.5 : 1.15, Math.round((d + 0.25) * 100) / 100))}
         onFallback={() => setDpr(0.75)}
       />
       <Suspense fallback={null}>

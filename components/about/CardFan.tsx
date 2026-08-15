@@ -87,7 +87,7 @@ export function CardFan({ cards }: { cards: FanCard[] }) {
       <div
         ref={row}
         onScroll={onRowScroll}
-        className="-mx-[var(--spacing-gutter)] flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto overscroll-x-contain scroll-smooth px-[var(--spacing-gutter)] pb-2 no-scrollbar lg:hidden"
+        className="-mx-[var(--spacing-gutter)] flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto overscroll-x-contain px-[var(--spacing-gutter)] pb-2 no-scrollbar lg:hidden"
         role="group"
         aria-label="Profile cards"
       >
