@@ -1,0 +1,97 @@
+{
+  "fetchedAt": "2026-08-15",
+  "publicRepos": 71,
+  "ownRepos": 67,
+  "forks": 4,
+  "since": "2022-12",
+  "languages": [
+    {
+      "name": "JavaScript",
+      "count": 28,
+      "share": 0.549
+    },
+    {
+      "name": "TypeScript",
+      "count": 9,
+      "share": 0.176
+    },
+    {
+      "name": "Python",
+      "count": 4,
+      "share": 0.078
+    },
+    {
+      "name": "CSS",
+      "count": 4,
+      "share": 0.078
+    },
+    {
+      "name": "Java",
+      "count": 3,
+      "share": 0.059
+    },
+    {
+      "name": "C++",
+      "count": 1,
+      "share": 0.02
+    }
+  ],
+  "recent": [
+    {
+      "name": "Tempo",
+      "url": "https://github.com/vinodkumarpeddi/Tempo",
+      "language": "TypeScript",
+      "pushedAt": "2026-08-11",
+      "description": ""
+    },
+    {
+      "name": "Build-a-Real-Time-FTP-File-System-Monitoring-Dashboard-with-WebSockets",
+      "url": "https://github.com/vinodkumarpeddi/Build-a-Real-Time-FTP-File-System-Monitoring-Dashboard-with-WebSockets",
+      "language": "TypeScript",
+      "pushedAt": "2026-03-27",
+      "description": ""
+    },
+    {
+      "name": "OfflineChatbot",
+      "url": "https://github.com/vinodkumarpeddi/OfflineChatbot",
+      "language": "Python",
+      "pushedAt": "2026-03-21",
+      "description": ""
+    },
+    {
+      "name": "Ai-Form-Builder",
+      "url": "https://github.com/vinodkumarpeddi/Ai-Form-Builder",
+      "language": "JavaScript",
+      "pushedAt": "2026-03-21",
+      "description": ""
+    },
+    {
+      "name": "MindQuest",
+      "url": "https://github.com/vinodkumarpeddi/MindQuest",
+      "language": "JavaScript",
+      "pushedAt": "2026-03-16",
+      "description": "AI-Powered Collaborative Brainstorming Platform"
+    },
+    {
+      "name": "SMB-Network-Drive-Browser-",
+      "url": "https://github.com/vinodkumarpeddi/SMB-Network-Drive-Browser-",
+      "language": "TypeScript",
+      "pushedAt": "2026-03-14",
+      "description": ""
+    },
+    {
+      "name": "LLM-Powered-Prompt-Router",
+      "url": "https://github.com/vinodkumarpeddi/LLM-Powered-Prompt-Router",
+      "language": "Python",
+      "pushedAt": "2026-03-13",
+      "description": ""
+    },
+    {
+      "name": "Gitops-repo",
+      "url": "https://github.com/vinodkumarpeddi/Gitops-repo",
+      "language": null,
+      "pushedAt": "2026-03-05",
+      "description": ""
+    }
+  ]
+}

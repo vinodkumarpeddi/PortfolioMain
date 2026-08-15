@@ -1,0 +1,55 @@
+import { profile } from "@/data/profile";
+import { GitHub, LinkedIn, XLogo, Mail } from "@/components/ui/Icons";
+
+const icons: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
+  GitHub,
+  LinkedIn,
+  X: XLogo,
+};
+
+export function Footer() {
+  const year = new Date().getFullYear();
+  return (
+    <footer className="gutter relative border-t border-line-1 bg-bg-0 py-10 text-fg-2">
+      <div className="mx-auto flex max-w-[100rem] flex-col gap-8 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="text-[15px] font-semibold text-fg-1">{profile.name}</p>
+          <p className="label mt-2 text-fg-3">Software Engineer · {profile.location}</p>
+        </div>
+        <ul className="flex items-center gap-2" aria-label="Social links">
+          {profile.socials.map((s) => {
+            const Icon = icons[s.label];
+            return (
+              <li key={s.label}>
+                <a
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.label}
+                  data-cursor={s.label === "GitHub" ? "GitHub ↗" : undefined}
+                  className="grid h-10 w-10 place-items-center rounded-full border border-line-1 text-fg-2 transition-colors hover:border-line-2 hover:text-fg-1"
+                >
+                  {Icon ? <Icon width={16} height={16} /> : s.label}
+                </a>
+              </li>
+            );
+          })}
+          <li>
+            <a
+              href={`mailto:${profile.email}`}
+              aria-label="Email"
+              data-cursor="Contact"
+              className="grid h-10 w-10 place-items-center rounded-full border border-line-1 text-fg-2 transition-colors hover:border-line-2 hover:text-fg-1"
+            >
+              <Mail width={16} height={16} />
+            </a>
+          </li>
+        </ul>
+        <div className="label flex flex-col gap-2 text-fg-3 md:items-end">
+          <span>© {year} {profile.name}</span>
+          <span>Built with Next.js · deployed on Vercel</span>
+        </div>
+      </div>
+    </footer>
+  );
+}
