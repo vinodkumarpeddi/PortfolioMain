@@ -11,8 +11,8 @@ const icons: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> 
 export function Footer() {
   const year = new Date().getFullYear();
   return (
-    <footer className="gutter relative border-t border-line-1 bg-bg-0 py-10 text-fg-2">
-      <div className="mx-auto flex max-w-[100rem] flex-col gap-8 md:flex-row md:items-end md:justify-between">
+    <footer className="gutter relative border-t border-line-1 bg-bg-0 py-8 text-fg-2 sm:py-10">
+      <div className="mx-auto flex max-w-[100rem] flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-8">
         <div>
           <p className="text-[15px] font-semibold text-fg-1">{profile.name}</p>
           <p className="label mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-fg-3">
@@ -32,7 +32,7 @@ export function Footer() {
                   rel="noopener noreferrer"
                   aria-label={s.label}
                   data-cursor={s.label === "GitHub" ? "GitHub ↗" : undefined}
-                  className="grid h-10 w-10 place-items-center rounded-full border border-line-1 text-fg-2 transition-colors hover:border-line-2 hover:text-fg-1"
+                  className="grid h-11 w-11 place-items-center rounded-full border border-line-1 text-fg-2 transition-[colors,transform] hover:border-line-2 hover:text-fg-1 active:scale-95"
                 >
                   {Icon ? <Icon width={16} height={16} /> : s.label}
                 </a>
@@ -44,7 +44,7 @@ export function Footer() {
               href={`mailto:${profile.email}`}
               aria-label="Email"
               data-cursor="Contact"
-              className="grid h-10 w-10 place-items-center rounded-full border border-line-1 text-fg-2 transition-colors hover:border-line-2 hover:text-fg-1"
+              className="grid h-11 w-11 place-items-center rounded-full border border-line-1 text-fg-2 transition-[colors,transform] hover:border-line-2 hover:text-fg-1 active:scale-95"
             >
               <Mail width={16} height={16} />
             </a>

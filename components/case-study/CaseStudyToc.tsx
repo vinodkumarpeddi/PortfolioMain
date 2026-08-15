@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export function CaseStudyToc({ items, variant = "list" }: { items: { id: string; label: string; index: string }[]; variant?: "list" | "rail" }) {
   const [active, setActive] = useState(items[0]?.id);
+  const rail = useRef<HTMLOListElement>(null);
   useEffect(() => {
     const els = items.map((i) => document.getElementById(i.id)).filter(Boolean) as HTMLElement[];
     const io = new IntersectionObserver(
@@ -18,15 +19,20 @@ export function CaseStudyToc({ items, variant = "list" }: { items: { id: string;
     return () => io.disconnect();
   }, [items]);
 
+  useEffect(() => {
+    const el = rail.current?.querySelector<HTMLElement>('[data-on="true"]');
+    el?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [active]);
+
   if (variant === "rail") {
     return (
       <nav className="sticky top-[4.25rem] z-30 -mx-[var(--spacing-gutter)] mb-6 lg:hidden" aria-label="On this page">
-        <ol className="no-scrollbar flex gap-2 overflow-x-auto bg-bg-0/85 px-[var(--spacing-gutter)] py-2 backdrop-blur-md">
+        <ol ref={rail} className="no-scrollbar flex gap-2 overflow-x-auto bg-bg-0/85 px-[var(--spacing-gutter)] py-2 backdrop-blur-md">
           {items.map((i) => {
             const on = active === i.id;
             return (
-              <li key={i.id} className="shrink-0">
-                <a href={`#${i.id}`} className={cn("label inline-flex h-9 items-center gap-2 rounded-full border px-3 transition-colors", on ? "border-accent/60 bg-accent-soft text-fg-1" : "border-line-1 text-fg-3")}>
+              <li key={i.id} className="shrink-0" data-on={on ? "true" : "false"}>
+                <a href={`#${i.id}`} className={cn("label inline-flex h-10 items-center gap-2 rounded-full border px-3.5 transition-[colors,transform] active:scale-95", on ? "border-accent/60 bg-accent-soft text-fg-1" : "border-line-1 text-fg-3")}>
                   <span className="text-accent">{i.index}</span>
                   {i.label}
                 </a>

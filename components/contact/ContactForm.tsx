@@ -47,7 +47,7 @@ export function ContactForm({ open, onClose, id }: { open: boolean; onClose: () 
     }
   };
 
-  const field = "w-full rounded-xl border border-line-2 bg-bg-1/70 px-4 py-3 text-[15px] text-fg-1 outline-none transition-colors placeholder:text-fg-3 focus:border-accent/70 focus:bg-bg-1";
+  const field = "w-full rounded-xl border border-line-2 bg-bg-1/70 px-4 py-3 text-[16px] text-fg-1 outline-none transition-colors placeholder:text-fg-3 focus:border-accent/70 focus:bg-bg-1 sm:text-[15px]";
 
   return (
     <AnimatePresence initial={false}>
@@ -61,20 +61,30 @@ export function ContactForm({ open, onClose, id }: { open: boolean; onClose: () 
           className="overflow-hidden"
         >
           <form onSubmit={submit} className="relative border-t border-line-1 p-6 sm:p-8 lg:p-10" aria-label="Send a message" noValidate>
-            <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="label text-fg-3">Write a message</p>
                 <p className="mt-2 text-h3 text-fg-1">Tell me what you&apos;re building.</p>
               </div>
-              <button type="button" onClick={onClose} className="label rounded-full border border-line-2 px-3 py-2 text-fg-3 transition-colors hover:text-fg-1" data-cursor="Close">
+              <button type="button" onClick={onClose} className="label inline-flex h-10 shrink-0 items-center rounded-full border border-line-2 px-3.5 text-fg-3 transition-[colors,transform] hover:text-fg-1 active:scale-95" data-cursor="Close">
                 Close
               </button>
             </div>
 
             {status === "sent" ? (
               <div className="mt-8 rounded-2xl border border-success/40 bg-success/10 p-6">
-                <p className="text-h3 text-fg-1">Sent — thank you.</p>
+                <span className="grid h-11 w-11 place-items-center rounded-full bg-success/20 text-success" aria-hidden>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                </span>
+                <p className="mt-4 text-h3 text-fg-1">Sent — thank you.</p>
                 <p className="mt-2 text-[15px] text-fg-2">I read everything and reply within a day or two.</p>
+                <button
+                  type="button"
+                  onClick={() => { setValues({ name: "", email: "", message: "", company: "" }); setStatus("idle"); }}
+                  className="mt-5 inline-flex h-11 items-center rounded-full border border-line-2 px-4 text-sm text-fg-1 transition-transform active:scale-[0.98]"
+                >
+                  Write another
+                </button>
               </div>
             ) : (
               <>
@@ -97,7 +107,7 @@ export function ContactForm({ open, onClose, id }: { open: boolean; onClose: () 
                   <button
                     type="submit"
                     disabled={status === "sending"}
-                    className="inline-flex h-12 items-center gap-2 rounded-full bg-fg-1 px-6 text-sm font-medium text-accent-ink transition-colors hover:bg-white disabled:opacity-60"
+                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-fg-1 px-6 text-sm font-medium text-accent-ink transition-[colors,transform] hover:bg-white active:scale-[0.98] disabled:opacity-60 sm:w-auto"
                     data-cursor="Send"
                   >
                     {status === "sending" ? "Sending…" : "Send message"} <ArrowUpRight />
@@ -106,7 +116,7 @@ export function ContactForm({ open, onClose, id }: { open: boolean; onClose: () 
                     href={gmailCompose(values.name || "", values.email || "", values.message || "")}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-12 items-center gap-2 rounded-full border border-line-2 px-5 text-sm font-medium text-fg-1 transition-colors hover:border-fg-1/60"
+                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-line-2 px-5 text-sm font-medium text-fg-1 transition-[colors,transform] hover:border-fg-1/60 active:scale-[0.98] sm:w-auto"
                     data-cursor="Gmail ↗"
                   >
                     Send via Gmail instead

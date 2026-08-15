@@ -127,18 +127,18 @@ export function AboutSection() {
                 production-shaped systems on GitHub — a payment orchestrator, an event-driven analytics pipeline, a multi-tenant SaaS platform.
               </p>
             </Reveal>
-            <Reveal delay={0.25} className="mt-10 grid grid-cols-2 gap-6 border-t border-line-1 pt-6 sm:grid-cols-3">
-              <div>
-                <p className="label text-fg-3">Local time</p>
-                <p className="mt-2 flex items-baseline gap-2"><LocalTime className="text-h3 tabular-nums text-fg-1" /><span className="label text-fg-3">IST</span></p>
+            <Reveal delay={0.25} className="mt-8 divide-y divide-line-1 border-t border-line-1 sm:mt-10 sm:grid sm:grid-cols-3 sm:gap-6 sm:divide-y-0 sm:pt-6">
+              <div className="flex items-baseline justify-between gap-4 py-3.5 sm:block sm:py-0">
+                <p className="label shrink-0 text-fg-3">Local time</p>
+                <p className="flex items-baseline gap-1.5 sm:mt-2 sm:gap-2"><LocalTime className="text-[17px] font-medium tabular-nums text-fg-1 sm:text-h3" /><span className="label text-fg-3">IST</span></p>
               </div>
-              <div>
-                <p className="label text-fg-3">Based in</p>
-                <p className="mt-2 text-h3 text-fg-1">{profile.location}</p>
+              <div className="flex items-baseline justify-between gap-4 py-3.5 sm:block sm:py-0">
+                <p className="label shrink-0 text-fg-3">Based in</p>
+                <p className="text-right text-[17px] font-medium text-fg-1 sm:mt-2 sm:text-left sm:text-h3">{profile.location}</p>
               </div>
-              <div>
-                <p className="label text-fg-3">Now</p>
-                <p className="mt-2 flex items-center gap-2 text-h3 text-fg-1">
+              <div className="flex items-baseline justify-between gap-4 py-3.5 sm:block sm:py-0">
+                <p className="label shrink-0 text-fg-3">Now</p>
+                <p className="flex items-center gap-2 text-[17px] font-medium text-fg-1 sm:mt-2 sm:text-h3">
                   <span className="relative flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60 motion-reduce:animate-none" />
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
@@ -154,7 +154,7 @@ export function AboutSection() {
             <Reveal amount={0.2}>
               <p className="label mb-4 flex items-center justify-between text-fg-3 lg:justify-end">
                 <span className="hidden lg:inline">Hover to fan · click to flip forward</span>
-                <span className="lg:hidden">Swipe</span>
+                <span className="lg:hidden">Swipe · tap a card to expand</span>
               </p>
               <CardFan cards={cards} />
             </Reveal>
@@ -193,7 +193,7 @@ export function AboutSection() {
           </Reveal>
           <ol className="mt-8 border-t border-line-1">
             {services.map((s, i) => (
-              <li key={s.title} className="group border-b border-line-1 transition-colors duration-[var(--duration-base)] hover:bg-fg-1/[0.02]">
+              <li key={s.title} className="group border-b border-line-1 transition-colors duration-[var(--duration-base)] hover:bg-fg-1/[0.02] active:bg-fg-1/[0.04]">
                 <div className="grid grid-cols-12 items-baseline gap-x-6 py-7 sm:py-9">
                   <span className="label col-span-12 text-accent sm:col-span-1">0{i + 1}</span>
                   <h4 className="text-h2 col-span-12 mt-2 text-fg-1 transition-transform duration-[var(--duration-slow)] ease-[var(--ease-out-expo)] group-hover:translate-x-2 sm:col-span-6 sm:mt-0">{s.title}</h4>

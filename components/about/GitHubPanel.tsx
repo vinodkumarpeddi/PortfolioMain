@@ -59,7 +59,7 @@ export async function GitHubPanel() {
         <ul className="mt-2 divide-y divide-line-1">
           {gh.recent.slice(0, 5).map((r) => (
             <li key={r.name}>
-              <a href={r.url} target="_blank" rel="noopener noreferrer" className="group flex items-center justify-between gap-3 py-2.5 text-sm">
+              <a href={r.url} target="_blank" rel="noopener noreferrer" className="group -mx-2 flex min-h-12 items-center justify-between gap-3 rounded-lg px-2 py-2.5 text-sm transition-colors active:bg-fg-1/[0.05]">
                 <span className="truncate text-fg-1">{r.name}</span>
                 <span className="label flex shrink-0 items-center gap-3 text-fg-3">
                   {r.language && <span>{r.language}</span>}

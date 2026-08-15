@@ -32,7 +32,7 @@ export function CaseStudy({ project }: { project: Project }) {
   return (
     <article className="relative">
       {/* header */}
-      <header className="gutter relative mx-auto max-w-[100rem] pt-32 pb-16 lg:pt-40">
+      <header className="gutter relative mx-auto max-w-[100rem] pb-10 pt-28 sm:pb-16 sm:pt-32 lg:pt-40">
         <div aria-hidden className="grid-bg pointer-events-none absolute inset-0 [mask-image:radial-gradient(60%_50%_at_50%_0%,black,transparent)]" />
         <div className="relative">
           <Reveal>
@@ -40,7 +40,7 @@ export function CaseStudy({ project }: { project: Project }) {
               <ArrowLeft /> Selected work
             </Link>
           </Reveal>
-          <div className="mt-10 grid grid-cols-12 gap-x-6 gap-y-8">
+          <div className="mt-8 grid grid-cols-12 gap-x-6 gap-y-8 sm:mt-10">
             <div className="col-span-12 lg:col-span-8">
               <Reveal className="label flex items-center gap-3 text-fg-3">
                 <span className="text-accent">{project.number}</span>
@@ -53,7 +53,7 @@ export function CaseStudy({ project }: { project: Project }) {
                 <SplitText immediate by="words">{project.title}</SplitText>
               </h1>
               <Reveal delay={0.2}>
-                <p className="text-lead mt-8 max-w-[52ch] text-balance text-fg-2">{project.tagline}</p>
+                <p className="text-lead mt-6 max-w-[52ch] text-balance text-fg-2 sm:mt-8">{project.tagline}</p>
               </Reveal>
             </div>
             <Reveal delay={0.3} className="col-span-12 flex flex-col justify-end gap-6 lg:col-span-4">
@@ -90,18 +90,18 @@ export function CaseStudy({ project }: { project: Project }) {
             <Image src={project.image.src} alt={project.image.alt} width={project.image.width} height={project.image.height} sizes="100vw" className="h-auto w-full object-cover" />
           </Reveal>
         )}
-        <dl className="mt-8 grid gap-6 border-t border-line-1 pt-6 sm:grid-cols-3">
+        <dl className="mt-6 divide-y divide-line-1 border-t border-line-1 sm:mt-8 sm:grid sm:gap-6 sm:divide-y-0 sm:pt-6 sm:grid-cols-3">
           {project.facts.map((f) => (
-            <div key={f.label}>
+            <div key={f.label} className="py-3.5 sm:py-0">
               <dt className="label text-fg-3">{f.label}</dt>
-              <dd className="mt-2 text-sm leading-relaxed text-fg-1">{f.value}</dd>
+              <dd className="mt-1.5 text-sm leading-relaxed text-fg-1 sm:mt-2">{f.value}</dd>
             </div>
           ))}
         </dl>
       </div>
 
       {/* body */}
-      <div className="gutter mx-auto mt-24 grid max-w-[100rem] grid-cols-12 gap-x-6">
+      <div className="gutter mx-auto mt-10 grid max-w-[100rem] grid-cols-12 gap-x-6 sm:mt-24">
         <aside className="hidden lg:col-span-3 lg:block">
           <CaseStudyToc items={toc} />
         </aside>
@@ -238,7 +238,7 @@ function Cards({ items }: { items: { title: string; body: string }[] }) {
 function NextLink({ project, dir }: { project: Project; dir: "prev" | "next" }) {
   const href = project.caseStudy ? `/work/${project.slug}` : "/#work";
   return (
-    <Link href={href} className="group flex flex-col gap-3 py-12 md:pr-10 md:[&:last-child]:pl-10 md:[&:last-child]:text-right" data-cursor={project.caseStudy ? "Case study" : "View"}>
+    <Link href={href} className="group flex flex-col gap-3 py-8 transition-colors active:bg-fg-1/[0.04] sm:py-12 md:pr-10 md:[&:last-child]:pl-10 md:[&:last-child]:text-right" data-cursor={project.caseStudy ? "Case study" : "View"}>
       <span className="label flex items-center gap-2 text-fg-3 md:group-last:justify-end">
         {dir === "prev" ? <ArrowLeft /> : null}
         {dir === "prev" ? "Previous" : "Next"}

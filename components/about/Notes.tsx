@@ -15,10 +15,11 @@ export function Notes() {
         <p className="max-w-[44ch] text-sm leading-relaxed text-fg-2">
           Design decisions written down after they were made — each one links to the repository where it lives.
         </p>
+        <p className="label w-full text-fg-3 sm:hidden">Swipe →</p>
       </Reveal>
-      <RevealGroup className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-line-1 bg-line-1 sm:grid-cols-2 xl:grid-cols-3">
+      <RevealGroup className="-mx-[var(--spacing-gutter)] mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-[var(--spacing-gutter)] pb-2 no-scrollbar sm:mx-0 sm:mt-10 sm:grid sm:gap-px sm:overflow-hidden sm:rounded-2xl sm:border sm:border-line-1 sm:bg-line-1 sm:px-0 sm:pb-0 sm:grid-cols-2 xl:grid-cols-3">
         {notes.map((n, i) => (
-          <RevealItem key={n.id} className="group relative flex flex-col bg-bg-1 p-6 transition-colors duration-[var(--duration-slow)] hover:bg-bg-2">
+          <RevealItem key={n.id} className="group relative flex w-[80vw] max-w-[22rem] shrink-0 snap-center flex-col rounded-2xl border border-line-1 bg-bg-1 p-6 transition-colors duration-[var(--duration-slow)] hover:bg-bg-2 sm:w-auto sm:max-w-none sm:rounded-none sm:border-0">
             <div className="label flex items-center justify-between text-fg-3">
               <span>{n.topic}</span>
               <span className="text-accent">{String(i + 1).padStart(2, "0")}</span>

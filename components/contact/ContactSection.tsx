@@ -89,14 +89,14 @@ export function ContactSection() {
       <div className="gutter relative mx-auto max-w-[100rem] pt-[calc(var(--spacing-section)*0.5)]">
         <SectionLabel index="07">Connect</SectionLabel>
 
-        <div className="mt-10 grid grid-cols-12 items-end gap-x-6 gap-y-10">
+        <div className="mt-8 grid grid-cols-12 items-end gap-x-6 gap-y-8 sm:mt-10 sm:gap-y-10">
           <h2 id="contact-title" className="ct-head text-display-safe col-span-12 uppercase text-fg-1 lg:col-span-9">
             <span className="ct-line block"><KineticText text="Let's build" /></span>
             <span className="ct-line block text-fg-2"><KineticText text="something" /></span>
             <span className="ct-line block"><KineticText text="that lasts." accentLast /></span>
           </h2>
           <div
-            className="ct-cta col-span-12 flex lg:col-span-3 lg:justify-end"
+            className="ct-cta col-span-12 flex justify-center lg:col-span-3 lg:justify-end"
             onPointerEnter={() => { coreState.current.energy = 1; }}
             onPointerLeave={() => { coreState.current.energy = 0; }}
           >
@@ -105,18 +105,18 @@ export function ContactSection() {
         </div>
 
         {/* structured contact card */}
-        <div className="ct-card relative mt-16 overflow-hidden rounded-[28px] border border-line-1 bg-bg-2/50 backdrop-blur-xl [box-shadow:var(--shadow-soft)]">
+        <div className="ct-card relative mt-10 overflow-hidden sm:mt-16 rounded-[28px] border border-line-1 bg-bg-2/50 backdrop-blur-xl [box-shadow:var(--shadow-soft)]">
           <span aria-hidden className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-accent/[0.10] blur-[90px]" />
           <div className="relative grid grid-cols-1 divide-y divide-line-1 lg:grid-cols-12 lg:divide-x lg:divide-y-0">
             {/* email */}
             <div className="ct-col p-6 sm:p-8 lg:col-span-5 lg:p-10">
               <p className="label text-fg-3">Email</p>
-              <button type="button" onClick={copy} data-cursor={copied ? "Copied" : "Copy"} className="group mt-4 block max-w-full text-left" aria-label={`Copy email address ${profile.email}`}>
+              <button type="button" onClick={copy} data-cursor={copied ? "Copied" : "Copy"} className="group mt-4 block max-w-full text-left transition-transform active:scale-[0.98]" aria-label={`Copy email address ${profile.email}`}>
                 <span className="relative block break-all text-[clamp(1.15rem,1.7vw,1.75rem)] font-semibold leading-tight tracking-[-0.02em] text-fg-1">
                   {profile.email}
                   <span aria-hidden className="absolute bottom-0 left-0 h-[2px] w-full origin-left scale-x-0 bg-accent transition-transform duration-[var(--duration-slow)] ease-[var(--ease-in-out)] group-hover:scale-x-100" />
                 </span>
-                <span className={cn("label mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-2 transition-colors", copied ? "border-success/50 text-success" : "border-line-2 text-fg-3 group-hover:text-fg-1")}>
+                <span className={cn("label mt-3 inline-flex h-11 items-center gap-2 rounded-full border px-4 transition-colors", copied ? "border-success/50 bg-success/10 text-success" : "border-line-2 text-fg-3 group-hover:text-fg-1")}>
                   {copied ? "Copied to clipboard" : "Click to copy"}
                 </span>
               </button>
@@ -164,7 +164,7 @@ export function ContactSection() {
               <ul className="mt-3 divide-y divide-line-1">
                 {socials.map(({ label, value, href, Icon, cursor }) => (
                   <li key={label}>
-                    <a href={href} target="_blank" rel="noopener noreferrer" data-cursor={cursor} className="group flex items-center gap-4 py-4">
+                    <a href={href} target="_blank" rel="noopener noreferrer" data-cursor={cursor} className="group -mx-2 flex min-h-14 items-center gap-4 rounded-2xl px-2 py-4 transition-colors active:bg-fg-1/[0.05]">
                       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line-1 text-fg-2 transition-colors group-hover:border-line-2 group-hover:text-fg-1"><Icon width={16} height={16} /></span>
                       <span className="flex min-w-0 flex-1 flex-col">
                         <span className="label text-fg-3">{label}</span>

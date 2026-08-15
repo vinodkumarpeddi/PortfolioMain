@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { gsap, useGSAP, MOTION_OK } from "@/lib/gsap";
 import { profile } from "@/data/profile";
+import { cn } from "@/lib/utils";
 
 const lines: Array<[string, string | string[]]> = [
   ["name", profile.name],
@@ -18,6 +19,7 @@ const lines: Array<[string, string | string[]]> = [
 /** An engineering "manifest" — the about visual, typed in line by line. */
 export function Manifest() {
   const ref = useRef<HTMLDivElement>(null);
+  const [picked, setPicked] = useState<string | null>(null);
   useGSAP(
     () => {
       const el = ref.current;
@@ -52,10 +54,16 @@ export function Manifest() {
       </div>
       <pre className="whitespace-pre-wrap break-words p-4 font-mono text-[12.5px] leading-[1.7] text-fg-2 sm:p-5 sm:text-[13px]">
         {lines.map(([k, v]) => (
-          <div key={k} className="mf-row flex gap-3">
+          <button
+            key={k}
+            type="button"
+            onClick={() => setPicked(picked === k ? null : k)}
+            aria-pressed={picked === k}
+            className={cn("mf-row -mx-2 flex w-[calc(100%+1rem)] gap-3 rounded-md px-2 py-0.5 text-left transition-colors", picked === k ? "bg-accent/[0.10]" : "hover:bg-fg-1/[0.03] active:bg-fg-1/[0.05]")}
+          >
             <span className="w-6 shrink-0 select-none text-right text-fg-3/60">{String(lines.findIndex(([kk]) => kk === k) + 1).padStart(2, "0")}</span>
             <span>
-              <span className="text-accent">{k}</span>
+              <span className={cn("transition-colors", picked === k ? "text-accent" : "text-accent/85")}>{k}</span>
               <span className="text-fg-3">: </span>
               {Array.isArray(v) ? (
                 <span>
@@ -72,7 +80,7 @@ export function Manifest() {
                 <span className="text-fg-1">&quot;{v}&quot;</span>
               )}
             </span>
-          </div>
+          </button>
         ))}
         <div className="mf-row flex gap-3">
           <span className="w-6 shrink-0 text-right text-fg-3/60">{String(lines.length + 1).padStart(2, "0")}</span>
