@@ -1,4 +1,4 @@
-import { AppShell, Kpi, NavItem, Pill } from "./ui";
+import { AppShell, themes, Kpi, NavItem, Pill } from "./ui";
 
 const columns = [
   { title: "To do", cards: ["Billing migration plan", "Tenant export API"] },
@@ -15,11 +15,12 @@ const users = [
 export function SaasScreen() {
   return (
     <AppShell
+      theme={themes.workspace}
       title="Workspace"
       url="app.localhost:3000 · tenant-a"
       sidebar={
         <>
-          <div className="mb-3 flex items-center justify-between rounded-lg border border-line-1 bg-bg-2/60 px-3 py-2">
+          <div className="mb-3 flex items-center justify-between rounded-lg border border-line-1 bg-bg-2 px-3 py-2">
             <span className="text-[12.5px]">tenant-a</span>
             <span className="label text-[9px] text-fg-3">switch</span>
           </div>
@@ -47,7 +48,7 @@ export function SaasScreen() {
           <p className="label text-[9.5px] text-fg-3">Users · 4 / 10</p>
           <ul className="mt-3 space-y-2">
             {users.map((u, i) => (
-              <li key={u.name} className="vis-fade flex items-center justify-between rounded-xl border border-line-1 bg-bg-2/60 p-3" style={{ animationDelay: `${500 + i * 100}ms` }}>
+              <li key={u.name} className="vis-fade flex items-center justify-between rounded-xl border border-line-1 bg-bg-2 p-3" style={{ animationDelay: `${500 + i * 100}ms` }}>
                 <span className="flex items-center gap-2.5">
                   <span className="h-6 w-6 rounded-full bg-gradient-to-br from-fg-2 to-fg-3" />
                   <span className="text-[12px]">{u.name}</span>
@@ -56,7 +57,7 @@ export function SaasScreen() {
               </li>
             ))}
           </ul>
-          <div className="mt-4 rounded-xl border border-line-1 bg-bg-2/60 p-3">
+          <div className="mt-4 rounded-xl border border-line-1 bg-bg-2 p-3">
             <p className="label text-[9.5px] text-fg-3">Isolation check</p>
             <p className="mt-2 font-mono text-[10.5px] text-fg-2">GET /tenants/tenant-b/projects</p>
             <p className="font-mono text-[10.5px] text-error">→ 403 forbidden</p>
@@ -71,14 +72,14 @@ export function SaasScreen() {
       </div>
       <div className="mt-4 grid grid-cols-3 gap-4">
         {columns.map((c, ci) => (
-          <div key={c.title} className="rounded-2xl border border-line-1 bg-bg-2/40 p-3">
+          <div key={c.title} className="rounded-2xl border border-line-1 bg-bg-2 p-3">
             <div className="flex items-center justify-between px-1">
               <span className="text-[12.5px] font-medium">{c.title}</span>
               <span className="label text-[9.5px] text-fg-3">{c.cards.length}</span>
             </div>
             <div className="mt-3 space-y-2">
               {c.cards.map((card, i) => (
-                <div key={card} className="vis-fade rounded-xl border border-line-1 bg-[#0a0a0d] p-3" style={{ animationDelay: `${450 + ci * 120 + i * 90}ms` }}>
+                <div key={card} className="vis-fade rounded-xl border border-line-1 bg-[var(--s-panel)] p-3" style={{ animationDelay: `${450 + ci * 120 + i * 90}ms` }}>
                   <p className="text-[12.5px] text-fg-1">{card}</p>
                   <div className="mt-2 flex items-center justify-between">
                     <span className="label text-[9px] text-fg-3">{ci === 2 ? "shipped" : `${3 - i} tasks`}</span>

@@ -1,4 +1,4 @@
-import { AppShell, AreaChart, Kpi, NavItem, Pill, Row } from "./ui";
+import { AppShell, themes, AreaChart, Kpi, NavItem, Pill, Row } from "./ui";
 
 const txns = [
   { id: "pay_9f3a1c", amount: "₹500.00", method: "UPI", customer: "demo_1", status: "processed" },
@@ -13,6 +13,7 @@ const tone = { processed: "success", pending: "warning", refunded: "neutral", fa
 export function PaymentScreen() {
   return (
     <AppShell
+      theme={themes.stripe}
       title="Orchestrator"
       accentTitle="live"
       url="dashboard.localhost:3000 · merchant"
@@ -34,7 +35,7 @@ export function PaymentScreen() {
           </div>
           <div className="flex items-center gap-3">
             <span className="rounded-lg border border-line-1 px-3 py-1.5 font-mono text-[11px] text-fg-2">key_test_abc123</span>
-            <span className="h-7 w-7 rounded-full bg-gradient-to-br from-accent to-[#7a4a10]" />
+            <span className="h-7 w-7 rounded-full bg-gradient-to-br from-accent to-[#22d3ee]" />
           </div>
         </>
       }
@@ -48,7 +49,7 @@ export function PaymentScreen() {
               { ev: "refund.created", code: "200", ok: true, attempt: "1/5" },
               { ev: "payment.failed", code: "200", ok: true, attempt: "3/5" },
             ].map((w, i) => (
-              <li key={i} className="vis-fade rounded-xl border border-line-1 bg-bg-2/60 p-3" style={{ animationDelay: `${500 + i * 120}ms` }}>
+              <li key={i} className="vis-fade rounded-xl border border-line-1 bg-bg-2 p-3" style={{ animationDelay: `${500 + i * 120}ms` }}>
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-[11px] text-fg-1">{w.ev}</span>
                   <span className={w.ok ? "font-mono text-[11px] text-success" : "font-mono text-[11px] text-error"}>{w.code}</span>
@@ -57,7 +58,7 @@ export function PaymentScreen() {
               </li>
             ))}
           </ul>
-          <div className="mt-5 rounded-xl border border-line-1 bg-bg-2/60 p-3">
+          <div className="mt-5 rounded-xl border border-line-1 bg-bg-2 p-3">
             <div className="flex items-center justify-between">
               <span className="label text-[9.5px] text-fg-3">Queue</span>
               <span className="label text-[9.5px] text-success">healthy</span>
@@ -79,16 +80,16 @@ export function PaymentScreen() {
         <Kpi label="Refunds" value="₹2,000" delta="ledger reconciled" delay={440} />
       </div>
       <div className="mt-4 grid grid-cols-[1.6fr_1fr] gap-4">
-        <div className="rounded-2xl border border-line-1 bg-bg-2/40 p-4">
+        <div className="rounded-2xl border border-line-1 bg-bg-2 p-4">
           <div className="flex items-center justify-between">
             <span className="text-[13px] font-medium">Settled volume</span>
             <span className="label text-[9.5px] text-fg-3">last 14 days</span>
           </div>
           <AreaChart values={[22, 30, 26, 38, 42, 40, 55, 50, 62, 58, 70, 66, 82, 90]} height={130} className="mt-3" />
         </div>
-        <div className="rounded-2xl border border-line-1 bg-bg-2/40 p-4">
+        <div className="rounded-2xl border border-line-1 bg-bg-2 p-4">
           <span className="text-[13px] font-medium">Hosted checkout</span>
-          <div className="mt-3 rounded-xl border border-line-1 bg-[#0a0a0d] p-3">
+          <div className="mt-3 rounded-xl border border-line-1 bg-[var(--s-panel)] p-3">
             <p className="text-[18px] font-semibold">₹500.00</p>
             <p className="label mt-0.5 text-[9.5px] text-fg-3">order · demo_1</p>
             <div className="mt-3 grid grid-cols-2 gap-1 rounded-lg bg-fg-1/[0.05] p-1">
@@ -99,7 +100,7 @@ export function PaymentScreen() {
           </div>
         </div>
       </div>
-      <div className="mt-4 rounded-2xl border border-line-1 bg-bg-2/40 px-4 pb-1 pt-4">
+      <div className="mt-4 rounded-2xl border border-line-1 bg-bg-2 px-4 pb-1 pt-4">
         <div className="flex items-center justify-between">
           <span className="text-[13px] font-medium">Recent payments</span>
           <span className="label text-[9.5px] text-fg-3">orders · payments · refunds</span>

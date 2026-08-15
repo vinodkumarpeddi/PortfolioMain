@@ -1,4 +1,4 @@
-import { AppShell, Bars, Kpi, NavItem, Pill, Row } from "./ui";
+import { AppShell, themes, Bars, Kpi, NavItem, Pill, Row } from "./ui";
 
 const events = ["OrderCreated", "ProductCreated", "OrderCreated", "OrderCreated", "ProductUpdated", "OrderCreated", "OrderCreated", "ProductCreated"];
 const products = [
@@ -11,6 +11,7 @@ const products = [
 export function AnalyticsScreen() {
   return (
     <AppShell
+      theme={themes.observability}
       title="Analytics"
       accentTitle="read model"
       url="localhost:8081 · query service"
@@ -42,7 +43,7 @@ export function AnalyticsScreen() {
             <p className="label text-[9.5px] text-fg-3">Event stream</p>
             <span className="label text-[9.5px] text-fg-2">rabbitmq</span>
           </div>
-          <div className="relative mt-3 h-[300px] overflow-hidden rounded-xl border border-line-1 bg-bg-2/60 [mask-image:linear-gradient(to_bottom,black_70%,transparent)]">
+          <div className="relative mt-3 h-[300px] overflow-hidden rounded-xl border border-line-1 bg-bg-2 [mask-image:linear-gradient(to_bottom,black_70%,transparent)]">
             <div className="[animation:vis-scroll-y_10s_linear_infinite] motion-reduce:animate-none">
               {[...events, ...events].map((e, i) => (
                 <div key={i} className="flex items-center justify-between border-b border-line-1 px-3 py-2.5">
@@ -52,7 +53,7 @@ export function AnalyticsScreen() {
               ))}
             </div>
           </div>
-          <div className="mt-4 rounded-xl border border-line-1 bg-bg-2/60 p-3">
+          <div className="mt-4 rounded-xl border border-line-1 bg-bg-2 p-3">
             <div className="flex items-center justify-between">
               <span className="label text-[9.5px] text-fg-3">Outbox relay</span>
               <span className="label text-[9.5px] text-success">draining</span>
@@ -70,7 +71,7 @@ export function AnalyticsScreen() {
         <Kpi label="Consumers" value="3" delta="idempotent" delay={440} />
       </div>
       <div className="mt-4 grid grid-cols-[1.4fr_1fr] gap-4">
-        <div className="rounded-2xl border border-line-1 bg-bg-2/40 p-4">
+        <div className="rounded-2xl border border-line-1 bg-bg-2 p-4">
           <div className="flex items-center justify-between">
             <span className="text-[13px] font-medium">Product sales · Wireless Mouse</span>
             <span className="font-mono text-[10px] text-fg-3">GET /api/analytics/products/1/sales</span>
@@ -81,7 +82,7 @@ export function AnalyticsScreen() {
             <span>W12</span>
           </div>
         </div>
-        <div className="rounded-2xl border border-line-1 bg-bg-2/40 p-4">
+        <div className="rounded-2xl border border-line-1 bg-bg-2 p-4">
           <span className="text-[13px] font-medium">Write vs read</span>
           <div className="mt-4 space-y-3">
             {[
@@ -102,7 +103,7 @@ export function AnalyticsScreen() {
           </div>
         </div>
       </div>
-      <div className="mt-4 rounded-2xl border border-line-1 bg-bg-2/40 px-4 pb-1 pt-4">
+      <div className="mt-4 rounded-2xl border border-line-1 bg-bg-2 px-4 pb-1 pt-4">
         <span className="text-[13px] font-medium">Top products · materialized view</span>
         <div className="mt-2">
           {products.map((p, i) => (

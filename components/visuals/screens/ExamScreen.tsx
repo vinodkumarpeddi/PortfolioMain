@@ -1,4 +1,4 @@
-import { AppShell, Kpi, NavItem, Pill, Row } from "./ui";
+import { AppShell, themes, Kpi, NavItem, Pill, Row } from "./ui";
 
 const rooms = ["A-101", "A-102", "B-201", "B-202", "C-301", "C-302"];
 const seats = Array.from({ length: 6 * 10 }, (_, i) => (i % 13 === 0 ? "absent" : i % 7 === 0 ? "flag" : i % 4 === 0 ? "free" : "seated"));
@@ -6,6 +6,7 @@ const seats = Array.from({ length: 6 * 10 }, (_, i) => (i % 13 === 0 ? "absent" 
 export function ExamScreen() {
   return (
     <AppShell
+      theme={themes.campus}
       title="ExamSeat"
       accentTitle="admin"
       url="exam-seating-management.vercel.app · admin"
@@ -42,7 +43,7 @@ export function ExamScreen() {
               { n: "K. Meena", room: "B-202", role: "Lab tech" },
               { n: "S. Farhan", room: "C-301", role: "Invigilator" },
             ].map((f, i) => (
-              <li key={f.n} className="vis-fade flex items-center justify-between rounded-xl border border-line-1 bg-bg-2/60 p-3" style={{ animationDelay: `${500 + i * 100}ms` }}>
+              <li key={f.n} className="vis-fade flex items-center justify-between rounded-xl border border-line-1 bg-bg-2 p-3" style={{ animationDelay: `${500 + i * 100}ms` }}>
                 <span>
                   <span className="block text-[12px] text-fg-1">{f.n}</span>
                   <span className="label text-[9px] text-fg-3">{f.role}</span>
@@ -51,7 +52,7 @@ export function ExamScreen() {
               </li>
             ))}
           </ul>
-          <div className="mt-4 rounded-xl border border-line-1 bg-bg-2/60 p-3">
+          <div className="mt-4 rounded-xl border border-line-1 bg-bg-2 p-3">
             <div className="flex items-center justify-between">
               <span className="label text-[9.5px] text-fg-3">Notifications</span>
               <span className="label text-[9.5px] text-success">sent</span>
@@ -69,7 +70,7 @@ export function ExamScreen() {
         <Kpi label="Upcoming" value="4" delta="this week" delay={440} />
       </div>
       <div className="mt-4 grid grid-cols-[1.5fr_1fr] gap-4">
-        <div className="rounded-2xl border border-line-1 bg-bg-2/40 p-4">
+        <div className="rounded-2xl border border-line-1 bg-bg-2 p-4">
           <div className="flex items-center justify-between">
             <span className="text-[13px] font-medium">Seat allocation · A-101</span>
             <div className="flex items-center gap-3 font-mono text-[10px] text-fg-3">
@@ -89,7 +90,7 @@ export function ExamScreen() {
           </div>
           <p className="mt-3 font-mono text-[10px] text-fg-3">60 seats · 48 seated · 3 absent · 1 flagged · 8 free</p>
         </div>
-        <div className="rounded-2xl border border-line-1 bg-bg-2/40 p-4">
+        <div className="rounded-2xl border border-line-1 bg-bg-2 p-4">
           <span className="text-[13px] font-medium">Rooms today</span>
           <ul className="mt-3 space-y-2">
             {rooms.map((r, i) => (
@@ -102,7 +103,7 @@ export function ExamScreen() {
           </ul>
         </div>
       </div>
-      <div className="mt-4 rounded-2xl border border-line-1 bg-bg-2/40 px-4 pb-1 pt-4">
+      <div className="mt-4 rounded-2xl border border-line-1 bg-bg-2 px-4 pb-1 pt-4">
         <span className="text-[13px] font-medium">Recent exam schedules</span>
         <div className="mt-2">
           {[
