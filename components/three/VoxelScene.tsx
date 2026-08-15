@@ -254,12 +254,22 @@ function billieJean(b: number, inBar: number): Pose {
   };
 }
 function moonwalk(b: number): Pose {
-  const sB = Math.sin(b * Math.PI);
+  // each beat one foot slides flat backwards while the other stands bent on its toes; they swap on the beat
+  const u = b - Math.floor(b);
+  const leftSlides = Math.floor(b) % 2 === 0;
+  const swap = sm(u / 0.18);
+  const slideX = l1(-0.3, 0.5, sm(u));
+  const bentX = -0.4, bentShin = 1.15;
+  const lX = leftSlides ? l1(bentX, slideX, swap) : l1(0.5, bentX, swap);
+  const rX = leftSlides ? l1(0.5, bentX, swap) : l1(bentX, slideX, swap);
+  const lS = leftSlides ? l1(bentShin, 0.05, swap) : l1(0.05, bentShin, swap);
+  const rS = leftSlides ? l1(0.05, bentShin, swap) : l1(bentShin, 0.05, swap);
+  const sw = leftSlides ? 1 : -1;
+  const bob = Math.sin(b * Math.PI * 2) * 0.12;
   return {
-    ...REST, hipsY: 0.85 + Math.abs(sB) * 0.03, hips: [0.08, 0, sB * 0.05], torso: [0.22, sB * 0.08, 0], head: [-0.05, 0, sB * 0.05],
-    lArm: [-sB * 0.35, 0, -0.2], rArm: [sB * 0.35, 0, 0.2], lFore: [-0.3, 0, -0.1], rFore: [-0.3, 0, 0.1],
-    lLeg: [0.15 + sB * 0.4, 0, 0.05], rLeg: [0.15 - sB * 0.4, 0, -0.05],
-    lShin: Math.max(0, -sB) * 1.0, rShin: Math.max(0, sB) * 1.0,
+    ...REST, hipsY: 0.84, hips: [0.1, sw * 0.06 * swap, 0], torso: [0.24, -sw * 0.1, 0], head: [-0.1 + bob, 0, 0],
+    lArm: [-sw * 0.4, 0, -0.22], rArm: [sw * 0.4, 0, 0.22], lFore: [-0.35, 0, -0.1], rFore: [-0.35, 0, 0.1],
+    lLeg: [lX, 0, 0.05], rLeg: [rX, 0, -0.05], lShin: lS, rShin: rS,
   };
 }
 function theLean(inBar: number): Pose {
@@ -271,15 +281,16 @@ function theLean(inBar: number): Pose {
   };
 }
 function spinToes(inBar: number): Pose {
-  const sp = sm(inBar / 3.2);
+  const wind = Math.sin(THREE.MathUtils.clamp(inBar / 0.9, 0, 1) * Math.PI);
+  const sp = sm((inBar - 0.6) / 2.6);
   const spin = (1 - Math.pow(1 - sp, 3)) * Math.PI * 4;
   const toes = sm((inBar - 3) / 0.7) * (1 - sm((inBar - 6.4) / 1.2));
   const tuck = 1 - toes;
   return {
-    ...REST, spin, rise: toes * 0.17, hipsY: 0.9 + toes * 0.02, hips: [0, 0, 0], torso: [-toes * 0.08, 0, 0], head: [-toes * 0.25, 0, toes * 0.15],
-    lArm: [0, 0, -0.18 - toes * 1.1], lFore: [0, 0, -toes * 0.4],
-    rArm: [-toes * 1.35, 0, 0.18 + toes * 0.75], rFore: [-toes * 1.7, 0, toes * 0.9],
-    lLeg: [0, 0, 0.03 * tuck], rLeg: [0, 0, -0.03 * tuck], lShin: toes * 0.1, rShin: toes * 0.1,
+    ...REST, spin, rise: toes * 0.17, hipsY: 0.9 - wind * 0.22 + toes * 0.02, hips: [wind * 0.25, 0, 0], torso: [wind * 0.3 - toes * 0.08, wind * 0.6, 0], head: [-toes * 0.25, 0, toes * 0.15],
+    lArm: [-wind * 0.6, 0, -0.18 - toes * 1.1 - wind * 0.9], lFore: [-wind * 0.6, 0, -toes * 0.4],
+    rArm: [-toes * 1.35 - wind * 0.6, 0, 0.18 + toes * 0.75 + wind * 0.9], rFore: [-toes * 1.7 - wind * 0.6, 0, toes * 0.9],
+    lLeg: [-wind * 0.7, 0, 0.03 * tuck], rLeg: [-wind * 0.7, 0, -0.03 * tuck], lShin: toes * 0.1 + wind * 1.3, rShin: toes * 0.1 + wind * 1.3,
   };
 }
 function thriller(b: number): Pose {
@@ -291,22 +302,41 @@ function thriller(b: number): Pose {
     lShin: Math.max(0, sB) * 0.5, rShin: Math.max(0, -sB) * 0.5,
   };
 }
-const MOVES = 5;
-function movePose(move: number, b: number, inBar: number): Pose {
-  switch (((move % MOVES) + MOVES) % MOVES) {
-    case 0: return billieJean(b, inBar);
-    case 1: return moonwalk(b);
-    case 2: return theLean(inBar);
-    case 3: return spinToes(inBar);
-    default: return thriller(b);
-  }
+function kickPose(b: number, inBar: number): Pose {
+  const sB = Math.sin(b * Math.PI);
+  // 0–2 high kick · 2–4 knees together, hands to the hat · 4–6 hip thrusts · 6–8 toe-point freeze
+  const kick = Math.sin(THREE.MathUtils.clamp(inBar / 2, 0, 1) * Math.PI);
+  const hat = sm((inBar - 2) / 0.6) * (1 - sm((inBar - 3.6) / 0.6));
+  const thrust = inBar >= 4 && inBar < 6 ? Math.max(0, Math.sin((inBar - 4) * Math.PI * 2)) : 0;
+  const freeze = sm((inBar - 6) / 0.5);
+  return {
+    ...REST, hipsY: 0.9 - hat * 0.06 - thrust * 0.04, hips: [-thrust * 0.45 - hat * 0.15, 0, sB * 0.06 * (1 - freeze)],
+    torso: [hat * 0.2 + thrust * 0.2 - freeze * 0.1, freeze * 0.4, 0], head: [-hat * 0.3 - freeze * 0.2, freeze * 0.4, hat * 0.1],
+    lArm: [-kick * 0.6, 0, -0.3 - kick * 1.4 + hat * 0.9 - freeze * 0.4], lFore: [-hat * 1.9, 0, -0.2 - freeze * 0.2],
+    rArm: [-kick * 0.6 - hat * 1.3, 0, 0.3 + kick * 1.4 + hat * 0.9 + freeze * 2.4], rFore: [-hat * 1.7, 0, 0.2 + hat * 0.9 + freeze * 0.3],
+    lLeg: [0, 0, 0.05 + hat * 0.06], rLeg: [-kick * 1.7 - freeze * 0.35, 0, -0.05 - hat * 0.06], lShin: 0, rShin: freeze * 0.9,
+  };
 }
-// forward glide: walks forward during Billie Jean, glides back during the moonwalk, stays otherwise
+type Move = { pose: (b: number, inBar: number) => Pose; from: number; to: number; stepped?: boolean };
+const MOVES: Move[] = [
+  { pose: (b, i) => billieJean(b, i), from: -1.2, to: 0.9 },
+  { pose: (b) => moonwalk(b), from: 0.9, to: -0.15, stepped: true },
+  { pose: (b) => moonwalk(b), from: -0.15, to: -1.2, stepped: true },
+  { pose: (_b, i) => theLean(i), from: -1.2, to: -1.2 },
+  { pose: (_b, i) => spinToes(i), from: -1.2, to: -1.2 },
+  { pose: (b) => thriller(b), from: -1.2, to: -1.2 },
+  { pose: (b, i) => kickPose(b, i), from: -1.2, to: -1.2 },
+];
+const moveAt = (i: number) => MOVES[((i % MOVES.length) + MOVES.length) % MOVES.length];
+function movePose(move: number, b: number, inBar: number): Pose {
+  return moveAt(move).pose(b, inBar);
+}
+// forward glide along the facing direction: walks forward during Billie Jean, slides back beat by beat in the moonwalk
 function glide(move: number, inBar: number) {
-  const m = ((move % MOVES) + MOVES) % MOVES;
-  if (m === 0) return -0.9 + 1.8 * sm(inBar / 8);
-  if (m === 1) return 0.9 - 1.8 * sm(inBar / 8);
-  return -0.9;
+  const m = moveAt(move);
+  const u = inBar / 8;
+  const e = m.stepped ? (Math.floor(u * 8) + sm(u * 8 - Math.floor(u * 8))) / 8 : sm(u);
+  return m.from + (m.to - m.from) * e;
 }
 const setE = (g: THREE.Group | null, e: V3) => { if (g) g.rotation.set(e[0], e[1], e[2]); };
 function Part({ size, pos, color = SUIT, glow = 0, emissive = GLOW, rough = 0.35, metal = 0.5 }: { size: V3; pos: V3; color?: string; glow?: number; emissive?: string; rough?: number; metal?: number }) {
@@ -415,8 +445,8 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
     setE(lLeg.current, P.lLeg); setE(rLeg.current, P.rLeg);
     if (lShin.current) lShin.current.rotation.x = P.lShin;
     if (rShin.current) rShin.current.rotation.x = P.rShin;
-    if (light.current) light.current.intensity = (7 + bounce * 4 + P.rise * 20) * sc;
-    if (spot.current) spot.current.intensity = (5 + bounce * 2) * sc;
+    if (light.current) light.current.intensity = (2.5 + bounce * 1.5 + P.rise * 8) * sc;
+    if (spot.current) spot.current.intensity = (3.5 + bounce * 1.5) * sc;
     if (ring.current) {
       const rs = 1 + bounce * 0.1 + P.rise * 1.5;
       ring.current.scale.set(rs, rs, 1);
@@ -426,8 +456,8 @@ function Dancer({ stateRef, dancerRef, onStomp }: { stateRef: MutableRefObject<H
 
   return (
     <group ref={root}>
-      <pointLight ref={light} position={[0, 1.2, 0.8]} color={GLOW} intensity={7} distance={6.5} decay={2} />
-      <pointLight ref={spot} position={[0, 3.2, 0.6]} color="#ffffff" intensity={5} distance={4.5} decay={2} />
+      <pointLight ref={light} position={[0, 1.2, 0.8]} color={GLOW} intensity={3} distance={3.2} decay={2} />
+      <pointLight ref={spot} position={[0, 2.6, 0.7]} color="#fff4e0" intensity={4} distance={3.4} decay={2} />
       <mesh ref={ring} position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.55, 0.72, 48]} />
         <meshBasicMaterial color={GLOW} transparent opacity={0.4} depthWrite={false} />
