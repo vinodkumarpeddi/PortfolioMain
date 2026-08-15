@@ -15,9 +15,18 @@ import { LocalTime } from "@/components/ui/LocalTime";
 import { Marquee } from "@/components/ui/Marquee";
 
 const services = [
-  { title: "Backend systems", body: "APIs, queues, workers and data models built to stay correct under retries, failures and load — payments, event pipelines, tenant-scoped platforms." },
-  { title: "Full-stack products", body: "React and Next.js front ends on top of those systems: dashboards, checkouts, admin tools, mobile companions — fast, accessible, considered." },
-  { title: "Platform & reliability", body: "Containerised, documented, observable: health checks, structured logs, one command from clone to running, and workflows that keep incidents short." },
+  {
+    title: "Backend & distributed systems",
+    body: "Payments, event pipelines, tenant-scoped platforms. Idempotency keys, outbox tables, durable queues, RBAC — the patterns that keep a system correct when a message arrives twice or a process dies mid-write. Node.js, TypeScript, PostgreSQL, Redis, RabbitMQ.",
+  },
+  {
+    title: "Full-stack products",
+    body: "React and Next.js on top of those systems: checkouts, dashboards, admin tools, a mobile companion. Fast first paint, keyboard-friendly, honest loading states — the product should feel lighter than the machinery underneath it.",
+  },
+  {
+    title: "Reliability & platform",
+    body: "Containerised, documented, observable. Health checks, structured logs, one command from clone to running, and on-call workflows that keep incidents short — the same discipline I bring to uptime monitoring at EverUptime.",
+  },
 ];
 
 const cards: FanCard[] = [
@@ -102,13 +111,20 @@ export function AboutSection() {
         <div className="mt-6 grid grid-cols-12 gap-x-8 gap-y-12">
           {/* statement + readouts */}
           <div className="col-span-12 lg:col-span-6">
-            <h2 id="about-title" className="text-h1 max-w-[16ch] text-balance text-fg-1">
-              <SplitText by="words">I care about the parts of software you only notice when they break.</SplitText>
+            <h2 id="about-title" className="text-h1 max-w-[14ch] text-balance text-fg-1">
+              <SplitText by="words">Boring underneath. Effortless on top.</SplitText>
             </h2>
-            <Reveal delay={0.15} className="mt-8 max-w-[52ch]">
+            <Reveal delay={0.15} className="mt-8 max-w-[54ch] space-y-5">
               <p className="text-lead text-fg-2">
-                Queues, ledgers, permissions, retries. I like making them boring — and then making the product on top of them feel effortless.
-                Full-stack by habit, backend by preference, systems by curiosity.
+                Most of what I build lives below the surface — the ledger that has to balance, the queue that has to drain, the permission check that has to hold.
+                I&apos;ve spent the last few years learning exactly how those pieces fail: duplicate messages, half-finished writes, retries that double-charge.
+                So I design the failure path first, write it down, and put a product on top that never has to think about it.
+              </p>
+              <p className="text-[15px] leading-relaxed text-fg-2">
+                Today I&apos;m a Software Engineer at{" "}
+                <a href={profile.companyUrl} target="_blank" rel="noopener noreferrer" className="link-underline text-fg-1">EverUptime</a>, working on incident management and uptime monitoring —
+                software whose entire job is to notice when other software breaks. Before that: a ServiceNow internship, a full-stack internship at Technical Hub, and a run of
+                production-shaped systems on GitHub — a payment orchestrator, an event-driven analytics pipeline, a multi-tenant SaaS platform.
               </p>
             </Reveal>
             <Reveal delay={0.25} className="mt-10 grid grid-cols-2 gap-6 border-t border-line-1 pt-6 sm:grid-cols-3">
@@ -172,7 +188,7 @@ export function AboutSection() {
           <Reveal className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="label text-fg-3">What I do</p>
-              <h3 id="services-title" className="text-h2 mt-3 text-fg-1">Three kinds of work I keep coming back to.</h3>
+              <h3 id="services-title" className="text-h2 mt-3 max-w-[22ch] text-fg-1">Three kinds of work I keep coming back to.</h3>
             </div>
           </Reveal>
           <ol className="mt-8 border-t border-line-1">
