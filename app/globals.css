@@ -359,3 +359,135 @@ html.intro-lock { overflow: hidden; }
   pointer-events: none;
 }
 @media (prefers-reduced-motion: reduce) { .sheen::after { animation: none; } }
+
+/* ---- cinematic brand splash ------------------------------------------------
+   The dragon arrives out of the dark, banks past the camera, breathes, dives onto
+   the V and locks as the crest. Every beat is compositor-only (transform, opacity,
+   clip-path, filter) and runs as CSS animation, so React never re-renders during it. */
+
+/* the camera itself: a slow push in across the whole sequence */
+@keyframes cine-camera {
+  0% { transform: scale(1.06); }
+  55% { transform: scale(1.01); }
+  100% { transform: scale(1); }
+}
+/* atmosphere drifting past, which is what sells the depth */
+@keyframes cine-haze {
+  0% { opacity: 0; transform: translate3d(0, 0, 0) scale(1); }
+  25% { opacity: 0.5; }
+  100% { opacity: 0.18; transform: translate3d(-3%, 2%, 0) scale(1.2); }
+}
+@keyframes cine-eye-spark {
+  0% { opacity: 0; transform: scale(0.3); }
+  30% { opacity: 1; transform: scale(1); }
+  55% { opacity: 0.25; transform: scale(0.8); }
+  80% { opacity: 0.9; transform: scale(1.05); }
+  100% { opacity: 0; transform: scale(0.6); }
+}
+/* the flight path: far away, banking, a close pass, then the dive to centre */
+@keyframes cine-flight {
+  0%   { opacity: 0;    transform: translate3d(-26%, -20%, 0) scale(0.16) rotate(-14deg); }
+  8%   { opacity: 0.55; }
+  22%  { transform: translate3d(-18%, -14%, 0) scale(0.34) rotate(-11deg); }
+  34%  { opacity: 1; transform: translate3d(-12%, -8%, 0) scale(0.62) rotate(-9deg); }
+  46%  { transform: translate3d(-4%, -2%, 0) scale(1.02) rotate(-6deg); }
+  /* the close pass: it briefly overfills the frame */
+  56%  { transform: translate3d(7%, 4%, 0) scale(1.42) rotate(4deg); }
+  66%  { transform: translate3d(3%, 1%, 0) scale(1.14) rotate(2deg); }
+  /* the dive onto the V */
+  78%  { transform: translate3d(0, -1.5%, 0) scale(0.97) rotate(-1deg); }
+  88%  { transform: translate3d(0, 0, 0) scale(1.02) rotate(0deg); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
+}
+/* blur only while it is genuinely moving fast, gone by the time it locks */
+@keyframes cine-blur {
+  0% { filter: blur(4px) brightness(0.45); }
+  22% { filter: blur(2.4px) brightness(0.62); }
+  46% { filter: blur(1.4px) brightness(0.9); }
+  56% { filter: blur(5px) brightness(1); }
+  70% { filter: blur(1.6px) brightness(1); }
+  84% { filter: blur(0px) brightness(1); }
+  100% { filter: blur(0px) brightness(1); }
+}
+/* wings: held part-folded through the flight, thrown open once it has the V */
+@keyframes cine-wings {
+  0%, 62% { transform: scaleX(0.8) scaleY(0.95); }
+  78% { transform: scaleX(0.86) scaleY(0.97); }
+  88% { transform: scaleX(1.04) scaleY(1.012); }
+  95% { transform: scaleX(0.994) scaleY(0.998); }
+  100% { transform: scaleX(1) scaleY(1); }
+}
+/* the V materialises from the crest itself, bottom up */
+@keyframes cine-reveal {
+  0%, 52% { clip-path: inset(0 0 42% 0); }
+  72% { clip-path: inset(0 0 12% 0); }
+  100% { clip-path: inset(0 0 0 0); }
+}
+@keyframes cine-v-glow {
+  0%, 55% { opacity: 0; transform: scale(0.65); }
+  70% { opacity: 0.85; transform: scale(1.08); }
+  100% { opacity: 0.3; transform: scale(1); }
+}
+/* fire: a pale core catches, then the breath opens out to the upper right */
+@keyframes cine-fire-in {
+  0%, 40% { opacity: 0; clip-path: circle(0% at 66% 26%); }
+  46% { opacity: 1; clip-path: circle(9% at 66% 26%); }
+  62% { opacity: 1; clip-path: circle(48% at 66% 26%); }
+  100% { opacity: 1; clip-path: circle(100% at 66% 26%); }
+}
+@keyframes cine-fire-live {
+  0%, 100% { transform: scale(1); opacity: 0.97; }
+  33% { transform: scale(1.035) translate3d(0.5%, -0.6%, 0); opacity: 1; }
+  66% { transform: scale(0.985) translate3d(-0.3%, 0.4%, 0); opacity: 0.93; }
+}
+/* the fire throwing light back onto the muzzle and wings */
+@keyframes cine-heat {
+  0%, 42% { opacity: 0; transform: scale(0.5); }
+  58% { opacity: 0.9; transform: scale(1.15); }
+  76% { opacity: 0.5; transform: scale(1); }
+  88% { opacity: 0.95; transform: scale(1.2); }
+  100% { opacity: 0.5; transform: scale(1); }
+}
+@keyframes cine-lock {
+  0%, 88% { transform: scale(1); }
+  94% { transform: scale(1.025); }
+  100% { transform: scale(1); }
+}
+@keyframes cine-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.007); }
+}
+@keyframes cine-eye-live {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.1); }
+}
+@keyframes cine-ember {
+  0% { opacity: 0; transform: translate3d(0, 0, 0) scale(0.7); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(var(--ex, 10px), -58px, 0) scale(0.25); }
+}
+@keyframes cine-flash {
+  0%, 60% { opacity: 0; }
+  66% { opacity: 0.5; }
+  100% { opacity: 0; }
+}
+
+/* phones: keep the whole story, drop the costly bits */
+@media (max-width: 640px) {
+  .cine-blur { animation-name: none !important; filter: none !important; }
+  .cine-ember { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cine-camera, .cine-flight, .cine-blur, .cine-wings, .cine-reveal,
+  .cine-fire, .cine-heat, .cine-lock, .cine-eye, .cine-v-glow, .cine-haze {
+    animation: none !important;
+    clip-path: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .cine-ember, .cine-flash { display: none; }
+  .cine-fade-in { animation: cine-simple 300ms ease-out both !important; }
+}
+@keyframes cine-simple { from { opacity: 0; } to { opacity: 1; } }
