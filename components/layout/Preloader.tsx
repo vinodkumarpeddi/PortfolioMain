@@ -6,31 +6,36 @@ import { profile } from "@/data/profile";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
 
 const KEY = "vk-intro-seen";
-const RUNTIME = 6700; // the clip runs 6.58s; the rest is the hand-over
+const RUNTIME = 6600; // the clip runs 6.58s
+const START_WAIT = 2600; // how long the clip gets to start before we stop waiting for it
+const STILL_HOLD = 1200; // how long the static crest sits when it stands in
+const HARD_CAP = 11000; // nothing hides the page for longer than this, whatever happens
 const FADE = 600;
 const EDGE =
   "linear-gradient(to right, transparent, #000 9%, #000 91%, transparent)," +
   "linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent)";
 
-/* Survives React's development double-effect: the first pass claims the session and starts the
-   clock, the second re-arms against the time already elapsed instead of bailing out. */
-let startedAt: number | null = null;
+/* Survives React's development double-effect: the first pass claims the session, the second
+   sees the claim and carries on instead of bailing out. */
+let claimed = false;
 
 /**
  * Splash: the dragon comes out of the dark, breathes, takes the V and locks as the crest,
  * then hands over to the page beneath it.
  *
- * The sequence is a rendered clip rather than CSS, so it costs one <video> and React renders
- * three times (start, leave, end). Black is composited out with `screen`, which is why the clip
- * ships on a pure #000 field. Plays once per session, is skippable, and falls back to the static
- * crest whenever the video cannot or should not run.
+ * Timing follows the clip rather than a fixed schedule — a wall-clock timer will happily run
+ * its full length over a video that never started, which shows a frozen first frame and then
+ * clears. So the sequence ends on `ended`, the zoom is tied to `playing`, and anything that
+ * cannot start within START_WAIT hands over to the static crest instead.
  */
 export function Preloader() {
   const reduced = usePrefersReducedMotion();
   const [show, setShow] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [stalled, setStalled] = useState(false);
+  const [live, setLive] = useState(false);
   const video = useRef<HTMLVideoElement>(null);
+  const playing = useRef(false);
   const timers = useRef<number[]>([]);
 
   const dismiss = useCallback(() => {
@@ -46,41 +51,66 @@ export function Preloader() {
   }, []);
 
   useEffect(() => {
-    if (startedAt === null) {
+    if (!claimed) {
       try {
         if (sessionStorage.getItem(KEY)) return;
-        sessionStorage.setItem(KEY, "1");
       } catch {
         /* private mode — just play it */
       }
-      startedAt = Date.now();
     }
-    const total = reduced ? 900 : RUNTIME;
-    const left = total - (Date.now() - startedAt);
-    if (left <= 0) return;
 
-    document.documentElement.classList.add("intro-lock");
     const t = timers.current;
-    t.push(window.setTimeout(() => setShow(true), 0));
-    t.push(window.setTimeout(() => setLeaving(true), left));
-    t.push(
-      window.setTimeout(() => {
-        setShow(false);
-        document.documentElement.classList.remove("intro-lock");
-      }, left + FADE),
-    );
+    const begin = () => {
+      if (!claimed) {
+        try {
+          sessionStorage.setItem(KEY, "1");
+        } catch {
+          /* private mode — just play it */
+        }
+        claimed = true;
+      }
+      document.documentElement.classList.add("intro-lock");
+      t.push(window.setTimeout(() => setShow(true), 0));
+      t.push(window.setTimeout(() => !playing.current && setStalled(true), START_WAIT));
+      t.push(window.setTimeout(dismiss, HARD_CAP));
+    };
+
+    /* Opened in a background tab, the clip cannot decode and the whole intro would burn down
+       before anyone looked at it. Hold it until the tab is actually on screen. */
+    if (!document.hidden) begin();
+    const onVisible = () => {
+      if (document.hidden) return;
+      document.removeEventListener("visibilitychange", onVisible);
+      begin();
+    };
+    if (document.hidden) document.addEventListener("visibilitychange", onVisible);
+
     return () => {
+      document.removeEventListener("visibilitychange", onVisible);
       t.forEach(window.clearTimeout);
       timers.current = [];
       document.documentElement.classList.remove("intro-lock");
     };
-  }, [reduced]);
+  }, [dismiss]);
 
-  /* Autoplay can still be refused; when it is, show the crest instead of a black hole. */
+  /* `preload` is only a hint and the media load loses to the rest of the page often enough to
+     matter, so ask for the bytes outright. */
   useEffect(() => {
-    if (!show || reduced) return;
-    video.current?.play().catch(() => setStalled(true));
-  }, [show, reduced]);
+    if (!show || reduced || stalled) return;
+    const v = video.current;
+    if (!v) return;
+    v.load();
+    v.play().catch(() => setStalled(true));
+  }, [show, reduced, stalled]);
+
+  const still = reduced || stalled;
+
+  useEffect(() => {
+    if (!show || !still) return;
+    const id = window.setTimeout(dismiss, STILL_HOLD);
+    timers.current.push(id);
+    return () => window.clearTimeout(id);
+  }, [show, still, dismiss]);
 
   useEffect(() => {
     if (!show) return;
@@ -92,7 +122,6 @@ export function Preloader() {
   }, [show, dismiss]);
 
   if (!show) return null;
-  const still = reduced || stalled;
 
   return (
     <div
@@ -117,17 +146,23 @@ export function Preloader() {
           aria-hidden
           src="/brand/intro.mp4"
           poster="/brand/intro-poster.jpg"
-          autoPlay
           muted
           playsInline
           preload="auto"
+          onPlaying={() => {
+            playing.current = true;
+            setLive(true);
+          }}
           onEnded={dismiss}
           onError={() => setStalled(true)}
-          className="h-auto w-[min(148vw,64rem)] max-w-none select-none"
+          className="intro-clip h-auto w-[min(148vw,86rem)] max-w-none select-none"
           style={{
             mixBlendMode: "screen",
-            /* the close pass is wider than the rendered frame, so the wings run off it — feather
-               the border and they dissolve into the dark instead of ending on a straight cut */
+            /* the close pass is drawn wider than the rendered frame, so the clip is held large
+               enough to cover the viewport while the dragon flies and only eases down to fit
+               once the crest locks — the wings leave the screen instead of the frame */
+            animation: `intro-frame ${RUNTIME}ms cubic-bezier(.16,1,.3,1) both`,
+            animationPlayState: live ? "running" : "paused",
             maskImage: EDGE,
             WebkitMaskImage: EDGE,
             maskComposite: "intersect",

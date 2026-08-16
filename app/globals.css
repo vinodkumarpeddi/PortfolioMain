@@ -365,3 +365,15 @@ html.intro-lock { overflow: hidden; }
    thing left for CSS is the fade the crest and the wordmark share. */
 
 @keyframes cine-simple { from { opacity: 0; } to { opacity: 1; } }
+
+/* The close pass is drawn wider than the rendered frame, so the clip is held large enough to
+   cover the viewport while the dragon is flying — the wings then leave the screen instead of
+   dying on the edge of a visible window — and only eases down to fit once the crest locks. */
+.intro-clip { --intro-zoom: 2.9; }
+@media (min-width: 640px)  { .intro-clip { --intro-zoom: 2.1; } }
+@media (min-width: 1024px) { .intro-clip { --intro-zoom: 1.55; } }
+@keyframes intro-frame {
+  0%, 55% { transform: scale(var(--intro-zoom)); }
+  85%, 100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .intro-clip { animation: none !important; transform: none !important; } }
