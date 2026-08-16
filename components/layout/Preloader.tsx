@@ -8,6 +8,9 @@ import { usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
 const KEY = "vk-intro-seen";
 const RUNTIME = 6700; // the clip runs 6.58s; the rest is the hand-over
 const FADE = 600;
+const EDGE =
+  "linear-gradient(to right, transparent, #000 9%, #000 91%, transparent)," +
+  "linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent)";
 
 /* Survives React's development double-effect: the first pass claims the session and starts the
    clock, the second re-arms against the time already elapsed instead of bailing out. */
@@ -120,8 +123,16 @@ export function Preloader() {
           preload="auto"
           onEnded={dismiss}
           onError={() => setStalled(true)}
-          className="h-auto w-[min(116vw,58rem)] max-w-none select-none"
-          style={{ mixBlendMode: "screen" }}
+          className="h-auto w-[min(148vw,64rem)] max-w-none select-none"
+          style={{
+            mixBlendMode: "screen",
+            /* the close pass is wider than the rendered frame, so the wings run off it — feather
+               the border and they dissolve into the dark instead of ending on a straight cut */
+            maskImage: EDGE,
+            WebkitMaskImage: EDGE,
+            maskComposite: "intersect",
+            WebkitMaskComposite: "source-in",
+          }}
         />
       )}
 
