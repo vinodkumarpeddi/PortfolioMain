@@ -11,6 +11,7 @@ import { usePrefersReducedMotion, useIsDesktop } from "@/lib/hooks/use-media-que
 import { ease } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { SectionNumeral } from "@/components/ui/SectionNumeral";
+import { ContourMap } from "./ContourMap";
 
 type ProjectRef = { key: string; title: string; kind: "featured" | "index" };
 
@@ -287,13 +288,14 @@ export function TechnologyMap() {
 export function SystemsSection() {
   return (
     <section id="systems" data-section="systems" className="relative" aria-labelledby="sys-title">
-      <div className="gutter relative mx-auto max-w-[100rem] py-[var(--spacing-section)]">
+      <ContourMap />
+      <div className="gutter relative z-10 mx-auto max-w-[100rem] py-[var(--spacing-section)]">
         <SectionNumeral>04</SectionNumeral>
         <Reveal>
           <SectionLabel index="04">Systems &amp; technology</SectionLabel>
         </Reveal>
         <div className="relative mt-6 flex flex-wrap items-end justify-between gap-6">
-          <h2 id="sys-title" className="text-h1 max-w-[14ch] text-fg-1">
+          <h2 id="sys-title" className="v-skew text-h1 max-w-[14ch] origin-left text-fg-1">
             <SplitText by="words">Not a list of logos. A map of decisions.</SplitText>
           </h2>
           <Reveal delay={0.15} className="max-w-[34ch] text-[15px] leading-relaxed text-fg-2">
