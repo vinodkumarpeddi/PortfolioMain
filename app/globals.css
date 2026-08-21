@@ -380,13 +380,12 @@ html.intro-lock { overflow: hidden; }
   inherits: true;
   initial-value: #e9a23b;
 }
-/* display type leans with the scroll: --vel is written on <html> by the Lenis bridge */
+/* display type leans with the scroll: the Lenis bridge writes the skew onto these directly */
 .v-skew {
-  transform: skewY(calc(var(--vel, 0) * -2.4deg));
   transition: transform 240ms var(--ease-standard);
   will-change: transform;
 }
-@media (prefers-reduced-motion: reduce) { .v-skew { transform: none; transition: none; } }
+@media (prefers-reduced-motion: reduce) { .v-skew { transform: none !important; transition: none; } }
 
 .splash {
   position: fixed;

@@ -44,12 +44,22 @@ function Bridge() {
     lenis.on("scroll", ScrollTrigger.update);
 
     const root = document.documentElement;
+    /* written straight onto the few .v-skew elements: a custom property on <html> would
+       invalidate computed style for the whole document on every scrolled frame */
+    let leaners: HTMLElement[] = [];
+    let leanersAt = 0;
     let vel = 0;
     const lean = ({ velocity }: { velocity: number }) => {
       const next = Math.max(-1, Math.min(1, velocity / 90));
       if (Math.abs(next - vel) < 0.01) return;
       vel = next;
-      root.style.setProperty("--vel", vel.toFixed(3));
+      const now = performance.now();
+      if (now - leanersAt > 3000) {
+        leaners = Array.from(document.querySelectorAll<HTMLElement>(".v-skew"));
+        leanersAt = now;
+      }
+      const t = `skewY(${(vel * -2.4).toFixed(2)}deg)`;
+      for (const el of leaners) el.style.transform = t;
     };
     lenis.on("scroll", lean);
     const sync = () => {
@@ -68,7 +78,7 @@ function Bridge() {
       gsap.ticker.remove(update);
       lenis.off("scroll", ScrollTrigger.update);
       lenis.off("scroll", lean);
-      root.style.removeProperty("--vel");
+      for (const el of leaners) el.style.removeProperty("transform");
     };
   }, [lenis]);
 
