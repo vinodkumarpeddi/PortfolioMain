@@ -16,6 +16,8 @@ import { KineticText } from "@/components/ui/KineticText";
 import { CurvedDivider } from "@/components/ui/CurvedDivider";
 import { HeroCanvas } from "@/components/three/HeroCanvas";
 import type { HeroState } from "@/components/three/HeroObject";
+import type { ShaderDrive } from "@/components/ui/ShaderLayer";
+import { Eclipse } from "./Eclipse";
 import { cn } from "@/lib/utils";
 
 const socials = [
@@ -31,6 +33,7 @@ export function ContactSection() {
   const [copied, setCopied] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const coreState = useRef<HeroState>({ spread: 0.3, opacity: 1, energy: 0 });
+  const sun = useRef<ShaderDrive>({ progress: 0, energy: 0 });
 
   useGSAP(
     () => {
@@ -46,6 +49,7 @@ export function ContactSection() {
         );
         gsap.fromTo(q(".ct-glow"), { scale: 1.5, opacity: 0.9 }, { scale: 0.7, opacity: 0.3, ease: "none", scrollTrigger: { trigger: el, start: "top 90%", end: "bottom bottom", scrub: 1 } });
         gsap.fromTo(coreState.current, { spread: 1 }, { spread: 0.15, ease: "none", scrollTrigger: { trigger: el, start: "top 90%", end: "bottom bottom", scrub: 1 } });
+        gsap.fromTo(sun.current, { progress: 0 }, { progress: 1, ease: "none", scrollTrigger: { trigger: el, start: "top 95%", end: "top 15%", scrub: 1.2 } });
         gsap.from(q(".ct-cta"), { scale: 0.6, opacity: 0, duration: 1.1, ease: "expo.out", scrollTrigger: { trigger: q(".ct-cta")[0], start: "top 85%", once: true } });
         gsap.from(q(".ct-card"), { y: 40, opacity: 0, duration: 1, ease: "expo.out", scrollTrigger: { trigger: q(".ct-card")[0], start: "top 85%", once: true } });
         gsap.from(q(".ct-col > *"), { y: 16, opacity: 0, duration: 0.8, ease: "expo.out", stagger: 0.05, scrollTrigger: { trigger: q(".ct-card")[0], start: "top 80%", once: true } });
@@ -88,21 +92,22 @@ export function ContactSection() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[120svh] opacity-80 [mask-image:radial-gradient(60%_60%_at_50%_45%,black,transparent_85%)] motion-reduce:hidden" aria-hidden>
         <HeroCanvas stateRef={coreState} variant="backdrop" className="absolute inset-0" />
       </div>
+      <Eclipse drive={sun} />
       <CurvedDivider className="relative h-24 w-full" />
 
       <div className="gutter relative mx-auto max-w-[100rem] pt-[calc(var(--spacing-section)*0.5)]">
         <SectionLabel index="07">Connect</SectionLabel>
 
         <div className="mt-8 grid grid-cols-12 items-end gap-x-6 gap-y-8 sm:mt-10 sm:gap-y-10">
-          <h2 id="contact-title" className="ct-head text-display-safe col-span-12 uppercase text-fg-1 lg:col-span-9">
+          <h2 id="contact-title" className="ct-head v-skew text-display-safe col-span-12 origin-left uppercase text-fg-1 lg:col-span-9">
             <span className="ct-line block"><KineticText text="Let's build" /></span>
             <span className="ct-line block text-fg-2"><KineticText text="something" /></span>
             <span className="ct-line block"><KineticText text="that lasts." accentLast /></span>
           </h2>
           <div
             className="ct-cta col-span-12 flex justify-center lg:col-span-3 lg:justify-end"
-            onPointerEnter={() => { coreState.current.energy = 1; }}
-            onPointerLeave={() => { coreState.current.energy = 0; }}
+            onPointerEnter={() => { coreState.current.energy = 1; sun.current.energy = 1; }}
+            onPointerLeave={() => { coreState.current.energy = 0; sun.current.energy = 0; }}
           >
             <RotatingCta href="#contact-form" onClick={onCta} badge={formOpen ? "Open" : undefined} label="Write to Vinod" ring="Write to me — Let's talk" cursor="Write" />
           </div>
