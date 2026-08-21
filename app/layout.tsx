@@ -8,6 +8,7 @@ import { HashScroll } from "@/components/providers/HashScroll";
 import { Preloader } from "@/components/layout/Preloader";
 import { Cursor } from "@/components/ui/Cursor";
 import { Grain } from "@/components/ui/Grain";
+import { FluidInk } from "@/components/ui/FluidInk";
 import { Nav } from "@/components/layout/Nav";
 import { ScrollProgress } from "@/components/layout/ScrollProgress";
 import { QuickBar } from "@/components/layout/QuickBar";
@@ -119,6 +120,7 @@ export default function RootLayout({
               <QuickBar />
               {children}
               <Cursor />
+              <FluidInk />
               <Grain />
             </ScrollStateProvider>
           </SmoothScroll>
