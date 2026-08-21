@@ -81,7 +81,9 @@ export function ContactSection() {
 
   return (
     <section id="contact" ref={ref} data-section="contact" className="relative overflow-hidden" aria-labelledby="contact-title">
-      <div aria-hidden className="ct-glow pointer-events-none absolute left-1/2 top-[38%] hidden h-[60svh] w-[70vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/[0.08] blur-[150px] lg:block" />
+      {/* scrubbed scale on a 150px blur: without a layer of its own the whole box is re-blurred
+          on every scroll frame for the length of the section */}
+      <div aria-hidden className="ct-glow pointer-events-none absolute left-1/2 top-[38%] hidden h-[60svh] w-[70vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/[0.08] blur-[150px] [will-change:transform,opacity] lg:block" />
       <div aria-hidden className="grid-bg pointer-events-none absolute inset-0 opacity-70 [mask-image:radial-gradient(60%_50%_at_50%_30%,black,transparent)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[120svh] opacity-80 [mask-image:radial-gradient(60%_60%_at_50%_45%,black,transparent_85%)] motion-reduce:hidden" aria-hidden>
         <HeroCanvas stateRef={coreState} variant="backdrop" className="absolute inset-0" />

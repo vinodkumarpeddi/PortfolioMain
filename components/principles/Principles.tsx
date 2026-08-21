@@ -61,7 +61,8 @@ export function Principles() {
             pin: true,
             scrub: 0.8,
             anticipatePin: 1,
-            snap: { snapTo: 1 / (principles.length - 1), duration: { min: 0.15, max: 0.5 }, ease: "power2.inOut", delay: 0.05 },
+            /* no snap here: it drives the scroll position itself, which Lenis owns, and the two
+               pull against each other for the whole length of the pin */
             onUpdate: (self) => {
               const i = Math.min(principles.length - 1, Math.floor(self.progress * principles.length + 0.0001));
               if (counter) counter.textContent = String(i + 1).padStart(2, "0");
@@ -106,7 +107,9 @@ export function Principles() {
   return (
     <section id="mindset" ref={ref} data-section="mindset" className="relative" aria-labelledby="mind-title">
       <div className="pr-stage relative flex min-h-[100svh] flex-col overflow-hidden motion-reduce:min-h-0">
-        <div aria-hidden className="pr-glow pointer-events-none absolute left-1/2 top-1/2 hidden h-[70svh] w-[70vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/[0.05] blur-[140px] lg:block" />
+        {/* will-change keeps the 140px blur on its own layer, so tracking it across the pin
+            moves a texture instead of re-blurring a 70vw box every frame */}
+        <div aria-hidden className="pr-glow pointer-events-none absolute left-1/2 top-1/2 hidden h-[70svh] w-[70vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/[0.05] blur-[140px] [will-change:transform] lg:block" />
         <div className="gutter mx-auto flex w-full max-w-[100rem] items-center justify-between pt-24">
           <SectionLabel index="05">How I think</SectionLabel>
           <p className="label text-fg-3 tabular-nums" aria-hidden>

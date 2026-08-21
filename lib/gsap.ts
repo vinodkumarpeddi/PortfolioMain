@@ -4,7 +4,9 @@ import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
 
 gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
-ScrollTrigger.config({ limitCallbacks: true });
+/* ignoreMobileResize: showing and hiding the mobile URL bar fires a resize, and a refresh
+   mid-scroll re-measures every pin and jumps the page under the reader's thumb. */
+ScrollTrigger.config({ limitCallbacks: true, ignoreMobileResize: true });
 
 gsap.defaults({ ease: "expo.out", duration: 1 });
 

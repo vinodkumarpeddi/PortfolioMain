@@ -181,12 +181,13 @@ video {
   border-color: var(--color-line-1);
 }
 
+/* The tile repeats, so the layer only ever needs to cover the viewport — at 200% it was four
+   times the pixels to blend on every composited frame for an identical result. */
 @utility grain {
   position: fixed;
-  inset: -50%;
-  width: 200%;
-  height: 200%;
+  inset: 0;
   pointer-events: none;
+  contain: strict;
   z-index: 60;
   opacity: 0.045;
   mix-blend-mode: overlay;

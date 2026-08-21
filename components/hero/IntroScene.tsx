@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { gsap, ScrollTrigger, SplitText, useGSAP, MOTION_OK, DESKTOP, MOBILE } from "@/lib/gsap";
 import { projects } from "@/data/projects";
-import { profile } from "@/data/profile";
+import { profile, type SectionId } from "@/data/profile";
 import { SplitText as SplitReveal } from "@/components/ui/SplitText";
 import { KineticText } from "@/components/ui/KineticText";
 import { Button } from "@/components/ui/Button";
@@ -24,6 +24,10 @@ export function IntroScene() {
   const pinRef = useRef<HTMLDivElement>(null);
   const coreWrapRef = useRef<HTMLDivElement>(null);
   const heroState = useRef<HeroState>({ spread: 0, opacity: 1 });
+  /* the city is faded out well before the pin releases, and an invisible WebGL scene costs the
+     same as a visible one — right where the project reveal needs the frames */
+  const [coreLive, setCoreLive] = useState(true);
+  const coreLiveRef = useRef(true);
 
   useGSAP(
     () => {
@@ -66,6 +70,23 @@ export function IntroScene() {
         gsap.set(q(".stage-challenge, .stage-solution"), { autoAlpha: 0, y: 16 });
         gsap.set(chips, { opacity: 0.45 });
 
+        /* The scroll position arrives in native touch-sized steps on phones, so a hard scrub
+           replays every one of them; a small catch-up smooths them into one move. */
+        let section: SectionId | null = null;
+        const track = (self: ScrollTrigger) => {
+          const next = self.isActive ? (self.progress > 0.4 ? "work" : "intro") : null;
+          if (next !== section) {
+            section = next;
+            setSectionOverride(next);
+          }
+          /* the fade of .core-wrap completes at unit 2.8 of 10 */
+          const live = self.progress < 0.32;
+          if (live !== coreLiveRef.current) {
+            coreLiveRef.current = live;
+            setCoreLive(live);
+          }
+        };
+
         const tl = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: {
@@ -73,14 +94,14 @@ export function IntroScene() {
             start: "top top",
             end: () => "+=" + pin.offsetHeight * (desktop ? 4.7 : 2.1),
             pin: true,
-            scrub: desktop ? 0.7 : true,
+            scrub: desktop ? 0.7 : 0.6,
             anticipatePin: 1,
             fastScrollEnd: true,
             invalidateOnRefresh: true,
-            onUpdate: (self) => setSectionOverride(self.isActive ? (self.progress > 0.4 ? "work" : "intro") : null),
-            onRefresh: (self) => setSectionOverride(self.isActive ? (self.progress > 0.4 ? "work" : "intro") : null),
-            onLeave: () => setSectionOverride(null),
-            onLeaveBack: () => setSectionOverride(null),
+            onUpdate: track,
+            onRefresh: track,
+            onLeave: track,
+            onLeaveBack: track,
           },
         });
 
@@ -140,7 +161,7 @@ export function IntroScene() {
 
         {/* 3D OBJECT (hero state) */}
         <div ref={coreWrapRef} className="core-wrap absolute inset-0 z-0 motion-reduce:hidden">
-          <HeroCanvas stateRef={heroState} scene="voxel" className="absolute inset-0" />
+          <HeroCanvas stateRef={heroState} scene="voxel" paused={!coreLive} className="absolute inset-0" />
         </div>
 
         {/* HERO LAYER */}
@@ -277,7 +298,7 @@ export function IntroScene() {
 
 function StagePanel({ className, index, label, title, body, compact }: { className: string; index: string; label: string; title: string; body: string; compact?: boolean }) {
   return (
-    <div className={cn("absolute inset-x-0 bottom-0 rounded-2xl border border-line-1 bg-bg-1/85 backdrop-blur-md lg:ml-auto lg:max-w-[26rem]", compact ? "p-3.5" : "p-5", className)}>
+    <div className={cn("absolute inset-x-0 bottom-0 rounded-2xl border border-line-1 bg-bg-1/95 lg:ml-auto lg:max-w-[26rem]", compact ? "p-3.5" : "p-5", className)}>
       <div className="label flex items-center gap-3 text-fg-3">
         <span className="text-accent">{index}</span>
         <span>{label}</span>

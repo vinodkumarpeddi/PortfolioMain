@@ -221,7 +221,7 @@ export function TechnologyMap() {
             <div aria-hidden className="ml-5 mt-2 h-8 w-px bg-line-2" />
           </div>
 
-          <div className="sticky top-[4.25rem] z-20 -mx-2 mb-6 rounded-[20px] bg-bg-1/85 p-2 backdrop-blur-xl lg:hidden">
+          <div className="sticky top-[4.25rem] z-20 -mx-2 mb-6 rounded-[20px] bg-bg-1/95 p-2 lg:hidden">
             {consoleBox}
             <div className="relative mt-3">
               {chips(true)}

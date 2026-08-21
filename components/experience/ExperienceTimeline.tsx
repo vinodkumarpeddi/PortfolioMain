@@ -111,7 +111,7 @@ export function ExperienceTimeline() {
           <div className="col-span-12 lg:col-span-6">
             {/* phones: a slim sticky scrubber keeps the orbit's context while the cards scroll */}
             <div className="sticky top-[4.25rem] z-30 mb-5 lg:hidden">
-              <div className="flex items-center gap-3 rounded-full border border-line-1 bg-bg-1/90 pl-4 pr-2 backdrop-blur-xl [box-shadow:var(--shadow-soft)]">
+              <div className="flex items-center gap-3 rounded-full border border-line-1 bg-bg-1/95 pl-4 pr-2 [box-shadow:var(--shadow-soft)]">
                 <span className="tabular-nums text-[15px] font-semibold text-fg-1">{current.start.slice(0, 4)}</span>
                 <span className="min-w-0 flex-1 truncate text-[13px] text-fg-2">{current.org}</span>
                 <div className="flex items-center" role="tablist" aria-label="Jump to milestone">
@@ -139,7 +139,7 @@ export function ExperienceTimeline() {
                   animate={{ opacity: active === i ? 1 : desktop ? 0.45 : 0.75, scale: active === i ? 1 : 0.985 }}
                   transition={{ duration: 0.6, ease: ease.outExpo }}
                 >
-                  <div className={cn("relative overflow-hidden rounded-[28px] border bg-[#101013]/90 p-6 backdrop-blur-xl transition-[border-color,box-shadow] duration-[var(--duration-cinematic)] sm:p-8", active === i ? "border-accent/25 [box-shadow:0_1px_0_rgba(255,255,255,0.07)_inset,0_40px_100px_-30px_rgba(233,162,59,0.22),0_30px_80px_-30px_rgba(0,0,0,0.9)]" : "border-line-1 [box-shadow:var(--shadow-soft)]")}>
+                  <div className={cn("relative overflow-hidden rounded-[28px] border bg-[#101013]/95 p-6 transition-[border-color,box-shadow] duration-[var(--duration-cinematic)] sm:p-8", active === i ? "border-accent/25 [box-shadow:0_1px_0_rgba(255,255,255,0.07)_inset,0_40px_100px_-30px_rgba(233,162,59,0.22),0_30px_80px_-30px_rgba(0,0,0,0.9)]" : "border-line-1 [box-shadow:var(--shadow-soft)]")}>
                     <span aria-hidden className="pointer-events-none absolute -right-4 -top-10 select-none text-[clamp(6rem,10vw,10rem)] font-semibold leading-none tracking-[-0.06em] text-fg-1/[0.045]">
                       {String(i + 1).padStart(2, "0")}
                     </span>
