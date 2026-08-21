@@ -32,7 +32,8 @@ const description =
 
 export const metadata: Metadata = {
   metadataBase: new URL(profile.siteUrl),
-  title: { default: title, template: `%s — ${profile.name}` },
+  /* the tab shows ~20 characters: the name alone, and the role lives in the description */
+  title: { default: profile.name, template: `%s — ${profile.name}` },
   description,
   applicationName: profile.name,
   authors: [{ name: profile.name, url: profile.siteUrl }],
