@@ -91,7 +91,7 @@ export const viewport: Viewport = {
  * there to prevent.
  */
 const INTRO_BOOT = `try{var h=document.documentElement,s=null;try{s=sessionStorage.getItem("vk-intro-seen")}catch(e){}
-if(s){h.className+=" intro-done"}else{h.className+=" intro-lock";
+if(s){h.className+=" intro-done";window.__introPending=false}else{h.className+=" intro-lock";window.__introPending=true;
 try{if(matchMedia("(prefers-reduced-motion: reduce)").matches)h.className+=" intro-still"}catch(e){}}}catch(e){}`;
 
 export default function RootLayout({

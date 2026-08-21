@@ -3,12 +3,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { profile } from "@/data/profile";
+import { liftIntro } from "@/lib/intro";
 
 const KEY = "vk-intro-seen";
 const START_WAIT = 2000; // how long the clip gets to start before we stop waiting for it
 const STILL_HOLD = 1200; // how long the static crest sits when it stands in
 const HARD_CAP = 5000; // nothing hides the page for longer than this, whatever happens
-const FADE = 600;
+const FLIGHT = 1000; // the crest's flight to the mark; the overlay unmounts after it
+
+/* Survives React's development double-effect: the first pass claims the session, the second
+   sees the claim and carries on instead of reading its own flag back as "already seen". */
+let claimed = false;
 
 /**
  * Splash: the crest spreads its wings, breathes, locks, and hands over to the page beneath it.
@@ -27,22 +32,54 @@ const FADE = 600;
 export function Preloader() {
   const [gone, setGone] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const splash = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
+  const still = useRef<HTMLImageElement>(null);
   const playing = useRef(false);
   const stalled = useRef(false);
   const timers = useRef<number[]>([]);
 
+  /* The hand-over: the overlay's ground goes clear, the crest flies into the brand mark in
+     the nav and the mark pulses as it lands, while the page's own entrance starts underneath. */
   const dismiss = useCallback(() => {
     timers.current.forEach(window.clearTimeout);
     timers.current = [];
+    const root = document.documentElement;
     setLeaving(true);
+    /* set now, not on React's commit: the transition rules hang off this attribute and must be
+       in place before the crest's transform changes on the next frame */
+    splash.current?.setAttribute("data-leaving", "");
+    root.classList.add("intro-leaving");
+    liftIntro();
+
+    const crest = stalled.current ? still.current : video.current;
+    const mark = document.querySelector<HTMLElement>("[data-brand-mark]");
+    if (crest && mark) {
+      const a = crest.getBoundingClientRect();
+      const b = mark.getBoundingClientRect();
+      /* the dragon fills ~62% of the clip's width (wings to wings) and ~90% of the still */
+      const crestW = a.width * (stalled.current ? 0.9 : 0.62);
+      const scale = Math.max(0.02, b.width / crestW);
+      const dx = b.left + b.width / 2 - (a.left + a.width / 2);
+      const dy = b.top + b.height / 2 - (a.top + a.height / 2);
+      requestAnimationFrame(() => {
+        crest.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) scale(${scale.toFixed(4)})`;
+        crest.style.opacity = "0";
+      });
+      timers.current.push(
+        window.setTimeout(() => {
+          mark.classList.add("brand-land");
+          window.setTimeout(() => mark.classList.remove("brand-land"), 900);
+        }, FLIGHT - 220),
+      );
+    }
+
     timers.current.push(
       window.setTimeout(() => {
         setGone(true);
-        const root = document.documentElement;
-        root.classList.remove("intro-lock");
+        root.classList.remove("intro-lock", "intro-leaving");
         root.classList.add("intro-done");
-      }, FADE),
+      }, FLIGHT),
     );
   }, []);
 
@@ -65,9 +102,22 @@ export function Preloader() {
     const root = document.documentElement;
     const v = video.current;
 
+    /* Decided from storage, as the boot script did, not from the class it set: hydration
+       rewrites the <html> class attribute, so the classes are put back here either way. */
+    let seen = false;
+    try {
+      seen = !claimed && Boolean(sessionStorage.getItem(KEY));
+    } catch {
+      /* private mode — just play it */
+    }
+    claimed = true;
+
     /* Already played this session. CSS took the overlay off screen before the first paint, so
        this only has to tidy up: stop the clip and drop the markup on the next tick. */
-    if (root.classList.contains("intro-done")) {
+    if (seen) {
+      root.classList.add("intro-done");
+      root.classList.remove("intro-lock");
+      window.__introPending = false;
       v?.removeAttribute("src");
       v?.load();
       const id = window.setTimeout(() => setGone(true), 0);
@@ -75,6 +125,12 @@ export function Preloader() {
     }
 
     root.classList.add("intro-lock");
+    window.__introPending = true;
+    try {
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) root.classList.add("intro-still");
+    } catch {
+      /* no matchMedia — play the clip */
+    }
     try {
       sessionStorage.setItem(KEY, "1");
     } catch {
@@ -115,7 +171,7 @@ export function Preloader() {
       document.removeEventListener("visibilitychange", onVisible);
       t.forEach(window.clearTimeout);
       timers.current = [];
-      root.classList.remove("intro-lock");
+      root.classList.remove("intro-lock", "intro-leaving");
     };
   }, [dismiss, stall]);
 
@@ -131,7 +187,7 @@ export function Preloader() {
   if (gone) return null;
 
   return (
-    <div className="splash" data-leaving={leaving || undefined} onClick={dismiss}>
+    <div ref={splash} className="splash" data-leaving={leaving || undefined} onClick={dismiss}>
       <video
         ref={video}
         aria-hidden
@@ -150,6 +206,7 @@ export function Preloader() {
       />
 
       <Image
+        ref={still}
         src="/brand/dragon.png"
         alt=""
         aria-hidden

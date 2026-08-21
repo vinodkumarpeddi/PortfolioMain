@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { gsap, ScrollTrigger, SplitText, useGSAP, MOTION_OK, DESKTOP, MOBILE } from "@/lib/gsap";
+import { onIntroDone } from "@/lib/intro";
 import { projects } from "@/data/projects";
 import { profile, type SectionId } from "@/data/profile";
 import { SplitText as SplitReveal } from "@/components/ui/SplitText";
@@ -40,14 +41,18 @@ export function IntroScene() {
 
       // ---- entrance (runs once on load, independent of scroll) ----
       mm.add(MOTION_OK, () => {
-        const intro = gsap.timeline({ defaults: { ease: "expo.out", duration: 1.2 } });
+        const intro = gsap.timeline({ paused: true, defaults: { ease: "expo.out", duration: 1.2 } });
         intro
           .from(q(".hero-meta"), { opacity: 0, y: 12, duration: 0.9 }, 0.15)
           .from(q(".hero-lead"), { opacity: 0, y: 18, filter: "blur(6px)" }, 0.55)
           .from(q(".hero-cta"), { opacity: 0, y: 14 }, 0.75)
           .from(q(".hero-bottom > *"), { opacity: 0, y: 10, stagger: 0.08, duration: 0.8 }, 0.9)
           .fromTo(q("[data-grid]"), { clipPath: "inset(0 100% 100% 0)" }, { clipPath: "inset(0 0% 0% 0)", duration: 1.8, ease: "power3.inOut" }, 0);
-        return () => intro.kill();
+        const release = onIntroDone(() => intro.play());
+        return () => {
+          release();
+          intro.kill();
+        };
       });
 
       // ---- scroll choreography ----

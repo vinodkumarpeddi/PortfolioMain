@@ -2,6 +2,7 @@
 
 import { useRef, type ReactNode } from "react";
 import { gsap, SplitText as GSplit, useGSAP, MOTION_OK } from "@/lib/gsap";
+import { onIntroDone } from "@/lib/intro";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -39,6 +40,7 @@ export function SplitText({
       if (!el) return;
       const mm = gsap.matchMedia();
       mm.add(MOTION_OK, () => {
+        const releases: (() => void)[] = [];
         const type = by === "chars" ? "lines,words,chars" : by === "words" ? "lines,words" : "lines";
         const split = GSplit.create(el, {
           type,
@@ -47,18 +49,25 @@ export function SplitText({
           linesClass: "split-line",
           onSplit: (self) => {
             const targets = by === "chars" ? self.chars : by === "words" ? self.words : self.lines;
-            return gsap.from(targets, {
+            const tween = gsap.from(targets, {
               yPercent: 110,
               rotate: by === "lines" ? 0 : 0.001,
               duration,
               ease: "expo.out",
               delay,
               stagger: stagger ?? (by === "chars" ? 0.02 : by === "words" ? 0.045 : 0.09),
+              paused: immediate,
               scrollTrigger: immediate ? undefined : { trigger: el, start, once: true },
             });
+            /* "immediate" means on arrival, and arrival is when the splash lifts */
+            if (immediate) releases.push(onIntroDone(() => tween.play()));
+            return tween;
           },
         });
-        return () => split.revert();
+        return () => {
+          releases.forEach((r) => r());
+          split.revert();
+        };
       });
     },
     { scope: ref },

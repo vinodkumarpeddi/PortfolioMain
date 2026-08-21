@@ -62,7 +62,7 @@ export function Nav() {
             className="pointer-events-auto flex min-w-0 items-center gap-3 text-fg-1 max-lg:min-h-11"
             aria-label={`${profile.name} — home`}
           >
-            <Logo priority className="h-8 w-8 shrink-0" />
+            <span data-brand-mark className="inline-flex h-8 w-8 shrink-0 will-change-transform"><Logo priority className="h-8 w-8 shrink-0" /></span>
             <span className="flex min-w-0 flex-col leading-none">
               <span className="truncate text-[13px] font-semibold tracking-[-0.01em]">
                 {profile.name}

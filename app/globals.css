@@ -399,8 +399,29 @@ html.intro-lock { overflow: hidden; }
     opacity 500ms var(--ease-out-expo),
     transform 500ms var(--ease-out-expo);
 }
-.splash[data-leaving] { opacity: 0; transform: scale(0.96); }
+/* leaving: the ground clears first, then the crest flies to the mark (inline transform set by
+   the Preloader) while the caption and the skip control drop away */
+/* the overlay is its own stacking context, so once its ground is clear the clip's screen blend
+   would have nothing to blend against; the overlay itself screens over the page instead */
+.splash[data-leaving] { background: transparent; mix-blend-mode: screen; transition: background 520ms var(--ease-standard); }
+.splash[data-leaving] .splash-clip,
+.splash[data-leaving] .splash-still {
+  animation: none;
+  transition:
+    transform 980ms cubic-bezier(0.7, 0, 0.18, 1),
+    opacity 520ms 460ms var(--ease-standard);
+}
+.splash[data-leaving] .splash-word,
+.splash[data-leaving] button { animation: none; opacity: 0; transition: opacity 220ms var(--ease-standard); }
 html.intro-done .splash { display: none; }
+
+/* the mark takes the crest: a pulse with a ring of the brand's amber */
+@keyframes brand-land {
+  0% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(233, 162, 59, 0)); }
+  30% { transform: scale(1.45); filter: drop-shadow(0 0 14px rgba(233, 162, 59, 0.9)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(233, 162, 59, 0)); }
+}
+.brand-land { animation: brand-land 820ms var(--ease-out-expo) both; }
 
 /* The clip opens on the crest with its wings at the frame edges, so the frame is let run a
    little past the viewport on phones and the mask takes the wing tips out before the screen
