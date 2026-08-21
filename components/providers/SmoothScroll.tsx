@@ -44,6 +44,14 @@ function Bridge() {
     lenis.on("scroll", ScrollTrigger.update);
 
     const root = document.documentElement;
+    let vel = 0;
+    const lean = ({ velocity }: { velocity: number }) => {
+      const next = Math.max(-1, Math.min(1, velocity / 90));
+      if (Math.abs(next - vel) < 0.01) return;
+      vel = next;
+      root.style.setProperty("--vel", vel.toFixed(3));
+    };
+    lenis.on("scroll", lean);
     const sync = () => {
       if (root.classList.contains("intro-lock")) lenis.stop();
       else if (lenis.isStopped) {
@@ -59,6 +67,8 @@ function Bridge() {
       locks.disconnect();
       gsap.ticker.remove(update);
       lenis.off("scroll", ScrollTrigger.update);
+      lenis.off("scroll", lean);
+      root.style.removeProperty("--vel");
     };
   }, [lenis]);
 

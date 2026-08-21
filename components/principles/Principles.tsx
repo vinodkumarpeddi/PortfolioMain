@@ -158,7 +158,7 @@ export function Principles() {
                     "pr-item absolute inset-0 flex flex-col justify-center motion-reduce:relative motion-reduce:mb-20",
                   )}
                 >
-                  <p className="pr-word whitespace-nowrap text-[clamp(2.4rem,11.5vw,12rem)] sm:text-[clamp(2.1rem,9.5vw,12rem)] font-semibold uppercase leading-[0.9] tracking-[-0.045em] text-fg-1" aria-label={p.word}>
+                  <p className="pr-word v-skew origin-left whitespace-nowrap text-[clamp(2.4rem,11.5vw,12rem)] sm:text-[clamp(2.1rem,9.5vw,12rem)] font-semibold uppercase leading-[0.9] tracking-[-0.045em] text-fg-1" aria-label={p.word}>
                     {p.word}
                   </p>
                   <div className="pr-meta mt-6 grid grid-cols-12 gap-x-6 gap-y-3 sm:mt-8">

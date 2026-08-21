@@ -61,7 +61,7 @@ export function ExperienceTimeline() {
           <SectionLabel index="03">Engineering experience</SectionLabel>
         </Reveal>
         <div className="relative mt-6 flex flex-wrap items-end justify-between gap-6">
-          <h2 id="exp-title" className="text-h1 max-w-[14ch] text-fg-1">
+          <h2 id="exp-title" className="v-skew text-h1 max-w-[14ch] origin-left text-fg-1">
             <SplitText by="words">Where the work happened.</SplitText>
           </h2>
           <Reveal delay={0.15} className="label hidden items-center gap-3 text-fg-3 lg:flex" aria-hidden>

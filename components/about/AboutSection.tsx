@@ -113,7 +113,7 @@ export function AboutSection() {
         <div className="mt-6 grid grid-cols-12 gap-x-4 gap-y-12 lg:gap-x-8">
           {/* statement + readouts */}
           <div className="col-span-12 lg:col-span-6">
-            <h2 id="about-title" className="text-h1 max-w-[14ch] text-balance text-fg-1">
+            <h2 id="about-title" className="v-skew text-h1 max-w-[14ch] origin-left text-balance text-fg-1">
               <SplitText by="words">Boring underneath. Effortless on top.</SplitText>
             </h2>
             <Reveal delay={0.15} className="mt-8 max-w-[54ch] space-y-5">
