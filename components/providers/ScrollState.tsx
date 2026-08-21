@@ -20,6 +20,18 @@ const backgrounds: Record<SectionId, string> = {
   contact: "#050506",
 };
 
+/* the colour of the pointer's ink in each section; none over the hero, where the city is the
+   light. Work refines this to the active project's own colour (see WorkWash). */
+const inks: Record<SectionId, string> = {
+  intro: "none",
+  work: "#7c3aed",
+  experience: "#e9a23b",
+  systems: "#e9a23b",
+  mindset: "#ffd18a",
+  about: "#e9a23b",
+  contact: "#ff8a2a",
+};
+
 export function setSectionOverride(id: SectionId | null) {
   window.dispatchEvent(new CustomEvent("scrollstate:override", { detail: id }));
 }
@@ -73,6 +85,7 @@ export function ScrollStateProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.body.style.setProperty("--bg-current", backgrounds[active] ?? "var(--color-bg-1)");
+    document.body.style.setProperty("--ink", inks[active] ?? "#e9a23b");
   }, [active]);
 
   const value = useMemo<ScrollState>(() => {

@@ -25,7 +25,10 @@ export function WorkWash() {
         let bestRatio = 0;
         for (const [el, r] of ratios) if (r > bestRatio) { best = el as HTMLElement; bestRatio = r; }
         const color = best?.dataset.wash;
-        if (color) layer.style.setProperty("--wash", color);
+        if (color) {
+          layer.style.setProperty("--wash", color);
+          document.body.style.setProperty("--ink", color);
+        }
         layer.style.opacity = best ? "1" : "0";
       },
       { rootMargin: "-20% 0px -20% 0px", threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] },

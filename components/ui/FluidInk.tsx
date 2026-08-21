@@ -259,16 +259,21 @@ export function FluidInk() {
     let raf = 0;
     let prev = performance.now();
 
+    /* the section under the pointer chooses the colour (--ink on <body>; "none" over the hero).
+       Read at most every 120ms — pointer events come far faster than sections change. */
+    let inkAt = 0;
+    let inkRgb: { r: number; g: number; b: number } | null = null;
     const ink = (seed: number) => {
-      /* amber, leaning gold or ember from splat to splat */
-      const hue = 0.085 + seed * 0.05;
-      const s = 0.85;
-      const v = 0.42;
-      const i = Math.floor(hue * 6);
-      const f = hue * 6 - i;
-      const p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
-      const rgb = [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]][i % 6];
-      return { r: rgb[0] * 0.22, g: rgb[1] * 0.22, b: rgb[2] * 0.22 };
+      const now = performance.now();
+      if (now - inkAt > 120) {
+        inkAt = now;
+        const raw = getComputedStyle(document.body).getPropertyValue("--ink").trim();
+        const m = /^#?([0-9a-f]{6})$/i.exec(raw);
+        inkRgb = m ? { r: parseInt(m[1].slice(0, 2), 16) / 255, g: parseInt(m[1].slice(2, 4), 16) / 255, b: parseInt(m[1].slice(4, 6), 16) / 255 } : null;
+      }
+      if (!inkRgb) return null;
+      const k = 0.2 + seed * 0.06;
+      return { r: inkRgb.r * k, g: inkRgb.g * k, b: inkRgb.b * k };
     };
 
     const onMove = (cx: number, cy: number) => {
@@ -279,9 +284,12 @@ export function FluidInk() {
         const dx = (x - last.x) * SPLAT_FORCE;
         const dy = (y - last.y) * SPLAT_FORCE;
         if (Math.abs(dx) + Math.abs(dy) > 2) {
-          pending.push({ x, y, dx, dy, ...ink((now * 0.0004) % 1) });
-          lastInput = now;
-          wake();
+          const c = ink((now * 0.0004) % 1);
+          if (c) {
+            pending.push({ x, y, dx, dy, ...c });
+            lastInput = now;
+            wake();
+          }
         }
       }
       last = { x, y, t: now, has: true };
