@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { indexProjects } from "@/data/projects";
 import { ArrowDown, ArrowUpRight, GitHub } from "@/components/ui/Icons";
@@ -8,6 +8,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { useIsFinePointer } from "@/lib/hooks/use-media-query";
 import { ease } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { IndexPreview } from "./IndexPreview";
 
 /**
  * Trace-viewer style list. Pointer: hovering a row dims its siblings and expands its
@@ -16,6 +17,7 @@ import { cn } from "@/lib/utils";
 export function ProjectIndex() {
   const [active, setActive] = useState<number | null>(null);
   const finePointer = useIsFinePointer();
+  const pointer = useRef({ x: 0, y: 0 });
 
   return (
     <div className="gutter mx-auto max-w-[100rem] py-[calc(var(--spacing-section)*0.6)]">
@@ -31,7 +33,14 @@ export function ProjectIndex() {
         </p>
       </Reveal>
 
-      <ul className="mt-10 border-t border-line-1" onMouseLeave={() => finePointer && setActive(null)}>
+      <ul
+        className="mt-10 border-t border-line-1"
+        onMouseLeave={() => finePointer && setActive(null)}
+        onMouseMove={(e) => {
+          pointer.current.x = e.clientX;
+          pointer.current.y = e.clientY;
+        }}
+      >
         {indexProjects.map((p, i) => {
           const dim = active !== null && active !== i;
           const open = active === i;
@@ -135,6 +144,7 @@ export function ProjectIndex() {
       <p className="label mt-6 flex items-center gap-2 text-fg-3">
         <GitHub /> 70+ public repositories on GitHub
       </p>
+      {finePointer && <IndexPreview index={active} pointer={pointer} />}
     </div>
   );
 }
