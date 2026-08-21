@@ -3,39 +3,33 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { profile } from "@/data/profile";
-import { usePrefersReducedMotion } from "@/lib/hooks/use-media-query";
 
 const KEY = "vk-intro-seen";
-const RUNTIME = 6600; // the clip runs 6.58s
-const START_WAIT = 2600; // how long the clip gets to start before we stop waiting for it
+const START_WAIT = 2000; // how long the clip gets to start before we stop waiting for it
 const STILL_HOLD = 1200; // how long the static crest sits when it stands in
-const HARD_CAP = 11000; // nothing hides the page for longer than this, whatever happens
+const HARD_CAP = 5000; // nothing hides the page for longer than this, whatever happens
 const FADE = 600;
-const EDGE =
-  "linear-gradient(to right, transparent, #000 9%, #000 91%, transparent)," +
-  "linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent)";
-
-/* Survives React's development double-effect: the first pass claims the session, the second
-   sees the claim and carries on instead of bailing out. */
-let claimed = false;
 
 /**
- * Splash: the dragon comes out of the dark, breathes, takes the V and locks as the crest,
- * then hands over to the page beneath it.
+ * Splash: the crest spreads its wings, breathes, locks, and hands over to the page beneath it.
  *
- * Timing follows the clip rather than a fixed schedule — a wall-clock timer will happily run
- * its full length over a video that never started, which shows a frozen first frame and then
- * clears. So the sequence ends on `ended`, the zoom is tied to `playing`, and anything that
- * cannot start within START_WAIT hands over to the static crest instead.
+ * The markup is server-rendered and the clip carries `autoplay`, so the overlay is painted in
+ * the first frame and the dragon is already moving before this component hydrates — the page
+ * underneath is never on screen first. Which state a load is in was decided before the body was
+ * parsed, by the boot script in the layout, and is carried on <html>; this component reads that
+ * class rather than sessionStorage so it agrees with what was already painted.
+ *
+ * Timing follows the clip rather than a fixed schedule — a wall-clock timer will happily run its
+ * full length over a video that never started, which shows a frozen first frame and then clears.
+ * So the sequence ends on `ended`, and anything that cannot start within START_WAIT hands over
+ * to the static crest instead.
  */
 export function Preloader() {
-  const reduced = usePrefersReducedMotion();
-  const [show, setShow] = useState(false);
+  const [gone, setGone] = useState(false);
   const [leaving, setLeaving] = useState(false);
-  const [stalled, setStalled] = useState(false);
-  const [live, setLive] = useState(false);
   const video = useRef<HTMLVideoElement>(null);
   const playing = useRef(false);
+  const stalled = useRef(false);
   const timers = useRef<number[]>([]);
 
   const dismiss = useCallback(() => {
@@ -44,34 +38,63 @@ export function Preloader() {
     setLeaving(true);
     timers.current.push(
       window.setTimeout(() => {
-        setShow(false);
-        document.documentElement.classList.remove("intro-lock");
+        setGone(true);
+        const root = document.documentElement;
+        root.classList.remove("intro-lock");
+        root.classList.add("intro-done");
       }, FADE),
     );
   }, []);
 
+  /* the clip is out — reduced motion, or it never started: drop it so it stops pulling bytes,
+     show the crest, hold, hand over. More than one route leads here, so it runs once. */
+  const stall = useCallback(() => {
+    if (stalled.current) return;
+    stalled.current = true;
+    const v = video.current;
+    if (v?.src) {
+      v.pause();
+      v.removeAttribute("src");
+      v.load();
+    }
+    document.documentElement.classList.add("intro-still");
+    timers.current.push(window.setTimeout(dismiss, STILL_HOLD));
+  }, [dismiss]);
+
   useEffect(() => {
-    if (!claimed) {
-      try {
-        if (sessionStorage.getItem(KEY)) return;
-      } catch {
-        /* private mode — just play it */
-      }
+    const root = document.documentElement;
+    const v = video.current;
+
+    /* Already played this session. CSS took the overlay off screen before the first paint, so
+       this only has to tidy up: stop the clip and drop the markup on the next tick. */
+    if (root.classList.contains("intro-done")) {
+      v?.removeAttribute("src");
+      v?.load();
+      const id = window.setTimeout(() => setGone(true), 0);
+      return () => window.clearTimeout(id);
+    }
+
+    root.classList.add("intro-lock");
+    try {
+      sessionStorage.setItem(KEY, "1");
+    } catch {
+      /* private mode — just play it */
     }
 
     const t = timers.current;
     const begin = () => {
-      if (!claimed) {
-        try {
-          sessionStorage.setItem(KEY, "1");
-        } catch {
-          /* private mode — just play it */
-        }
-        claimed = true;
+      if (root.classList.contains("intro-still")) {
+        stall();
+        return;
       }
-      document.documentElement.classList.add("intro-lock");
-      t.push(window.setTimeout(() => setShow(true), 0));
-      t.push(window.setTimeout(() => !playing.current && setStalled(true), START_WAIT));
+      /* autoplay may have run the whole clip already if hydration was slow enough */
+      if (v?.ended) {
+        dismiss();
+        return;
+      }
+      if (v && !v.paused && v.currentTime > 0) playing.current = true;
+      else v?.play().catch(stall);
+      t.push(window.setTimeout(() => !playing.current && stall(), START_WAIT));
       t.push(window.setTimeout(dismiss, HARD_CAP));
     };
 
@@ -81,6 +104,9 @@ export function Preloader() {
     const onVisible = () => {
       if (document.hidden) return;
       document.removeEventListener("visibilitychange", onVisible);
+      /* autoplay does not wait for the gate: the clip will have run a little, and been suspended,
+         before anyone looked at the tab. Rewind so the entrance is not clipped. */
+      if (v && !v.ended) v.currentTime = 0;
       begin();
     };
     if (document.hidden) document.addEventListener("visibilitychange", onVisible);
@@ -89,93 +115,51 @@ export function Preloader() {
       document.removeEventListener("visibilitychange", onVisible);
       t.forEach(window.clearTimeout);
       timers.current = [];
-      document.documentElement.classList.remove("intro-lock");
+      root.classList.remove("intro-lock");
     };
-  }, [dismiss]);
-
-  /* `preload` is only a hint and the media load loses to the rest of the page often enough to
-     matter, so ask for the bytes outright. */
-  useEffect(() => {
-    if (!show || reduced || stalled) return;
-    const v = video.current;
-    if (!v) return;
-    v.load();
-    v.play().catch(() => setStalled(true));
-  }, [show, reduced, stalled]);
-
-  const still = reduced || stalled;
+  }, [dismiss, stall]);
 
   useEffect(() => {
-    if (!show || !still) return;
-    const id = window.setTimeout(dismiss, STILL_HOLD);
-    timers.current.push(id);
-    return () => window.clearTimeout(id);
-  }, [show, still, dismiss]);
-
-  useEffect(() => {
-    if (!show) return;
+    if (gone) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" || e.key === "Enter" || e.key === " ") dismiss();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [show, dismiss]);
+  }, [gone, dismiss]);
 
-  if (!show) return null;
+  if (gone) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[110] grid place-items-center overflow-hidden bg-[#050505] transition-[opacity,transform] duration-500 ease-[cubic-bezier(.16,1,.3,1)]"
-      style={{ opacity: leaving ? 0 : 1, transform: leaving ? "scale(0.96)" : "scale(1)" }}
-      onClick={dismiss}
-    >
-      {still ? (
-        <Image
-          src="/brand/dragon.png"
-          alt=""
-          aria-hidden
-          width={1024}
-          height={1024}
-          priority
-          className="h-auto w-[min(74vw,26rem)] select-none"
-          style={{ animation: `cine-simple 500ms ease-out both` }}
-        />
-      ) : (
-        <video
-          ref={video}
-          aria-hidden
-          src="/brand/intro.mp4"
-          poster="/brand/intro-poster.jpg"
-          muted
-          playsInline
-          preload="auto"
-          onPlaying={() => {
-            playing.current = true;
-            setLive(true);
-          }}
-          onEnded={dismiss}
-          onError={() => setStalled(true)}
-          className="intro-clip h-auto w-[min(148vw,86rem)] max-w-none select-none"
-          style={{
-            mixBlendMode: "screen",
-            /* the close pass is drawn wider than the rendered frame, so the clip is held large
-               enough to cover the viewport while the dragon flies and only eases down to fit
-               once the crest locks — the wings leave the screen instead of the frame */
-            animation: `intro-frame ${RUNTIME}ms cubic-bezier(.16,1,.3,1) both`,
-            animationPlayState: live ? "running" : "paused",
-            maskImage: EDGE,
-            WebkitMaskImage: EDGE,
-            maskComposite: "intersect",
-            WebkitMaskComposite: "source-in",
-          }}
-        />
-      )}
-
-      <p
+    <div className="splash" data-leaving={leaving || undefined} onClick={dismiss}>
+      <video
+        ref={video}
         aria-hidden
-        className="absolute bottom-[max(2.5rem,env(safe-area-inset-bottom))] label text-fg-3"
-        style={{ animation: `cine-simple 600ms ${still ? 200 : 5400}ms ease-out both` }}
-      >
+        className="splash-clip"
+        src="/brand/intro.mp4"
+        poster="/brand/intro-poster.jpg"
+        autoPlay
+        muted
+        playsInline
+        preload="auto"
+        onPlaying={() => {
+          playing.current = true;
+        }}
+        onEnded={dismiss}
+        onError={stall}
+      />
+
+      <Image
+        src="/brand/dragon.png"
+        alt=""
+        aria-hidden
+        width={1024}
+        height={1024}
+        sizes="(min-width: 640px) 26rem, 74vw"
+        className="splash-still"
+      />
+
+      <p aria-hidden className="splash-word absolute bottom-[max(2.5rem,env(safe-area-inset-bottom))] label text-fg-3">
         {profile.name} · {profile.role}
       </p>
 

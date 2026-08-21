@@ -83,6 +83,16 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+/**
+ * Runs before the body is parsed, so the splash — which ships in the server HTML — either owns
+ * the first painted frame or is gone before one exists. This cannot wait for hydration: a class
+ * added after React boots lets the home page show first, which is the one thing the intro is
+ * there to prevent.
+ */
+const INTRO_BOOT = `try{var h=document.documentElement,s=null;try{s=sessionStorage.getItem("vk-intro-seen")}catch(e){}
+if(s){h.className+=" intro-done"}else{h.className+=" intro-lock";
+try{if(matchMedia("(prefers-reduced-motion: reduce)").matches)h.className+=" intro-still"}catch(e){}}}catch(e){}`;
+
 export default function RootLayout({
   children,
 }: {
@@ -94,12 +104,16 @@ export default function RootLayout({
       className={`${geist.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: INTRO_BOOT }} />
+        <noscript dangerouslySetInnerHTML={{ __html: "<style>.splash{display:none}</style>" }} />
+      </head>
       <body className="min-h-svh">
+        <Preloader />
         <MotionProvider>
           <SmoothScroll>
             <ScrollStateProvider>
               <HashScroll />
-              <Preloader />
               <Nav />
               <ScrollProgress />
               <QuickBar />

@@ -362,19 +362,65 @@ html.intro-lock { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .sheen::after { animation: none; } }
 
 /* ---- brand splash ----------------------------------------------------------
-   The intro is a rendered clip (public/brand/intro.mp4) composited with `screen`, so the only
-   thing left for CSS is the fade the crest and the wordmark share. */
+   The overlay ships in the server HTML and the boot script in <head> decides, before the body
+   is parsed, which of the three states this load is in — so the page underneath is never on
+   screen first. Everything static lives here rather than in inline styles: the markup has to be
+   complete and correct in the very first frame, with no React pass to finish it off.
+
+     (no class)    the clip plays — it autoplays from the markup, ahead of hydration
+     .intro-still  reduced motion, or the clip could not start: the static crest stands in
+     .intro-done   already played this session: gone before anything paints */
 
 @keyframes cine-simple { from { opacity: 0; } to { opacity: 1; } }
 
-/* The close pass is drawn wider than the rendered frame, so the clip is held large enough to
-   cover the viewport while the dragon is flying — the wings then leave the screen instead of
-   dying on the edge of a visible window — and only eases down to fit once the crest locks. */
-.intro-clip { --intro-zoom: 2.9; }
-@media (min-width: 640px)  { .intro-clip { --intro-zoom: 2.1; } }
-@media (min-width: 1024px) { .intro-clip { --intro-zoom: 1.55; } }
-@keyframes intro-frame {
-  0%, 55% { transform: scale(var(--intro-zoom)); }
-  85%, 100% { transform: scale(1); }
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #050505;
+  transition:
+    opacity 500ms var(--ease-out-expo),
+    transform 500ms var(--ease-out-expo);
 }
-@media (prefers-reduced-motion: reduce) { .intro-clip { animation: none !important; transform: none !important; } }
+.splash[data-leaving] { opacity: 0; transform: scale(0.96); }
+html.intro-done .splash { display: none; }
+
+/* The clip opens on the crest with its wings at the frame edges, so the frame is let run a
+   little past the viewport on phones and the mask takes the wing tips out before the screen
+   edge can cut them. */
+.splash-clip {
+  width: min(118vw, 80rem);
+  height: auto;
+  max-width: none;
+  user-select: none;
+  mix-blend-mode: screen;
+  animation: intro-frame 1400ms var(--ease-out-expo) both;
+  mask-image:
+    linear-gradient(to right, transparent, #000 9%, #000 91%, transparent),
+    linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent);
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, #000 9%, #000 91%, transparent),
+    linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+}
+@keyframes intro-frame {
+  from { opacity: 0; transform: scale(1.06); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.splash-still {
+  display: none;
+  width: min(74vw, 26rem);
+  height: auto;
+  user-select: none;
+  animation: cine-simple 500ms ease-out both;
+}
+html.intro-still .splash-clip { display: none; }
+html.intro-still .splash-still { display: block; }
+
+.splash-word { animation: cine-simple 600ms 350ms ease-out both; }
+html.intro-still .splash-word { animation-delay: 200ms; }
