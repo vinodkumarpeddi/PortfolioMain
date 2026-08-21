@@ -13,6 +13,7 @@ import { ArrowUpRight } from "@/components/ui/Icons";
 import { SectionNumeral } from "@/components/ui/SectionNumeral";
 import { LocalTime } from "@/components/ui/LocalTime";
 import { Marquee } from "@/components/ui/Marquee";
+import { AboutBackdrop } from "./AboutBackdrop";
 
 const services = [
   {
@@ -102,7 +103,8 @@ const stackB = technologies.filter((t) => ["data", "infrastructure", "systems"].
 export function AboutSection() {
   return (
     <section id="about" data-section="about" className="relative" aria-labelledby="about-title">
-      <div className="gutter relative mx-auto max-w-[100rem] py-[var(--spacing-section)]">
+      <AboutBackdrop />
+      <div className="gutter relative z-10 mx-auto max-w-[100rem] py-[var(--spacing-section)]">
         <SectionNumeral>06</SectionNumeral>
         <Reveal>
           <SectionLabel index="06">About</SectionLabel>
