@@ -9,6 +9,7 @@ import { CompactScene } from "./CompactScene";
 import { ProjectIndex } from "./ProjectIndex";
 import { SectionNumeral } from "@/components/ui/SectionNumeral";
 import { WorkWash } from "./WorkWash";
+import { washFor } from "@/lib/brand";
 
 export function WorkSection() {
   const [, cqrs, exam, saas, grillbot] = projects;
@@ -41,16 +42,16 @@ export function WorkSection() {
         </Reveal>
       </div>
 
-      <div className="mt-8 border-t border-line-1" data-wash="#22d3ee">
+      <div className="mt-8 border-t border-line-1" data-wash={washFor("event-driven-analytics")}>
         <ArchitectureScene project={cqrs} />
       </div>
-      <div className="border-t border-line-1" data-wash="#4c1d95">
+      <div className="border-t border-line-1" data-wash={washFor("exam-seating-management")}>
         <SplitScene project={exam} />
       </div>
-      <div className="border-t border-line-1" data-wash="#7c3aed">
+      <div className="border-t border-line-1" data-wash={washFor("multi-tenant-saas")}>
         <HorizontalScene project={saas} />
       </div>
-      <div className="border-t border-line-1" data-wash="#c026d3">
+      <div className="border-t border-line-1" data-wash={washFor("grillbot")}>
         <CompactScene project={grillbot} />
       </div>
       <div className="border-t border-line-1" data-wash="#e9a23b">

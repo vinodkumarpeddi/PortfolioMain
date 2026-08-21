@@ -13,6 +13,7 @@ import { Nav } from "@/components/layout/Nav";
 import { ScrollProgress } from "@/components/layout/ScrollProgress";
 import { QuickBar } from "@/components/layout/QuickBar";
 import { MotionProvider } from "@/components/providers/MotionProvider";
+import { PageTransition } from "@/components/layout/PageTransition";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -118,7 +119,7 @@ export default function RootLayout({
               <Nav />
               <ScrollProgress />
               <QuickBar />
-              {children}
+              <PageTransition>{children}</PageTransition>
               <Cursor />
               <FluidInk />
               <Grain />
