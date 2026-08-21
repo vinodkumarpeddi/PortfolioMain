@@ -5,7 +5,7 @@ import { Html } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
-export type HeroState = { spread: number; opacity: number; energy?: number };
+export type HeroState = { spread: number; opacity: number; energy?: number; progress?: number };
 export type HeroVariant = "hero" | "ambient" | "orbit" | "backdrop";
 export type OrbitConfig = { count: number; activeRef: MutableRefObject<number>; labels?: string[]; onSelect?: (i: number) => void };
 

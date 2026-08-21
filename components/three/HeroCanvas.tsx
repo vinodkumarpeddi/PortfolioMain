@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 const HeroObject = dynamic(() => import("./HeroObject"), { ssr: false });
 const VoxelScene = dynamic(() => import("./VoxelScene"), { ssr: false });
+const FlowScene = dynamic(() => import("./FlowScene"), { ssr: false });
 
 function hasWebGL() {
   try {
@@ -19,7 +20,7 @@ function hasWebGL() {
 }
 
 /** Lazily mounts the WebGL scene, renders only while on screen, fades in when ready. */
-export function HeroCanvas({ stateRef, className, ambient, variant, orbit, paused, scene = "planet" }: { stateRef: MutableRefObject<HeroState>; className?: string; ambient?: boolean; variant?: HeroVariant; orbit?: OrbitConfig; paused?: boolean; scene?: "planet" | "voxel" }) {
+export function HeroCanvas({ stateRef, className, ambient, variant, orbit, paused, scene = "planet" }: { stateRef: MutableRefObject<HeroState>; className?: string; ambient?: boolean; variant?: HeroVariant; orbit?: OrbitConfig; paused?: boolean; scene?: "planet" | "voxel" | "flow" }) {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = usePrefersReducedMotion();
   const [ok, setOk] = useState(false);
@@ -37,7 +38,9 @@ export function HeroCanvas({ stateRef, className, ambient, variant, orbit, pause
 
   useEffect(() => {
     if (!ok || !ref.current) return;
-    const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { threshold: 0 });
+    /* half a viewport of lead: the first frame compiles the shaders, and that is better spent
+       while the scene is still below the fold than on the frame it first shows */
+    const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { threshold: 0, rootMargin: "50% 0px" });
     io.observe(ref.current);
     const t = window.setTimeout(() => setReady(true), 600);
     return () => {
@@ -54,7 +57,13 @@ export function HeroCanvas({ stateRef, className, ambient, variant, orbit, pause
 
   return (
     <div ref={ref} className={cn("transition-opacity duration-[1600ms] ease-[var(--ease-standard)]", ready ? "opacity-100" : "opacity-0", className)}>
-      {scene === "voxel" ? <VoxelScene stateRef={stateRef} active={live} /> : <HeroObject stateRef={stateRef} active={live} variant={variant ?? (ambient ? "ambient" : "hero")} orbit={orbit} />}
+      {scene === "voxel" ? (
+        <VoxelScene stateRef={stateRef} active={live} />
+      ) : scene === "flow" ? (
+        <FlowScene stateRef={stateRef} active={live} />
+      ) : (
+        <HeroObject stateRef={stateRef} active={live} variant={variant ?? (ambient ? "ambient" : "hero")} orbit={orbit} />
+      )}
     </div>
   );
 }

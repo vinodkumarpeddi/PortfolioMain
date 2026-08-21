@@ -5,6 +5,8 @@ import { useLenis } from "lenis/react";
 import { gsap, SplitText, useGSAP, MOTION_OK, DESKTOP } from "@/lib/gsap";
 import { principles } from "@/data/principles";
 import { SectionLabel } from "@/components/ui/Section";
+import { HeroCanvas } from "@/components/three/HeroCanvas";
+import type { HeroState } from "@/components/three/HeroObject";
 import { cn } from "@/lib/utils";
 
 /**
@@ -17,6 +19,7 @@ export function Principles() {
   const indexRef = useRef(0);
   const [index, setIndex] = useState(0);
   const lenis = useLenis();
+  const flowState = useRef<HeroState>({ spread: 0, opacity: 1, progress: 0 });
 
   // phones: the chapter chips jump the pinned timeline to a principle. The pin spacer's
   // geometry is the fallback for when the ScrollTrigger has not been created yet.
@@ -64,6 +67,7 @@ export function Principles() {
             /* no snap here: it drives the scroll position itself, which Lenis owns, and the two
                pull against each other for the whole length of the pin */
             onUpdate: (self) => {
+              flowState.current.progress = self.progress;
               const i = Math.min(principles.length - 1, Math.floor(self.progress * principles.length + 0.0001));
               if (counter) counter.textContent = String(i + 1).padStart(2, "0");
               if (indexRef.current !== i) {
@@ -110,7 +114,11 @@ export function Principles() {
         {/* will-change keeps the 140px blur on its own layer, so tracking it across the pin
             moves a texture instead of re-blurring a 70vw box every frame */}
         <div aria-hidden className="pr-glow pointer-events-none absolute left-1/2 top-1/2 hidden h-[70svh] w-[70vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/[0.05] blur-[140px] [will-change:transform] lg:block" />
-        <div className="gutter mx-auto flex w-full max-w-[100rem] items-center justify-between pt-24">
+        <div className="pointer-events-none absolute inset-0 z-0 motion-reduce:hidden" aria-hidden>
+          <HeroCanvas stateRef={flowState} scene="flow" className="absolute inset-0" />
+          <div className="absolute inset-0 bg-[radial-gradient(70%_60%_at_30%_60%,var(--color-bg-1)_0%,transparent_70%)] opacity-70 lg:bg-[radial-gradient(55%_70%_at_22%_55%,var(--color-bg-1)_0%,transparent_72%)]" />
+        </div>
+        <div className="gutter relative z-10 mx-auto flex w-full max-w-[100rem] items-center justify-between pt-24">
           <SectionLabel index="05">How I think</SectionLabel>
           <p className="label text-fg-3 tabular-nums" aria-hidden>
             <span className="pr-index text-fg-1">01</span> / {String(principles.length).padStart(2, "0")}
@@ -120,7 +128,7 @@ export function Principles() {
           Engineering principles
         </h2>
 
-        <nav className="gutter mx-auto mt-5 w-full max-w-[100rem] motion-reduce:hidden lg:hidden" aria-label="Principles">
+        <nav className="gutter relative z-10 mx-auto mt-5 w-full max-w-[100rem] motion-reduce:hidden lg:hidden" aria-label="Principles">
           <ul className="flex flex-wrap gap-1.5">
             {principles.map((p, i) => (
               <li key={p.id}>
@@ -140,7 +148,7 @@ export function Principles() {
           </ul>
         </nav>
 
-        <div className="relative flex flex-1 flex-col justify-center">
+        <div className="relative z-10 flex flex-1 flex-col justify-center">
           <div className="gutter mx-auto w-full max-w-[100rem]">
             <div className="relative min-h-[50svh] motion-reduce:min-h-0">
               {principles.map((p) => (
@@ -155,7 +163,7 @@ export function Principles() {
                   </p>
                   <div className="pr-meta mt-6 grid grid-cols-12 gap-x-6 gap-y-3 sm:mt-8">
                     <p className="col-span-12 text-lead text-fg-1 lg:col-span-6">{p.line}</p>
-                    <p className="col-span-12 flex gap-3 text-[15px] leading-relaxed text-fg-2 lg:col-span-5 lg:col-start-8">
+                    <p className="col-span-12 flex gap-3 text-[15px] leading-relaxed text-fg-2 lg:col-span-5 lg:col-start-1">
                       <span className="label mt-1.5 shrink-0 text-accent">{p.index}</span>
                       <span>{p.proof}</span>
                     </p>
@@ -166,7 +174,7 @@ export function Principles() {
           </div>
         </div>
 
-        <div className="gutter mx-auto mb-8 w-full max-w-[100rem] motion-reduce:hidden lg:hidden" aria-hidden>
+        <div className="gutter relative z-10 mx-auto mb-8 w-full max-w-[100rem] motion-reduce:hidden lg:hidden" aria-hidden>
           <div className="flex gap-1.5">
             {principles.map((p, i) => (
               <span key={p.id} className={cn("h-0.5 flex-1 rounded-full transition-colors duration-[var(--duration-slow)]", i <= index ? "bg-accent" : "bg-line-2")} />
